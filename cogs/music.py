@@ -1,7 +1,7 @@
 
+from email.quoprimime import quote
 from discord.ext import commands
 import discord
-#import openai # Why the fuck is this in here # i forgor 💀
 import asyncio
 from discord import NotFound
 from utility import VoiceChat, YouTube
@@ -12,6 +12,7 @@ import numpy as np
 import math
 import isodate
 import time
+import validators
 
 playlist = {}
 looping = {}
@@ -21,7 +22,6 @@ def get_server(ctx):
 
 class Video: # for the video info
     def __init__(self, data):
-
         self.title = data['title']
         self.description = data['description']
         self.channel = '???'
@@ -54,7 +54,7 @@ async def create_embed(ctx, page_num, youtube): # todo add timestamp
     embed = discord.Embed(title='PLAYLIST', description='', fields=[])
     index = page_num * 10
     songs = await serialize_songs(server)
-    currently_playing = Video() # zero width #BUT THERE IS NOT ?????
+    #currently_playing = Video() # zero width #BUT THERE IS NOT ?????
     if playlist[server] != []:
         currently_playing = playlist[server][0]
     for song in songs[index:10 + index][::-1]:
@@ -67,7 +67,6 @@ class music(commands.Cog):
     def __init__(self, bot=None, tokens=None):
         self.bot = bot
         self.youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=tokens[3])
-        self.playing = {}
         self.ffmpeg_options = {
             'options': '-vn',
             "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
@@ -76,43 +75,32 @@ class music(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         if member.id == self.bot.user.id: return
-        try:
+        if before.channel != None:
             if len(before.channel.members) == 1:
+                playlist[str(before.channel.guild.id)] = []
                 await before.channel.guild.voice_client.disconnect()
-        except: pass
 
-    async def fetch_songs(self, url):        # todo get first song in list and play it, after that get rest
+    def create_info_embed(self, ctx, number='0', song=None):
+        server = get_server(ctx)
+        if song == None:
+            song = playlist[server][abs(int(number))]
+        embed = discord.Embed(title=f'{song.title} - {song.channel}', description=song.description, fields=[])
+        embed.set_image(url=song.thumbnail)
+        return embed
+
+    async def fetch_songs(self, ctx, url, args):        # todo get first song in list and play it, after that get rest
+        if args != [] or not validators.url(url): # if there are more than 1 arguement or the url is invalid (implying for a search)
+            search_query = f'{url} ' + ' '.join(args)
+            song = YouTube.fetch_from_search(self.youtube, query=search_query)[0] # searches for the video and returns the url to it
+            await ctx.reply(f"found a video with the query '{search_query}':", embed=self.create_info_embed(ctx, song=song))
+            return [song]
         r = urllib.request.urlopen(url)
         url = r.url
         query = parse_qs(urlparse(url).query, keep_blank_values=True)
-
         if 'v' in query:
-            request = self.youtube.videos().list(
-                part='snippet',
-                id=query['v'][0]
-            )
-            r = request.execute()
-            r['items'][0]['snippet']['resourceId'] = {'videoId': query['v'][0]}
-            song = r['items'][0]['snippet']
-            return [Video(data=song)]
-
-        if 'list' in query:
-            request = self.youtube.playlistItems().list(
-                part='snippet',
-                playlistId=query['list'][0],
-                maxResults=1000
-            )
-            items = []
-            loop = asyncio.get_event_loop()
-            while request != None:
-                r = await loop.run_in_executor(None, request.execute)
-                items += r['items']
-                request = self.youtube.playlistItems().list_next(request, r)
-            songs = []
-            for song in items:
-                song['snippet']['channelTitle'] = song['snippet']['videoOwnerChannelTitle']
-                songs.append(Video(data=song['snippet']))
-            return songs
+            return YouTube.fetch_from_video(self.youtube, videoId=query['v'][0])
+        elif 'list' in query:
+            return await YouTube.fetch_from_playlist(self.youtube, playlistId=query['list'][0])
         raise Exception('Invalid url')
 
     def play_song(self, ctx, songs=None):
@@ -124,6 +112,7 @@ class music(commands.Cog):
         if not ctx.voice_client.is_playing() and playlist[server] != []:
             url = YouTube.get_raw_audio_url(f"https://www.youtube.com/watch?v={playlist[server][0].id}")
             source = discord.FFmpegPCMAudio(url, **self.ffmpeg_options)
+            asyncio.run_coroutine_threadsafe(ctx.send('Currently playing:', embed=self.create_info_embed(ctx)), self.bot.loop)
             ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.1), after=lambda e: self.next_song(ctx))
 
     def next_song(self, ctx):
@@ -134,13 +123,13 @@ class music(commands.Cog):
             self.play_song(ctx)        
 
     @commands.command()
-    #@commands.cooldown(1, 10, commands.BucketType.user)
-    async def play(self, ctx, url='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'):
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def play(self, ctx, url='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau', *args):
         if ctx.message.author.bot:
             return
         server = get_server(ctx)
         await VoiceChat.join(ctx)
-        songs = await self.fetch_songs(url)
+        songs = await self.fetch_songs(ctx, url, args)
         if not server in playlist:
                 playlist[server] = []
                 looping[server] = False
@@ -222,11 +211,7 @@ class music(commands.Cog):
     @commands.command()
     async def info(self, ctx, number='0'):
         if ctx.voice_client == None: return
-        server = get_server(ctx)
-        song = playlist[server][abs(int(number))]
-        embed = discord.Embed(title=f'{song.title} - {song.channel}', description=song.description, fields=[])
-        embed.set_image(url=song.thumbnail)
-        await ctx.reply(embed=embed)
+        await ctx.reply(embed=self.create_info_embed(ctx))
 
 class music_view(discord.ui.View):
     def __init__(self, ctx, youtube):

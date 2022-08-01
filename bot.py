@@ -28,5 +28,6 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_ready():
     os.system('cls' if os.name == 'nt' else 'clear')
+    print('ready')
 
 bot.run(tokens[0])
