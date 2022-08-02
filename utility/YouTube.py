@@ -1,5 +1,4 @@
 import yt_dlp
-import asyncio
 
 class Video: # for the video info
     def __init__(self, data):
