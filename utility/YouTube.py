@@ -13,7 +13,7 @@ class Video: # for the video info
         #self.duration = '​'
 
 ydl_opts = {
-    'format': 'bestaudio/best',
+    'format': '140',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
@@ -27,7 +27,7 @@ ydl_opts = {
 async def ExtractInfo(url, audio=False):
     ydl_opts['format'] = 'mp4'
     if audio:
-        ydl_opts['format'] = 'bestaudio/best'
+        ydl_opts['format'] = '140'
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
         try:

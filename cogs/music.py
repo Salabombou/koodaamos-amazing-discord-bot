@@ -1,5 +1,4 @@
 
-from email.quoprimime import quote
 from discord.ext import commands
 import discord
 import asyncio
@@ -11,7 +10,6 @@ import googleapiclient.discovery
 import numpy as np
 import math
 import isodate
-import time
 import validators
 
 playlist = {}
@@ -33,19 +31,7 @@ def get_duration(youtube, videoId): # youtube api v3 needs a v4
     duration = isodate.parse_duration(duration)
     return duration.seconds # returns the duration of the song that was not included in the snippet for some reason
 
-class Video: # for the video info
-    def __init__(self, data):
-        self.title = data['title']
-        self.description = data['description']
-        self.channel = '???'
-        self.thumbnail = None
-        self.id = data['resourceId']['videoId']
-        if data['title'] != 'Private video' and data['title'] != 'Deleted video': # if i can retrieve these stuff
-            self.channel = data['channelTitle']
-            self.thumbnail = data['thumbnails']['high']['url']
-        #self.duration = '​'
-
-async def serialize_songs(server):
+def serialize_songs(server):
     length = len(str(len(playlist[server]))) #cursed cast. todo fix whatever the fuck this is # it just works trust me bro
     i = 0
     array = []
@@ -62,26 +48,39 @@ async def serialize_songs(server):
     array.pop(0)
     return array
 
-async def create_embed(ctx, page_num, youtube): # todo add timestamp
+def create_embed(ctx, page_num): # todo add timestamp
     server = get_server(ctx)
     embed = discord.Embed(title='PLAYLIST', description='', fields=[])
-    index = page_num * 10
-    songs = await serialize_songs(server)
-    #currently_playing = Video() # zero width #BUT THERE IS NOT ?????
+    index = page_num * 25
+    songs = serialize_songs(server)
     if playlist[server] != []:
         currently_playing = playlist[server][0]
-    for song in songs[index:10 + index][::-1]:
+    for song in songs[index:25 + index][::-1]:
         embed.description += song# + '\n'
     embed.add_field(name='CURRENTLY PLAYING:', value=f'```{currently_playing.title}```')
-    #embed.add_field(name='ENDS:', value=currently_playing.duration)
     return embed
+
+def create_options(ctx):
+    server = get_server(ctx)
+    page_amount = math.ceil(len(playlist[server]) / 25)
+    options = []
+    for i in range(0, page_amount):
+        if i >= 25: break
+        options.append(
+            discord.SelectOption(
+                label=f'Page {i+1}',
+                description='',
+                value=str(i)
+                )
+            )
+    return options
 
 class music(commands.Cog):
     def __init__(self, bot=None, tokens=None):
         self.bot = bot
         self.youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=tokens[3])
         self.ffmpeg_options = {
-            'options': '-vn',
+            'options': '-vn -af "asplit[a],aphasemeter=video=0,ametadata=select:key=lavfi.aphasemeter.phase:value=-0.005:function=less,pan=1c|c0=c0,aresample=async=1:first_pts=0,[a]amix"',
             "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
             }
 
@@ -93,7 +92,6 @@ class music(commands.Cog):
                 server = str(before.channel.guild.id)
                 playlist[server] = []
                 await before.channel.guild.voice_client.disconnect()
-
     def create_info_embed(self, ctx, number='0', song=None):
         server = get_server(ctx)
         if song == None:
@@ -183,7 +181,7 @@ class music(commands.Cog):
         server = get_server(ctx)
         if not server in playlist:
             return
-        embed = await create_embed(ctx, 0, self.youtube)
+        embed = create_embed(ctx, 0)
         message = await ctx.send(embed=embed)
         await message.edit(view=music_view(ctx=await self.bot.get_context(message), youtube=self.youtube))
         
@@ -262,6 +260,7 @@ class music_view(discord.ui.View):
         self.embed = None
         self.index = 0
         self.server = get_server(ctx)
+        self.children[0].options = create_options(ctx)
         self.update_buttons()
     
     async def on_error(self, error, item, interaction):
@@ -274,71 +273,72 @@ class music_view(discord.ui.View):
         await interaction.response.edit_message(view=self)
 
     def update_buttons(self): # holy fuck
-        playlist_length = math.ceil(len(playlist[self.server]) / 10)
+        playlist_length = math.ceil(len(playlist[self.server]) / 25)
 
         for i in range(0, len(self.children)):
             self.children[i].disabled = False
 
         if self.index == 0: # no more to go back
-            self.children[0].disabled = True # super back
-            self.children[1].disabled = True # back
+            self.children[1].disabled = True # super back
+            self.children[2].disabled = True # back
         if self.index >= playlist_length - 1: # no more to forward
-            self.children[3].disabled = True # for
-            self.children[4].disabled = True # super for
+            self.children[4].disabled = True # for
+            self.children[5].disabled = True # super for
         if playlist[self.server] == []: # if the entire list is empty
             for i in range(0, len(self.children)):
                 self.children[i].disabled = True
             self.children[3].disabled = False # refresh
             self.index = 0
 
+    @discord.ui.select(placeholder='Choose page...', min_values=0, row=0)
+    async def select_callback(self, select, interaction):
+        if self.ctx.voice_client == None: return
+        value = int(select.values[0])
+        self.index = value
+        self.embed = create_embed(self.ctx, value)
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.embed, view=self)
 
-    async def create_options(self):
-        math.ceil(len(playlist[self.server]) / 10)
-
-    #@discord.ui.select(placeholder='Choose page...', min_values=0)
-    #async def select_callback(self, select, interaction):
-    #    pass
-
-    @discord.ui.button(label='FIRST PAGE' ,emoji='⏪', style=discord.ButtonStyle.red, row=0, disabled=True)
+    @discord.ui.button(label='FIRST PAGE' ,emoji='⏪', style=discord.ButtonStyle.red, row=1, disabled=True)
     async def super_backward_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
         self.index = 0
-        self.embed = await create_embed(self.ctx, self.index, self.youtube)
+        self.embed = create_embed(self.ctx, self.index)
         self.update_buttons()
         await interaction.response.edit_message(embed=self.embed, view=self)
 
-    @discord.ui.button(label='PREVIOUS PAGE' ,emoji='◀️', style=discord.ButtonStyle.red, row=0, disabled=True)
+    @discord.ui.button(label='PREVIOUS PAGE' ,emoji='◀️', style=discord.ButtonStyle.red, row=1, disabled=True)
     async def backward_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
         self.index -= 1
-        self.embed = await create_embed(self.ctx, self.index, self.youtube)
+        self.embed = create_embed(self.ctx, self.index)
         self.update_buttons()
         await interaction.response.edit_message(embed=self.embed, view=self)
 
-    @discord.ui.button(label='REFRESH' ,emoji='🔄', style=discord.ButtonStyle.red, row=0)
+    @discord.ui.button(label='REFRESH' ,emoji='🔄', style=discord.ButtonStyle.red, row=1)
     async def refresh_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
-        self.embed = await create_embed(self.ctx, self.index, self.youtube)
+        self.embed = create_embed(self.ctx, self.index)
         self.update_buttons()
         await interaction.response.edit_message(embed=self.embed, view=self)
 
-    @discord.ui.button(label='NEXT PAGE' ,emoji='▶️', style=discord.ButtonStyle.red, row=0)
+    @discord.ui.button(label='NEXT PAGE' ,emoji='▶️', style=discord.ButtonStyle.red, row=1)
     async def forward_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
         self.index += 1
-        self.embed = await create_embed(self.ctx, self.index, self.youtube)
+        self.embed = create_embed(self.ctx, self.index)
         self.update_buttons()
         await interaction.response.edit_message(embed=self.embed, view=self)
 
-    @discord.ui.button(label='LAST PAGE' ,emoji='⏩', style=discord.ButtonStyle.red, row=0)
+    @discord.ui.button(label='LAST PAGE' ,emoji='⏩', style=discord.ButtonStyle.red, row=1)
     async def super_forward_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
-        self.index = math.ceil(len(playlist[self.server]) / 10) - 1
-        self.embed = await create_embed(self.ctx, self.index, self.youtube)
+        self.index = math.ceil(len(playlist[self.server]) / 25) - 1
+        self.embed = create_embed(self.ctx, self.index)
         self.update_buttons()
         await interaction.response.edit_message(embed=self.embed, view=self)
 
-    @discord.ui.button(label='SKIP' ,emoji='⏭️', style=discord.ButtonStyle.red, row=1)
+    @discord.ui.button(label='SKIP' ,emoji='⏭️', style=discord.ButtonStyle.red, row=2)
     async def skip_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
         temp = looping[self.server]
@@ -346,11 +346,11 @@ class music_view(discord.ui.View):
         await VoiceChat.stop(self.ctx)
         await asyncio.sleep(0.5)
         looping[self.server] = temp
-        self.embed = await create_embed(self.ctx, self.index, self.youtube)
+        self.embed = create_embed(self.ctx, self.index)
         self.update_buttons()
         await interaction.response.edit_message(embed=self.embed, view=self)
 
-    @discord.ui.button(label='SHUFFLE' ,emoji='🔀', style=discord.ButtonStyle.red, row=1)
+    @discord.ui.button(label='SHUFFLE' ,emoji='🔀', style=discord.ButtonStyle.red, row=2)
     async def shuffle_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
         if playlist[self.server] == []: return
@@ -358,17 +358,17 @@ class music_view(discord.ui.View):
         playlist[self.server].pop(0)
         np.random.shuffle(playlist[self.server])
         playlist[self.server].insert(0, temp)
-        self.embed = await create_embed(self.ctx, self.index, self.youtube)
+        self.embed = create_embed(self.ctx, self.index)
         self.update_buttons()
         await interaction.response.edit_message(embed=self.embed, view=self)
 
-    @discord.ui.button(label='LOOP' ,emoji='🔁', style=discord.ButtonStyle.red, row=1)
+    @discord.ui.button(label='LOOP' ,emoji='🔁', style=discord.ButtonStyle.red, row=2)
     async def loop_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
         looping[self.server] = not looping[self.server]
         await interaction.response.edit_message(view=self)
 
-    @discord.ui.button(label='PAUSE/RESUME' ,emoji='⏯️', style=discord.ButtonStyle.red, row=1)
+    @discord.ui.button(label='PAUSE/RESUME' ,emoji='⏯️', style=discord.ButtonStyle.red, row=2)
     async def pauseresume_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
         if not self.ctx.voice_client.is_paused():
@@ -376,6 +376,5 @@ class music_view(discord.ui.View):
         else:
             await VoiceChat.resume(self.ctx)
         await interaction.response.edit_message(view=self)
-
 def setup(client, tokens):
     client.add_cog(music(client, tokens))
