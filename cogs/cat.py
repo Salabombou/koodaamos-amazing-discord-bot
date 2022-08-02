@@ -11,10 +11,10 @@ sessions = []
 class cat(commands.Cog):
     def __init__(self, bot, tokens=None):
         self.bot = bot
-        reddit_api_file = open("./files/reddit_api", "r")
+        reddit_api_file = open("./files/reddit_api.api", "r")
         reddit_file_content = reddit_api_file.readlines()
 
-        self.catAPI = tokens[3]
+        self.catAPI = tokens[4]
         if (len(sessions) < 0):
             for session in sessions:
                 session.close()
@@ -46,7 +46,7 @@ class cat(commands.Cog):
         await ctx.send(url)
     
     def exit_handler():
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         loop.run_until_complete(async_exit_handler())
         loop.close()
     atexit.register(exit_handler)
