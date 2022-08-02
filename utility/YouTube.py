@@ -1,5 +1,4 @@
 import yt_dlp
-import asyncio
 
 class Video: # for the video info
     def __init__(self, data):
@@ -9,7 +8,7 @@ class Video: # for the video info
         self.thumbnail = None
         self.id = data['resourceId']['videoId']
         if data['title'] != 'Private video' and data['title'] != 'Deleted video': # if i can retrieve these stuff
-            self.channel = data['channelTitle']
+            self.channel = data['videoOwnerChannelTitle']
             self.thumbnail = data['thumbnails']['high']['url']
         #self.duration = '​'
 
@@ -68,22 +67,15 @@ def fetch_from_video(youtube, videoId):
     r = request.execute()
     r['items'][0]['snippet']['resourceId'] = {'videoId': videoId}
     song = r['items'][0]['snippet']
+    song['videoOwnerChannelTitle'] = song['channelTitle']
     return [Video(data=song)]
 
 async def fetch_from_playlist(youtube, playlistId):
     request = youtube.playlistItems().list(
         part='snippet',
         playlistId=playlistId,
-        maxResults=1000
+        maxResults=1
     )
-    items = []
-    loop = asyncio.get_event_loop()
-    while request != None:
-        r = await loop.run_in_executor(None, request.execute)
-        items += r['items']
-        request = youtube.playlistItems().list_next(request, r)
-    songs = []
-    for song in items:
-        song['snippet']['channelTitle'] = song['snippet']['videoOwnerChannelTitle']
-        songs.append(Video(data=song['snippet']))
-    return songs
+    r = request.execute()
+    song = r['items'][0]['snippet']
+    return Video(data=song)
