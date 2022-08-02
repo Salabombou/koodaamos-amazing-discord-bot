@@ -149,12 +149,14 @@ class music(commands.Cog):
             url = YouTube.get_raw_audio_url(f"https://www.youtube.com/watch?v={song.id}")
             source = discord.FFmpegPCMAudio(url, **self.ffmpeg_options)
             embed = self.create_info_embed(ctx)
-            duration = get_duration(self.youtube, song.id) + 1
-            asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed, delete_after=duration), self.bot.loop)
-            ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.75), after=lambda e: self.next_song(ctx))
+            message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed), self.bot.loop)
+            ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.75), after=lambda e: self.next_song(ctx, message._result))
 
-    def next_song(self, ctx):
+    def next_song(self, ctx, message):
         server = get_server(ctx)
+        try:
+            asyncio.run_coroutine_threadsafe(message.delete(), self.bot.loop)
+        except: pass # incase the message was deleted or something so it wont fuck up the whole queue
         if playlist[server] != []:
             if not looping[server]:
                 playlist[server].pop(0)
@@ -235,6 +237,7 @@ class music(commands.Cog):
         if playlist[server] == []: return
         temp = playlist[server][0]
         playlist[server].pop(0)
+        await asyncio.sleep(3) # incase the playlist hasnt been appended to playlist[server]
         np.random.shuffle(playlist[server])
         playlist[server].insert(0, temp)
         await ctx.message.add_reaction('👌')
@@ -271,14 +274,15 @@ class music_view(discord.ui.View):
         await interaction.response.edit_message(view=self)
 
     def update_buttons(self): # holy fuck
-        playlist_length = math.ceil(len(playlist[self.server]) / 10) - 1
+        playlist_length = math.ceil(len(playlist[self.server]) / 10)
+
         for i in range(0, len(self.children)):
             self.children[i].disabled = False
 
         if self.index == 0: # no more to go back
             self.children[0].disabled = True # super back
             self.children[1].disabled = True # back
-        if self.index >= playlist_length: # no more to forward
+        if self.index >= playlist_length - 1: # no more to forward
             self.children[3].disabled = True # for
             self.children[4].disabled = True # super for
         if playlist[self.server] == []: # if the entire list is empty
@@ -286,6 +290,14 @@ class music_view(discord.ui.View):
                 self.children[i].disabled = True
             self.children[3].disabled = False # refresh
             self.index = 0
+
+
+    async def create_options(self):
+        math.ceil(len(playlist[self.server]) / 10)
+
+    #@discord.ui.select(placeholder='Choose page...', min_values=0)
+    #async def select_callback(self, select, interaction):
+    #    pass
 
     @discord.ui.button(label='FIRST PAGE' ,emoji='⏪', style=discord.ButtonStyle.red, row=0, disabled=True)
     async def super_backward_callback(self, button, interaction):
