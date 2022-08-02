@@ -20,6 +20,19 @@ looping = {}
 def get_server(ctx):
     return str(ctx.message.guild.id)
 
+def get_duration(youtube, videoId): # youtube api v3 needs a v4
+    request = youtube.videos().list(
+        part='contentDetails',
+        id=videoId
+    )
+    r = request.execute()
+    duration = 'PT2S'
+    try:
+        duration = r['items'][0]['contentDetails']['duration']
+    except: pass
+    duration = isodate.parse_duration(duration)
+    return duration.seconds # returns the duration of the song that was not included in the snippet for some reason
+
 class Video: # for the video info
     def __init__(self, data):
         self.title = data['title']
@@ -33,12 +46,12 @@ class Video: # for the video info
         #self.duration = '​'
 
 async def serialize_songs(server):
-    length = len(str(len(playlist[server]))) #cursed cast. todo fix whatever the fuck this is
+    length = len(str(len(playlist[server]))) #cursed cast. todo fix whatever the fuck this is # it just works trust me bro
     i = 0
     array = []
     for song in playlist[server]:
-        dots = '...'
-        digit = '0000000'[0:length - len(str(i))] + str(i) #dafuq .zfill()?
+        dots = ' ...'
+        digit = f'{i}'.zfill(length)
         if not len(song.title) > 34:
             dots = ''
         song = f"```{digit}: {song.title}"[0:44] + f'{dots}```'
@@ -77,7 +90,8 @@ class music(commands.Cog):
         if member.id == self.bot.user.id: return
         if before.channel != None:
             if len(before.channel.members) == 1:
-                playlist[str(before.channel.guild.id)] = []
+                server = str(before.channel.guild.id)
+                playlist[server] = []
                 await before.channel.guild.voice_client.disconnect()
 
     def create_info_embed(self, ctx, number='0', song=None):
@@ -89,10 +103,11 @@ class music(commands.Cog):
         return embed
 
     async def fetch_songs(self, ctx, url, args):        # todo get first song in list and play it, after that get rest
-        if args != [] or not validators.url(url): # if there are more than 1 arguement or the url is invalid (implying for a search)
+        if args != () or not validators.url(url): # if there are more than 1 arguement or the url is invalid (implying for a search)
             search_query = f'{url} ' + ' '.join(args)
             song = YouTube.fetch_from_search(self.youtube, query=search_query)[0] # searches for the video and returns the url to it
-            await ctx.reply(f"found a video with the query '{search_query}':", embed=self.create_info_embed(ctx, song=song))
+            embed = self.create_info_embed(ctx, song=song)
+            await ctx.reply(f"found a video with the query '{search_query}':", embed=embed, delete_after=10)
             return [song]
         r = urllib.request.urlopen(url)
         url = r.url
@@ -100,7 +115,27 @@ class music(commands.Cog):
         if 'v' in query:
             return YouTube.fetch_from_video(self.youtube, videoId=query['v'][0])
         elif 'list' in query:
-            return await YouTube.fetch_from_playlist(self.youtube, playlistId=query['list'][0])
+            song = await YouTube.fetch_from_playlist(self.youtube, playlistId=query['list'][0])
+            async def fetch_the_rest():
+                server = get_server(ctx)
+                await asyncio.sleep(0.5) # just incase
+                request = self.youtube.playlistItems().list(
+                    part='snippet',
+                    playlistId=query['list'][0],
+                    maxResults=1000
+                )
+                items = []
+                while request != None:
+                    r = await ctx.bot.loop.run_in_executor(None, request.execute)
+                    items += r['items']
+                    request = self.youtube.playlistItems().list_next(request, r)
+                songs = []
+                for song in items:
+                    song = song['snippet']
+                    songs.append(YouTube.Video(data=song))
+                playlist[server] += songs[1:]
+            asyncio.ensure_future(fetch_the_rest()) # fire and forget
+            return [song]
         raise Exception('Invalid url')
 
     def play_song(self, ctx, songs=None):
@@ -110,13 +145,18 @@ class music(commands.Cog):
         if songs != None:
             playlist[server] += songs
         if not ctx.voice_client.is_playing() and playlist[server] != []:
-            url = YouTube.get_raw_audio_url(f"https://www.youtube.com/watch?v={playlist[server][0].id}")
+            song = playlist[server][0]
+            url = YouTube.get_raw_audio_url(f"https://www.youtube.com/watch?v={song.id}")
             source = discord.FFmpegPCMAudio(url, **self.ffmpeg_options)
-            asyncio.run_coroutine_threadsafe(ctx.send('Currently playing:', embed=self.create_info_embed(ctx)), self.bot.loop)
-            ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.1), after=lambda e: self.next_song(ctx))
+            embed = self.create_info_embed(ctx)
+            message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed), self.bot.loop)
+            ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.75), after=lambda e: self.next_song(ctx, message._result))
 
-    def next_song(self, ctx):
+    def next_song(self, ctx, message):
         server = get_server(ctx)
+        try:
+            asyncio.run_coroutine_threadsafe(message.delete(), self.bot.loop)
+        except: pass # incase the message was deleted or something so it wont fuck up the whole queue
         if playlist[server] != []:
             if not looping[server]:
                 playlist[server].pop(0)
@@ -197,6 +237,7 @@ class music(commands.Cog):
         if playlist[server] == []: return
         temp = playlist[server][0]
         playlist[server].pop(0)
+        await asyncio.sleep(3) # incase the playlist hasnt been appended to playlist[server]
         np.random.shuffle(playlist[server])
         playlist[server].insert(0, temp)
         await ctx.message.add_reaction('👌')
@@ -233,14 +274,15 @@ class music_view(discord.ui.View):
         await interaction.response.edit_message(view=self)
 
     def update_buttons(self): # holy fuck
-        playlist_length = math.ceil(len(playlist[self.server]) / 10) - 1
+        playlist_length = math.ceil(len(playlist[self.server]) / 10)
+
         for i in range(0, len(self.children)):
             self.children[i].disabled = False
 
         if self.index == 0: # no more to go back
             self.children[0].disabled = True # super back
             self.children[1].disabled = True # back
-        if self.index >= playlist_length: # no more to forward
+        if self.index >= playlist_length - 1: # no more to forward
             self.children[3].disabled = True # for
             self.children[4].disabled = True # super for
         if playlist[self.server] == []: # if the entire list is empty
@@ -248,6 +290,14 @@ class music_view(discord.ui.View):
                 self.children[i].disabled = True
             self.children[3].disabled = False # refresh
             self.index = 0
+
+
+    async def create_options(self):
+        math.ceil(len(playlist[self.server]) / 10)
+
+    #@discord.ui.select(placeholder='Choose page...', min_values=0)
+    #async def select_callback(self, select, interaction):
+    #    pass
 
     @discord.ui.button(label='FIRST PAGE' ,emoji='⏪', style=discord.ButtonStyle.red, row=0, disabled=True)
     async def super_backward_callback(self, button, interaction):
