@@ -46,13 +46,12 @@ class cat(commands.Cog):
         await ctx.send(url)
     
     def exit_handler():
-        loop = asyncio.new_event_loop()
+        loop = asyncio.get_event_loop()
         loop.run_until_complete(async_exit_handler())
         loop.close()
     atexit.register(exit_handler)
 
 async def async_exit_handler():
-    sessions
     for session in sessions:
         await session.close()
     print("\nClient closed")
@@ -75,7 +74,6 @@ async def getSecretCatUrl(self):
                 return submission.url
             else:
                 i -= 1
-
 
 def setup(client, tokens):
     client.add_cog(cat(client, tokens))
