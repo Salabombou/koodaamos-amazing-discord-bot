@@ -1,10 +1,8 @@
-
-from turtle import dot
 from discord.ext import commands
 import discord
 import asyncio
 from discord import NotFound
-from utility import VoiceChat, YouTube
+from utility import VoiceChat, YouTube, common
 import urllib
 from urllib.parse import parse_qs, urlparse
 import googleapiclient.discovery
@@ -63,6 +61,7 @@ def create_embed(ctx, page_num): # todo add timestamp
     index = page_num * 50
     playlist_length = math.ceil(len(playlist[server][0]) / 50)
     songs = serialize_songs(server)
+    currently_playing = YouTube.Video()
     if playlist[server][0] != []:
         currently_playing = playlist[server][0][0]
     for song in songs[index:50 + index][::-1]:
@@ -74,8 +73,13 @@ def create_embed(ctx, page_num): # todo add timestamp
 def create_options(ctx):
     server = get_server(ctx)
     page_amount = math.ceil(len(playlist[server][0]) / 50)
-    options = []
-    for i in range(0, page_amount):
+    options = [
+        discord.SelectOption(
+            label='Page 1',
+            description='',
+            value='0'
+            )]
+    for i in range(1, page_amount):
         options.append(
             discord.SelectOption(
                 label=f'Page {i+1}',
@@ -90,18 +94,10 @@ class music(commands.Cog):
         self.bot = bot
         self.youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=tokens[3])
         self.ffmpeg_options = {
-            'options': '-vn -af "asplit[a],aphasemeter=video=0,ametadata=select:key=lavfi.aphasemeter.phase:value=-0.005:function=less,pan=1c|c0=c0,aresample=async=1:first_pts=0,[a]amix"',
+            'options': '-vn',
             "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
             }
 
-    @commands.Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
-        if member.id == self.bot.user.id: return
-        if before.channel != None:
-            if len(before.channel.members) == 1:
-                server = str(before.channel.guild.id)
-                playlist[server] = [[],[]]
-                await before.channel.guild.voice_client.disconnect()
 
     def create_info_embed(self, ctx, number='0', song=None):
         server = get_server(ctx)
@@ -109,7 +105,7 @@ class music(commands.Cog):
             song = playlist[server][0][abs(int(number))]
         embed = discord.Embed(title=song.title, description=song.description, fields=[], color=0xC4FFBD)
         embed.set_image(url=song.thumbnail)
-        embed.add_field(name='LINKS:', value=f'\n\n[Video](https://www.youtube.com/watch?v={song.id})\n[Channel](https://www.youtube.com/channel/{song.channelId})')
+        embed.add_field(name='LINKS:', value=f'\n\n`  Video:` [{song.title}](https://www.youtube.com/watch?v={song.id})\n`Channel:` [{song.channel}](https://www.youtube.com/channel/{song.channelId})')
         icon = YouTube.fetch_channel_icon(youtube=self.youtube, channelId=song.channelId)
         embed.set_footer(text=song.channel, icon_url=icon)
         return embed
@@ -118,8 +114,7 @@ class music(commands.Cog):
         if args != () or not validators.url(url): # if there are more than 1 arguement or the url is invalid (implying for a search)
             search_query = f'{url} ' + ' '.join(args)
             song = YouTube.fetch_from_search(self.youtube, query=search_query)[0] # searches for the video and returns the url to it
-            embed = self.create_info_embed(ctx, song=song)
-            await ctx.reply(f"found a video with the query '{search_query}':", embed=embed, delete_after=10)
+            await ctx.reply(f"found a video with the query '{search_query}' with the title '{song.title}'.", delete_after=10, mention_author=False)
             return [song]
         r = urllib.request.urlopen(url)
         url = r.url
@@ -160,7 +155,7 @@ class music(commands.Cog):
             source = discord.FFmpegPCMAudio(url, **self.ffmpeg_options)
             embed = self.create_info_embed(ctx)
             message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed), self.bot.loop)
-            ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.75), after=lambda e: self.next_song(ctx, message._result))
+            ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.8), after=lambda e: self.next_song(ctx, message._result))
 
     def next_song(self, ctx, message):
         server = get_server(ctx)
@@ -173,10 +168,10 @@ class music(commands.Cog):
             self.play_song(ctx)        
 
     @commands.command()
+    @commands.check(VoiceChat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @common.typing
     async def play(self, ctx, url='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau', *args):
-        if ctx.message.author.bot:
-            return
         server = get_server(ctx)
         await VoiceChat.join(ctx)
         songs = await self.fetch_songs(ctx, url, args)
@@ -188,44 +183,50 @@ class music(commands.Cog):
 
 
     @commands.command()
+    @commands.check(VoiceChat.command_check)
     async def list(self, ctx):
-        if ctx.voice_client == None: return
         server = get_server(ctx)
         if not server in playlist:
             return
         embed = create_embed(ctx, 0)
         message = await ctx.send(embed=embed)
-        await message.edit(view=music_view(ctx=await self.bot.get_context(message), youtube=self.youtube))
+        await message.edit(view=music_view(bot=self.bot, ctx=await self.bot.get_context(message), youtube=self.youtube))
         
     @commands.command()
+    @commands.check(VoiceChat.command_check)
+    @common.typing
     async def link(ctx):
         server = get_server(ctx)
         linked_message = await ctx.send("Currently playing " + str(playlist[server][0][0].title + "\n" + f"https://www.youtube.com/watch?v={playlist[server][0][0].id}"),delete_after=30)
+    
     @commands.command()
+    @commands.check(VoiceChat.command_check)
     async def disconnect(self, ctx):
-        if ctx.voice_client == None: return
         server = get_server(ctx)
         playlist[server] = [[],[]]
         await VoiceChat.leave(ctx)
         await ctx.message.add_reaction('👌')
 
     @commands.command()
+    @commands.check(VoiceChat.command_check)
+    @common.typing
     async def resume(self, ctx):
-        if ctx.voice_client == None: return
         if ctx.voice_client.is_paused():
             await VoiceChat.resume(ctx)
             await ctx.message.add_reaction('👌')
 
     @commands.command()
+    @commands.check(VoiceChat.command_check)
+    @common.typing
     async def pause(self, ctx):
-        if ctx.voice_client == None: return
         if ctx.voice_client.is_playing():
             await VoiceChat.pause(ctx)
             await ctx.message.add_reaction('👌')
     
     @commands.command()
+    @commands.check(VoiceChat.command_check)
+    @common.typing
     async def skip(self, ctx, amount='1'):
-        if ctx.voice_client == None: return
         server = get_server(ctx)
         temp = looping[server]
         looping[server] = False
@@ -240,13 +241,13 @@ class music(commands.Cog):
         append_songs(ctx)
         await VoiceChat.stop(ctx) # skips one song
         await asyncio.sleep(0.5) #why? # just incase
-        # also why do we not refresh the list after this. todo # done ;)
         looping[server] = temp
         await ctx.message.add_reaction('👌')
     
     @commands.command()
+    @commands.check(VoiceChat.command_check)
+    @common.typing
     async def shuffle(self, ctx):
-        if ctx.voice_client == None: return
         server = get_server(ctx)
         if playlist[server] == [[],[]]: return
         temp = playlist[server][0][0]
@@ -257,27 +258,31 @@ class music(commands.Cog):
         await ctx.message.add_reaction('👌')
 
     @commands.command()
+    @commands.check(VoiceChat.command_check)
+    @common.typing
     async def loop(self, ctx):
-        if ctx.voice_client == None: return
         server = get_server(ctx)
         looping[server] = not looping[server]
         await ctx.message.add_reaction('👌')
     
     @commands.command()
+    @commands.check(VoiceChat.command_check)
+    @common.typing
     async def info(self, ctx, number='0'):
-        if ctx.voice_client == None: return
         await ctx.reply(embed=self.create_info_embed(ctx))
 
     @commands.command()
+    @commands.check(VoiceChat.command_check)
+    @common.typing
     async def replay(self, ctx):
-        if ctx.voice_client == None: return
         server = get_server(ctx)
         playlist[server][0].insert(0, playlist[server][0][0])
         await VoiceChat.stop(ctx)
 
 class music_view(discord.ui.View):
-    def __init__(self, ctx, youtube):
+    def __init__(self, bot, ctx, youtube):
         super().__init__(timeout=None)
+        self.bot = bot
         self.ctx = ctx
         self.youtube = youtube
         self.embed = None
@@ -285,7 +290,17 @@ class music_view(discord.ui.View):
         self.server = get_server(ctx)
         self.children[0].options = create_options(ctx)
         self.update_buttons()
-    
+
+    async def interaction_check(self, interaction) -> bool:
+        if interaction.user.bot:
+            return False # if the user is bot
+        if interaction.user.voice == None:
+            return False # if the user is not in the same voice chat
+        if interaction.message.author.voice == None:
+            return True # if the bot is not currently in a voice channel
+        if interaction.user.voice.channel == interaction.message.author.voice.channel:
+            return True # if the bot and the user are in the same voice channel
+
     async def on_error(self, error, item, interaction):
         if isinstance(error, NotFound):
             return
@@ -322,55 +337,49 @@ class music_view(discord.ui.View):
         
     @discord.ui.select(placeholder='Choose page...', min_values=0, row=0)
     async def select_callback(self, select, interaction):
-        if self.ctx.voice_client == None: return
         value = int(select.values[0])
         self.index = value
         self.update_embed()
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='FIRST PAGE' ,emoji='⏪', style=discord.ButtonStyle.red, row=1, disabled=True)
     async def super_backward_callback(self, button, interaction):
-        if self.ctx.voice_client == None: return
         self.index = 0
         self.update_embed()
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='PREVIOUS PAGE' ,emoji='◀️', style=discord.ButtonStyle.red, row=1, disabled=True)
     async def backward_callback(self, button, interaction):
-        if self.ctx.voice_client == None: return
         self.index -= 1
         self.update_embed()
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='REFRESH' ,emoji='🔄', style=discord.ButtonStyle.red, row=1)
     async def refresh_callback(self, button, interaction):
-        if self.ctx.voice_client == None: return
         self.update_embed()
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        return await interaction.response.edit_message(embed=self.embed, view=self)
+        
 
     @discord.ui.button(label='NEXT PAGE' ,emoji='▶️', style=discord.ButtonStyle.red, row=1)
     async def forward_callback(self, button, interaction):
-        if self.ctx.voice_client == None: return
         self.index += 1
         self.update_embed()
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='LAST PAGE' ,emoji='⏩', style=discord.ButtonStyle.red, row=1)
     async def super_forward_callback(self, button, interaction):
-        if self.ctx.voice_client == None: return
-        self.index = math.ceil(len(playlist[self.server]) / 50) - 1
+        self.index = math.ceil(len(playlist[self.server][0]) / 50) - 1
         self.update_embed()
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='SKIP' ,emoji='⏭️', style=discord.ButtonStyle.red, row=2)
     async def skip_callback(self, button, interaction):
-        if self.ctx.voice_client == None: return
         temp = looping[self.server]
         looping[self.server] = False
         await VoiceChat.stop(self.ctx)
@@ -378,11 +387,10 @@ class music_view(discord.ui.View):
         looping[self.server] = temp
         self.update_embed()
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='SHUFFLE' ,emoji='🔀', style=discord.ButtonStyle.red, row=2)
     async def shuffle_callback(self, button, interaction):
-        if self.ctx.voice_client == None: return
         if playlist[self.server][0] == []: return
         temp = playlist[self.server][0][0]
         playlist[self.server][0].pop(0)
@@ -391,11 +399,10 @@ class music_view(discord.ui.View):
         playlist[self.server][0].insert(0, temp)
         self.update_embed()
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='LOOP' ,emoji='🔁', style=discord.ButtonStyle.red, row=2)
     async def loop_callback(self, button, interaction):
-        if self.ctx.voice_client == None: return
         looping[self.server] = not looping[self.server]
         await interaction.response.edit_message(view=self)
 

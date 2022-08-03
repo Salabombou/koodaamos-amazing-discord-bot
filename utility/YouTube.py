@@ -1,9 +1,16 @@
 import yt_dlp
 
 class Video: # for the video info
-    def __init__(self, data):
-        self.title = data['title']
-        self.description = data['description']
+    def __init__(self, data={
+        'title': '​',
+        'description': '​',
+        'resourceId': {'videoId': '​'},
+        'channelId': '​',
+        'videoOwnerChannelTitle': '​',
+        'thumbnails': {'high': {'url': '​'}}
+    }):
+        self.title = data['title'][0:256] # just incase
+        self.description = data['description'][0:4096] # just incase
         self.channel = '???'
         self.thumbnail = None
         self.id = data['resourceId']['videoId']
@@ -43,7 +50,9 @@ async def ExtractInfo(url, audio=False):
 def get_raw_audio_url(url):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
-            return ydl.extract_info(url, download=False)['url']
+            info = ydl.extract_info(url, download=False)
+            url = info['url']
+            return url
         except:
             return ydl.extract_info('https://www.youtube.com/watch?v=J3lXjYWPoys', download=False)['url']
 
