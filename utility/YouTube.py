@@ -7,13 +7,14 @@ class Video: # for the video info
         self.channel = '???'
         self.thumbnail = None
         self.id = data['resourceId']['videoId']
+        self.channelId = data['channelId']
         if data['title'] != 'Private video' and data['title'] != 'Deleted video': # if i can retrieve these stuff
             self.channel = data['videoOwnerChannelTitle']
             self.thumbnail = data['thumbnails']['high']['url']
         #self.duration = '​'
 
 ydl_opts = {
-    'format': '140',
+    'format': 'bestaudio/best',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
@@ -79,3 +80,11 @@ async def fetch_from_playlist(youtube, playlistId):
     r = request.execute()
     song = r['items'][0]['snippet']
     return Video(data=song)
+
+def fetch_channel_icon(youtube, channelId):
+    request = youtube.channels().list(
+        part='snippet',
+        id=channelId
+    )
+    r = request.execute()
+    return r['items'][0]['snippet']['thumbnails']['default']['url']

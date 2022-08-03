@@ -23,7 +23,7 @@ def append_songs(ctx, songs=[]): # appends songs to the playlist
     server = get_server(ctx)
     length = len(playlist[server][0])
     playlist[server][1] += songs
-    playlist[server][0] = playlist[server][0] +  playlist[server][1][0:1000 - length] # limits the visible playlist to go to upto 1000 song at once
+    playlist[server][0] += playlist[server][1][0:1000 - length] # limits the visible playlist to go to upto 1000 song at once
     del playlist[server][1][0:1000 - length]
 
 def get_duration(youtube, videoId): # youtube api v3 needs a v4
@@ -59,14 +59,16 @@ def serialize_songs(server):
 
 def create_embed(ctx, page_num): # todo add timestamp
     server = get_server(ctx)
-    embed = discord.Embed(title='PLAYLIST', description='', fields=[])
+    embed = discord.Embed(title='PLAYLIST', description='', fields=[], color=0xC4FFBD)
     index = page_num * 50
+    playlist_length = math.ceil(len(playlist[server][0]) / 50)
     songs = serialize_songs(server)
     if playlist[server][0] != []:
         currently_playing = playlist[server][0][0]
     for song in songs[index:50 + index][::-1]:
         embed.description += song + '\n'
     embed.add_field(name='CURRENTLY PLAYING:', value=f'```{currently_playing.title}```')
+    embed.set_footer(text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(playlist[server][0])} song(s) in the queue') # bigggggg
     return embed
 
 def create_options(ctx):
@@ -100,12 +102,16 @@ class music(commands.Cog):
                 server = str(before.channel.guild.id)
                 playlist[server] = [[],[]]
                 await before.channel.guild.voice_client.disconnect()
+
     def create_info_embed(self, ctx, number='0', song=None):
         server = get_server(ctx)
         if song == None:
             song = playlist[server][0][abs(int(number))]
-        embed = discord.Embed(title=f'{song.title} - {song.channel}', description=song.description, fields=[])
+        embed = discord.Embed(title=song.title, description=song.description, fields=[], color=0xC4FFBD)
         embed.set_image(url=song.thumbnail)
+        embed.add_field(name='LINKS:', value=f'\n\n[Video](https://www.youtube.com/watch?v={song.id})\n[Channel](https://www.youtube.com/channel/{song.channelId})')
+        icon = YouTube.fetch_channel_icon(youtube=self.youtube, channelId=song.channelId)
+        embed.set_footer(text=song.channel, icon_url=icon)
         return embed
 
     async def fetch_songs(self, ctx, url, args):        # todo get first song in list and play it, after that get rest
@@ -148,9 +154,9 @@ class music(commands.Cog):
             return
         server = get_server(ctx)
         append_songs(ctx, songs)
-        if not ctx.voice_client.is_playing() and playlist[server] != []:
+        if not ctx.voice_client.is_playing() and playlist[server][0] != []:
             song = playlist[server][0][0]
-            url = YouTube.get_raw_audio_url(f"https://www.youtube.com/watch?v={song.id}")
+            url = YouTube.get_raw_audio_url(f'https://www.youtube.com/watch?v={song.id}')
             source = discord.FFmpegPCMAudio(url, **self.ffmpeg_options)
             embed = self.create_info_embed(ctx)
             message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed), self.bot.loop)
@@ -261,6 +267,13 @@ class music(commands.Cog):
     async def info(self, ctx, number='0'):
         if ctx.voice_client == None: return
         await ctx.reply(embed=self.create_info_embed(ctx))
+
+    @commands.command()
+    async def replay(self, ctx):
+        if ctx.voice_client == None: return
+        server = get_server(ctx)
+        playlist[server][0].insert(0, playlist[server][0][0])
+        await VoiceChat.stop(ctx)
 
 class music_view(discord.ui.View):
     def __init__(self, ctx, youtube):
