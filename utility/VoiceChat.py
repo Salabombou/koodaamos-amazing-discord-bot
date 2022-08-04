@@ -1,5 +1,9 @@
-import discord
-
+def command_check(ctx):
+    if ctx.author.bot: return False
+    if ctx.author.voice == None: return False
+    if ctx.me.voice == None: return True
+    if ctx.author.voice.channel == ctx.me.voice.channel: return True
+    
 async def join(ctx):
     if ctx.message.author.voice == None:
         return
@@ -22,21 +26,20 @@ async def stop(ctx):
     if ctx.message.author.voice.channel == ctx.me.voice.channel and ctx.voice_client != None:
         try:
             await ctx.voice_client.stop()
-        except:
-            pass
+        except: pass
+        
 async def resume(ctx):
     if ctx.message.author.voice == None or not ctx.voice_client.is_paused():
         return
     if ctx.message.author.voice.channel == ctx.me.voice.channel and ctx.voice_client != None:
         try:
             await ctx.voice_client.resume()
-        except:
-            pass
+        except: pass
+
 async def pause(ctx):
     if ctx.message.author.voice == None or not ctx.voice_client.is_playing():
         return
     if ctx.message.author.voice.channel == ctx.me.voice.channel and ctx.voice_client != None:
         try:
             await ctx.voice_client.pause()
-        except:
-            pass
+        except: pass
