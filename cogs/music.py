@@ -23,9 +23,9 @@ class music(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     @common.decorators.add_reaction
-    async def play(self, ctx, url='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau', *args):
+    async def play(self, ctx, url='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau', *, arg=None):
         await VoiceChat.join(ctx)
-        songs = await music_tools.fetch_songs(self, ctx, url, args)
+        songs = await music_tools.fetch_songs(self, ctx, url, arg)
         music_tools.play_song(self, ctx, songs)
 
 
