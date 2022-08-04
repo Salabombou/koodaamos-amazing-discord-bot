@@ -43,11 +43,10 @@ def get_duration(youtube, videoId): # youtube api v3 needs a v4
     return duration.seconds # returns the duration of the song that was not included in the snippet for some reason
 
 def serialize_songs(playlist, server):
-    length = len(str(len(playlist[server][0][0:101]))) #cursed cast. todo fix whatever the fuck this is # it just works trust me bro
     i = 0
     songs = []
     for song in playlist[server][0]:
-        digit = f'{i}'.zfill(length)
+        digit = str(i).zfill(3)
         title = song.title[0:30]
         title_length = len(title)
         if title_length == 30 :
