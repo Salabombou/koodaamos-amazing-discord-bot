@@ -102,10 +102,8 @@ async def translate(self, ctx, content, user, reference, url = None, id = None, 
 
             async with ClientSession() as session:
                 if (ctx.message.channel.id == 773148428275941386):  
-                    pass 
                     webhook = Webhook.from_url('https://discord.com/api/webhooks/965641540275937300/t5gOZeFGv5YEFgQVl4_XQoMjnWgHs_KCKOZLH8Z50BAoDhQlf7t6KjpTXBaRJgSGImVV', session=session)
                 elif (ctx.message.channel.id == 798462155585224737):
-                    pass
                     webhook = Webhook.from_url('https://discord.com/api/webhooks/965631589239365632/WOPJyugAKLI-OhCL_XTCKow9Gxb553eDgN_-0gSy9lfYsCu4H8oqaMrtgWEecJRrLR_4', session=session)
                 else:
                     print("well shit") 
@@ -120,7 +118,6 @@ async def translate(self, ctx, content, user, reference, url = None, id = None, 
             embed.set_author(name=str(str(user["name"]) + "(@" + str(user["username"]) + ")"), icon_url=user_icon_url, url=user_url)
             embed.set_footer(text="Translated by DeepL")
     else:
-        print("user is none")
         embed=discord.Embed(description=result, color=0x006eff)
     if reference == None:    
         await ctx.send(embed=embed)
