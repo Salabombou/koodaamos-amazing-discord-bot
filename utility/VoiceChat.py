@@ -1,8 +1,12 @@
 def command_check(ctx):
-    if ctx.author.bot: return False
-    if ctx.author.voice == None: return False
-    if ctx.me.voice == None: return True
-    if ctx.author.voice.channel == ctx.me.voice.channel: return True
+    if ctx.author.bot:
+        return False  # if the user is a bot
+    if ctx.author.voice == None:
+        return False # if the user is not connected to a voice channel
+    if ctx.me.voice == None:
+        return True # if the bot is currently not in a voice channel
+    if ctx.author.voice.channel == ctx.me.voice.channel:
+        return True # if the bot and the user are in the same voice channel
     
 async def join(ctx):
     if ctx.message.author.voice == None:
@@ -18,14 +22,12 @@ async def leave(ctx):
         await ctx.voice_client.disconnect()
 
 async def stop(ctx):
-    channel = ctx.message.author.voice.channel
     if ctx.message.author.voice == None or not ctx.voice_client.is_playing():
         return
     if ctx.message.author.voice.channel == ctx.me.voice.channel and ctx.voice_client != None:
         try:
-            await ctx.voice_client.stop()
+            await ctx.voice_client.stop() # they work 100% fine but for some unknown reason still says it to be NoneType?
         except: pass
-        
 async def resume(ctx):
     if ctx.message.author.voice == None or not ctx.voice_client.is_paused():
         return
@@ -39,5 +41,5 @@ async def pause(ctx):
         return
     if ctx.message.author.voice.channel == ctx.me.voice.channel and ctx.voice_client != None:
         try:
-            await ctx.voice_client.pause()
+            await ctx.guild.voice_client.pause()
         except: pass

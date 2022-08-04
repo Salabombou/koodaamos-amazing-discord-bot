@@ -22,13 +22,11 @@ class music(commands.Cog):
         songs = await music_tools.fetch_songs(self, ctx, url, args)
         music_tools.play_song(self, ctx, songs)
 
-
     @commands.command()
     @commands.check(VoiceChat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     async def list(self, ctx):
-        server = common.get_server(ctx)
         embed = music_tools.create_embed(ctx, self.playlist, 0)
         message = await ctx.send(embed=embed)
         ctx = await self.bot.get_context(message)
@@ -107,6 +105,23 @@ class music(commands.Cog):
         server = common.get_server(ctx)
         self.playlist[server][0].insert(0, self.playlist[server][0][0])
         await VoiceChat.stop(ctx)
-
+        
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after): # this is safe trust me
+        if not member.id == self.bot.user.id:
+            return
+        elif before.channel == None: # if this is the event, which the bot joins the voice channel
+            server = str(after.channel.guild.id)
+            voice = after.channel.guild.voice_client
+            time = 0
+            await asyncio.sleep(5)
+            while voice.is_connected():
+                await asyncio.sleep(1)
+                time = time + 1
+                if voice.is_playing() and not voice.is_paused():
+                    time = 0
+                if time == 600: # keeps on checking if the bot has been inactive for long periods of time, then leaving
+                    self.playlist[server] = [[],[]]
+                    await voice.disconnect()
 def setup(client, tokens):
     client.add_cog(music(client, tokens))

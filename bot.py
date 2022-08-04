@@ -2,7 +2,7 @@ import os
 import discord
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound, CheckFailure
-
+import asyncio
 from cogs import dalle, gpt3, tts, music
 
 def get_tokens():
@@ -27,6 +27,8 @@ async def on_command_error(ctx, error):
     embed.description = f'```{error}```'
     embed.set_thumbnail(url='https://cdn.discordapp.com/emojis/992830317733871636.gif')
     await ctx.reply(embed=embed)
+
+
 
 @bot.event
 async def on_ready():
