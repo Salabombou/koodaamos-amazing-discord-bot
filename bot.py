@@ -1,7 +1,7 @@
 import os
 import discord
 from discord.ext import commands
-from discord.ext.commands import CommandNotFound
+from discord.ext.commands import CommandNotFound, CheckFailure
 
 from cogs import dalle, gpt3, tts, music
 
@@ -19,6 +19,9 @@ for cog in cogs:
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, CommandNotFound): # ignores the error if it just didnt find the command
+        return
+    if isinstance(error, CheckFailure): # if the command didnt pass the check
+        await ctx.message.add_reaction('<a:error:992830317733871636>')
         return
     embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
     embed.description = f'```{error}```'

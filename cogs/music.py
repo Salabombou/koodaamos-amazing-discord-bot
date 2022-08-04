@@ -1,7 +1,5 @@
 from discord.ext import commands
-import discord
 import asyncio
-from discord import NotFound
 from utility import VoiceChat, music_tools, common
 from utility.views.music import music_view
 import googleapiclient.discovery
@@ -13,10 +11,6 @@ class music(commands.Cog):
         self.youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=tokens[3])
         self.playlist = {}
         self.looping = {}
-        self.ffmpeg_options = {
-            'options': '-vn',
-            "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
-            }    
 
     @commands.command()
     @commands.check(VoiceChat.command_check)
@@ -31,11 +25,10 @@ class music(commands.Cog):
 
     @commands.command()
     @commands.check(VoiceChat.command_check)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     async def list(self, ctx):
         server = common.get_server(ctx)
-        if not server in self.playlist:
-            return
         embed = music_tools.create_embed(ctx, self.playlist, 0)
         message = await ctx.send(embed=embed)
         ctx = await self.bot.get_context(message)
@@ -101,9 +94,10 @@ class music(commands.Cog):
     
     @commands.command()
     @commands.check(VoiceChat.command_check)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     async def info(self, ctx, number='0'):
-        await ctx.reply(embed=music_tools.create_info_embed(self, ctx))
+        await ctx.reply(embed=music_tools.create_info_embed(self, ctx, number=number))
 
     @commands.command()
     @commands.check(VoiceChat.command_check)

@@ -8,6 +8,11 @@ import asyncio
 import validators
 import functools
 
+ffmpeg_options = {
+    'options': '-vn',
+    "before_options": "-reconnect 5 -reconnect_streamed 5 -reconnect_delay_max 5"
+    }
+
 class decorators:
     def update_playlist(func):
         @functools.wraps(func)
@@ -146,7 +151,7 @@ def play_song(self, ctx, songs=[]):
     if not ctx.voice_client.is_playing() and self.playlist[server][0] != []:
         song = self.playlist[server][0][0]
         url = YouTube.get_raw_audio_url(f'https://www.youtube.com/watch?v={song.id}')
-        source = discord.FFmpegPCMAudio(url, **self.ffmpeg_options)
+        source = discord.FFmpegPCMAudio(url, **ffmpeg_options)
         embed = create_info_embed(self, ctx)
         message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed), self.bot.loop)
         ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.5), after=lambda e: next_song(self, ctx, message._result))
