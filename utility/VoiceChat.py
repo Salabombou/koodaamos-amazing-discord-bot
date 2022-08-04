@@ -7,11 +7,9 @@ def command_check(ctx):
 async def join(ctx):
     if ctx.message.author.voice == None:
         return
-    channel = ctx.message.author.voice.channel
     if ctx.me.voice == None:
+        channel = ctx.message.author.voice.channel
         await channel.connect()
-    elif channel != ctx.me.voice.channel:
-        await ctx.voice_client.move_to(channel)
 
 async def leave(ctx):
     if ctx.message.author.voice == None:
