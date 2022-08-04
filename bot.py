@@ -27,9 +27,7 @@ async def on_command_error(ctx, error):
     embed.description = f'```{error}```'
     embed.set_thumbnail(url='https://cdn.discordapp.com/emojis/992830317733871636.gif')
     await ctx.reply(embed=embed)
-
-
-
+    
 @bot.event
 async def on_ready():
     os.system('cls' if os.name == 'nt' else 'clear')
