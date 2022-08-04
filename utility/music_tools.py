@@ -10,7 +10,7 @@ import functools
 
 ffmpeg_options = {
     'options': '-vn',
-    "before_options": "-reconnect 5 -reconnect_streamed 5 -reconnect_delay_max 5"
+    "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
     }
 
 class decorators:
@@ -109,9 +109,9 @@ def create_info_embed(self, ctx, number='0', song=None):
     embed.set_footer(text=song.channel, icon_url=icon)
     return embed
 
-async def fetch_songs(self, ctx, url, arg):        # todo get first song in list and play it, after that get rest
-    if arg != None or not validators.url(url): # if there are more than 1 arguement or the url is invalid (implying for a search)
-        search_query = f'{url} {arg}'
+async def fetch_songs(self, ctx, url, args):        # todo get first song in list and play it, after that get rest
+    if args != () or not validators.url(url): # if there are more than 1 arguement or the url is invalid (implying for a search)
+        search_query = f"{url} {' '.join(args)}"
         song = YouTube.fetch_from_search(self.youtube, query=search_query)[0] # searches for the video and returns the url to it
         await ctx.reply(f"found a video with the query '{search_query}' with the title '{song.title}'.", delete_after=10, mention_author=False)
         return [song]
