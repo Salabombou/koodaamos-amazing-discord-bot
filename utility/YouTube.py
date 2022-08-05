@@ -7,7 +7,7 @@ class Video: # for the video info
         'resourceId': {'videoId': '​'},
         'channelId': '​',
         'videoOwnerChannelTitle': '​',
-        'thumbnails': {'high': {'url': '​'}}
+        'thumbnails': {'medium': {'url': '​'}}
     }):
         self.title = data['title'][0:256] # just incase
         self.description = data['description'][0:4096] # just incase
