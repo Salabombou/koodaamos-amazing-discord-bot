@@ -1,3 +1,5 @@
+import io
+import requests
 from utility import common, YouTube
 import urllib
 from urllib.parse import parse_qs, urlparse
@@ -7,6 +9,7 @@ import math
 import asyncio
 import validators
 import functools
+from PIL import Image
 
 ffmpeg_options = {
     'options': '-vn',
@@ -98,16 +101,31 @@ def create_options(ctx, playlist):
             )
     return options
 
+def get_thumbnail(url):
+    buf = io.BytesIO()
+    r = requests.get(url=url)
+    r.raise_for_status()
+    image = Image.open(io.BytesIO(r.content))
+    image = image.crop((0, 45, 480, 315)) # crops the ugly black bar off the image
+    image.save(buf, format='JPEG')
+    buf.seek(0)
+    file = discord.File(filename='unknown.jpg', fp=buf)
+    return file
+
 def create_info_embed(self, ctx, number='0', song=None):
     server = common.get_server(ctx)
     if song == None:
-        song = self.playlist[server][0][abs(int(number))]
+        num = abs(int(number))
+        if len(self.playlist[server][0]) - 1 < num :  
+            raise Exception('No songs found at that number')
+        song = self.playlist[server][0][num]
     embed = discord.Embed(title=song.title, description=song.description, fields=[], color=0xC4FFBD)
-    embed.set_image(url=song.thumbnail)
-    embed.add_field(name='LINKS:', value=f'\n\n`  Video:` [{song.title}](https://www.youtube.com/watch?v={song.id})\n`Channel:` [{song.channel}](https://www.youtube.com/channel/{song.channelId})')
+    embed.set_image(url='attachment://unknown.jpg')
+    embed.add_field(name='LINKS:', value=f'`Video:` [{song.title}](https://www.youtube.com/watch?v={song.id})\n`Channel:` [{song.channel}](https://www.youtube.com/channel/{song.channelId})')
     icon = YouTube.fetch_channel_icon(youtube=self.youtube, channelId=song.channelId)
     embed.set_footer(text=song.channel, icon_url=icon)
-    return embed
+    file = get_thumbnail(url=song.thumbnail)
+    return embed, file
 
 async def fetch_songs(self, ctx, url, args):        # todo get first song in list and play it, after that get rest
     if args != () or not validators.url(url): # if there are more than 1 arguement or the url is invalid (implying for a search)
@@ -152,8 +170,8 @@ def play_song(self, ctx, songs=[]):
         song = self.playlist[server][0][0]
         url = YouTube.get_raw_audio_url(f'https://www.youtube.com/watch?v={song.id}')
         source = discord.FFmpegPCMAudio(url, **ffmpeg_options)
-        embed = create_info_embed(self, ctx)
-        message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed), self.bot.loop)
+        embed, file = create_info_embed(self, ctx)
+        message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed, file=file), self.bot.loop)
         ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.5), after=lambda e: next_song(self, ctx, message._result))
 
 def next_song(self, ctx, message):
