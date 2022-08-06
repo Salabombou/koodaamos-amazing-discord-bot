@@ -97,4 +97,5 @@ def fetch_channel_icon(youtube, channelId):
         id=channelId
     )
     r = request.execute()
-    return r['items'][0]['snippet']['thumbnails']['default']['url']
+    icon = r['items'][0]['snippet']['thumbnails']['default']['url']
+    return icon

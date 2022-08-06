@@ -95,7 +95,8 @@ class music(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     async def info(self, ctx, number='0'):
-        await ctx.reply(embed=music_tools.create_info_embed(self, ctx, number=number))
+        embed, file = music_tools.create_info_embed(self, ctx, number=number)
+        await ctx.reply(embed=embed, file=file, mention_author=False)
 
     @commands.command()
     @commands.check(VoiceChat.command_check)
