@@ -18,8 +18,8 @@ class Video: # for the video info
         self.channelId = data['channelId']
         if data['title'] != 'Private video' and data['title'] != 'Deleted video': # if i can retrieve these stuff
             self.channel = data['videoOwnerChannelTitle']
-            self.channelId = data['videoOwnerChannelId']
             self.thumbnail = data['thumbnails']['high']['url']
+            self.channelId = data['videoOwnerChannelId']
 
 ydl_opts = {
     'format': 'bestaudio/best',
@@ -81,6 +81,7 @@ def fetch_from_video(youtube, videoId):
     r['items'][0]['snippet']['resourceId'] = {'videoId': videoId}
     song = r['items'][0]['snippet']
     song['videoOwnerChannelTitle'] = song['channelTitle']
+    song['videoOwnerChannelId'] = song['channelId']
     return [Video(data=song)]
 
 async def fetch_from_playlist(ctx, youtube, playlistId):
