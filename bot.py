@@ -24,7 +24,7 @@ async def on_command_error(ctx, error):
         await ctx.message.add_reaction('<a:error:992830317733871636>')
         return
     embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
-    embed.description = f'```{error}```'
+    embed.description = f'```{error}```'[0:4096]
     embed.set_thumbnail(url='https://cdn.discordapp.com/emojis/992830317733871636.gif')
     await ctx.reply(embed=embed)
     

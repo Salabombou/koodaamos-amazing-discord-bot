@@ -2,12 +2,13 @@ import yt_dlp
 
 class Video: # for the video info
     def __init__(self, data={
-        'title': '​',
-        'description': '​',
-        'resourceId': {'videoId': '​'},
-        'channelId': '​',
-        'videoOwnerChannelTitle': '​',
-        'thumbnails': {'medium': {'url': '​'}}
+        'title': '',
+        'description': '',
+        'resourceId': {'videoId': ''},
+        'channelId': '',
+        'videoOwnerChannelId': '',
+        'videoOwnerChannelTitle': '',
+        'thumbnails': {'high': {'url': ''}}
     }):
         self.title = data['title'][0:256] # just incase
         self.description = data['description'][0:4096] # just incase
@@ -17,8 +18,8 @@ class Video: # for the video info
         self.channelId = data['channelId']
         if data['title'] != 'Private video' and data['title'] != 'Deleted video': # if i can retrieve these stuff
             self.channel = data['videoOwnerChannelTitle']
+            self.channelId = data['videoOwnerChannelId']
             self.thumbnail = data['thumbnails']['high']['url']
-        #self.duration = '​'
 
 ydl_opts = {
     'format': 'bestaudio/best',
@@ -59,7 +60,8 @@ def get_raw_audio_url(url):
 def fetch_from_search(youtube, query):
     request = youtube.search().list(
         part='snippet',
-        maxResults=3,
+        maxResults=1,
+        type='video', # only videos
         safeSearch='none',
         q=query
     )
@@ -67,7 +69,8 @@ def fetch_from_search(youtube, query):
     if len(r['items']) > 0:
         videoId = r['items'][0]['id']['videoId']
         return fetch_from_video(youtube, videoId=videoId)
-    raise Exception(f"No videos were found with the following query: '{query}'")
+    raise Exception(f"No videos were found with the query '{query}'")
+    
 
 def fetch_from_video(youtube, videoId):
     request = youtube.videos().list(
@@ -80,15 +83,22 @@ def fetch_from_video(youtube, videoId):
     song['videoOwnerChannelTitle'] = song['channelTitle']
     return [Video(data=song)]
 
-async def fetch_from_playlist(youtube, playlistId):
+async def fetch_from_playlist(ctx, youtube, playlistId):
     request = youtube.playlistItems().list(
         part='snippet',
         playlistId=playlistId,
-        maxResults=1
+        maxResults=1000
     )
-    r = request.execute()
-    song = r['items'][0]['snippet']
-    return Video(data=song)
+    items = []
+    while request != None:
+        r = await ctx.bot.loop.run_in_executor(None, request.execute)
+        items += r['items']
+        request = youtube.playlistItems().list_next(request, r)
+    songs = []
+    for song in items:
+        song = song['snippet']
+        songs.append(Video(data=song))
+    return songs
 
 def fetch_channel_icon(youtube, channelId):
     request = youtube.channels().list(

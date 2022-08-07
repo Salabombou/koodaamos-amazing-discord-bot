@@ -103,6 +103,8 @@ def create_options(ctx, playlist):
 
 def get_thumbnail(url):
     buf = io.BytesIO()
+    if not validators.url(str(url)):
+        return None
     r = requests.get(url=url)
     r.raise_for_status()
     image = Image.open(io.BytesIO(r.content))
@@ -121,7 +123,7 @@ def create_info_embed(self, ctx, number='0', song=None):
         song = self.playlist[server][0][num]
     embed = discord.Embed(title=song.title, description=song.description, fields=[], color=0xC4FFBD)
     embed.set_image(url='attachment://unknown.jpg')
-    embed.add_field(name='LINKS:', value=f'`Video:` [{song.title}](https://www.youtube.com/watch?v={song.id})\n`Channel:` [{song.channel}](https://www.youtube.com/channel/{song.channelId})')
+    embed.add_field(name='LINKS:', value=f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})')
     icon = YouTube.fetch_channel_icon(youtube=self.youtube, channelId=song.channelId)
     embed.set_footer(text=song.channel, icon_url=icon)
     file = get_thumbnail(url=song.thumbnail)
@@ -139,26 +141,8 @@ async def fetch_songs(self, ctx, url, args):
     if 'v' in query:
         return YouTube.fetch_from_video(self.youtube, videoId=query['v'][0])
     elif 'list' in query:
-        song = await YouTube.fetch_from_playlist(self.youtube, playlistId=query['list'][0])
-        async def fetch_the_rest():
-            await asyncio.sleep(0.5) # just incase
-            request = self.youtube.playlistItems().list(
-                    part='snippet',
-                    playlistId=query['list'][0],
-                    maxResults=1000
-                )
-            items = []
-            while request != None:
-                r = await ctx.bot.loop.run_in_executor(None, request.execute)
-                items += r['items']
-                request = self.youtube.playlistItems().list_next(request, r)
-            songs = []
-            for song in items[1:]:
-                song = song['snippet']
-                songs.append(YouTube.Video(data=song))
-            append_songs(ctx, self.playlist, songs)
-        asyncio.ensure_future(fetch_the_rest()) # fire and forget
-        return [song]
+        songs = await YouTube.fetch_from_playlist(ctx, self.youtube, playlistId=query['list'][0])
+        return songs
     raise Exception('Invalid url')
 
 def play_song(self, ctx, songs=[]):
