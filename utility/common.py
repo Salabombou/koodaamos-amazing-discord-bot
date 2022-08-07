@@ -1,3 +1,4 @@
+import asyncio
 import functools
 
 def get_server(ctx):
@@ -19,6 +20,17 @@ class decorators:
         async def wrapper(*args):
             ctx = args[1]
             await ctx.message.add_reaction('👌')
+            return await func(*args)
+        return wrapper
+    
+    def delete_after(func):
+        @functools.wraps(func)
+        async def wrapper(*args):
+            ctx = args[1]
             value = await func(*args)
+            await asyncio.sleep(5)
+            try:
+                await ctx.message.delete()
+            except: pass
             return value
         return wrapper
