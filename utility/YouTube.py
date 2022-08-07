@@ -22,7 +22,6 @@ class Video: # for the video info
 
 ydl_opts = {
     'format': 'bestaudio/best',
-    'sponsorblock-mark': 'all',
     'throttled-rate': '180K',
     'restrictfilenames': True,
     'noplaylist': True,
