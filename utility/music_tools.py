@@ -108,7 +108,7 @@ def get_thumbnail(url):
     r = requests.get(url=url)
     r.raise_for_status()
     image = Image.open(io.BytesIO(r.content))
-    image = image.crop((0, 45, 480, 315)) # crops the ugly black bar off the image
+    image = image.crop((0, 45, 480, 315)) # crops the ugly black bars off the image
     image.save(buf, format='JPEG')
     buf.seek(0)
     file = discord.File(filename='unknown.jpg', fp=buf)

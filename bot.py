@@ -51,7 +51,7 @@ async def on_voice_state_update(member, before, after):
                 vc.resume()
                 return
         vc.pause()
-    else:
+    elif vc in bot.voice_clients:
         for voice_client in bot.voice_clients:
             if voice_client.guild == vc.guild:
                 for member in voice_client.channel.members:
