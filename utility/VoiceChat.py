@@ -25,21 +25,15 @@ async def stop(ctx):
     if ctx.message.author.voice == None or not ctx.voice_client.is_playing():
         return
     if ctx.message.author.voice.channel == ctx.me.voice.channel and ctx.voice_client != None:
-        try:
-            await ctx.voice_client.stop() # they work 100% fine but for some unknown reason still says it to be NoneType?
-        except: pass
+        ctx.voice_client.stop()
 async def resume(ctx):
     if ctx.message.author.voice == None or not ctx.voice_client.is_paused():
         return
     if ctx.message.author.voice.channel == ctx.me.voice.channel and ctx.voice_client != None:
-        try:
-            await ctx.voice_client.resume()
-        except: pass
+        ctx.voice_client.resume()
 
 async def pause(ctx):
     if ctx.message.author.voice == None or not ctx.voice_client.is_playing():
         return
     if ctx.message.author.voice.channel == ctx.me.voice.channel and ctx.voice_client != None:
-        try:
-            await ctx.guild.voice_client.pause()
-        except: pass
+        ctx.guild.voice_client.pause()

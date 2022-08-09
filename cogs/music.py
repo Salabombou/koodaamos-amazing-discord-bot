@@ -112,23 +112,6 @@ class music(commands.Cog):
         server = common.get_server(ctx)
         self.playlist[server][0].insert(0, self.playlist[server][0][0])
         await VoiceChat.stop(ctx)
-        
-    @commands.Cog.listener()
-    async def on_voice_state_update(self, member, before, after): # this is safe trust me
-        if not member.id == self.bot.user.id:
-            return
-        elif before.channel == None: # if this is the event, which the bot joins the voice channel
-            server = str(after.channel.guild.id)
-            voice = after.channel.guild.voice_client
-            time = 0
-            await asyncio.sleep(5)
-            while voice.is_connected():
-                await asyncio.sleep(1)
-                time = time + 1
-                if voice.is_playing() and not voice.is_paused():
-                    time = 0
-                if time == 600: # keeps on checking if the bot has been inactive for long periods of time, then leaving
-                    self.playlist[server] = [[],[]]
-                    await voice.disconnect()
+
 def setup(client, tokens):
     client.add_cog(music(client, tokens))

@@ -27,9 +27,10 @@ class music_view(discord.ui.View):
         if interaction.user.voice == None:
             return False # if the user is not in the same voice chat
         if interaction.message.author.voice == None:
-            return True # if the bot is not currently in a voice channel
+            return False # if the bot is not currently in a voice channel
         if interaction.user.voice.channel == interaction.message.author.voice.channel:
             return True # if the bot and the user are in the same voice channel
+        return False
 
     async def on_error(self, error, item, interaction):
         if isinstance(error, NotFound):
