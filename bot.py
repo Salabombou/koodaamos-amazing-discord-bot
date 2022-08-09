@@ -41,7 +41,7 @@ async def on_voice_state_update(member, before, after):
             time += 1
             if vc.is_playing() and not vc.is_paused():
                 time = 0
-            if time == 600:
+            if time == 1800:
                 await vc.disconnect()
             if not vc.is_connected():
                 return
