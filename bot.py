@@ -32,33 +32,34 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
+    if after.channel == None: return
+    vc = after.channel.guild.voice_client
     if before.channel is None and member.id == bot.user.id:
-        voice = after.channel.guild.voice_client
         time = 0
         while True:
             await asyncio.sleep(1)
-            time = time + 1
-            if voice.is_playing() and not voice.is_paused():
+            time += 1
+            if vc.is_playing() and not vc.is_paused():
                 time = 0
             if time == 600:
-                await voice.disconnect()
-            if not voice.is_connected():
-                break
-    elif not member.id == bot.user.id:
-        if before.channel != None:
-            voice = before
-        else:
-            voice = after
-        vc = voice.channel.guild.voice_client
-        for member in voice.channel.members:
-            if member.bot == False:
-                try:
-                    await vc.resume()
-                except: pass # fuck you who ever made these to raise exception for no reason even when it works
+                await vc.disconnect()
+            if not vc.is_connected():
                 return
-        try:
-            await vc.pause()
-        except: pass
+    elif not member.id == bot.user.id and vc != None and bot.user in after.channel.members:
+        for member in after.channel.members:
+            if member.bot == False:
+                vc.resume()
+                return
+        vc.pause()
+    else:
+        for voice_client in bot.voice_clients:
+            if voice_client.guild == vc.guild:
+                for member in voice_client.channel.members:
+                    if member.bot == False:
+                        voice_client.resume()
+                        return
+                voice_client.pause()
+                return
 
 @bot.event
 async def on_ready():
