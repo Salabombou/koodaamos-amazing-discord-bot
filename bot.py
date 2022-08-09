@@ -32,9 +32,7 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    if not member.id == bot.user.id:
-        return
-    elif before.channel is None:
+    if before.channel is None and member.id == bot.user.id:
         voice = after.channel.guild.voice_client
         time = 0
         while True:
@@ -46,7 +44,22 @@ async def on_voice_state_update(member, before, after):
                 await voice.disconnect()
             if not voice.is_connected():
                 break
-    
+    elif not member.id == bot.user.id:
+        if before.channel != None:
+            voice = before
+        else:
+            voice = after
+        vc = voice.channel.guild.voice_client
+        for member in voice.channel.members:
+            if member.bot == False:
+                try:
+                    await vc.resume()
+                except: pass # fuck you who ever made these to raise exception for no reason even when it works
+                return
+        try:
+            await vc.pause()
+        except: pass
+
 @bot.event
 async def on_ready():
     os.system('cls' if os.name == 'nt' else 'clear')
