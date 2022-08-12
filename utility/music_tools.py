@@ -55,11 +55,11 @@ def serialize_songs(playlist, server):
     songs = []
     for song in playlist[server][0]:
         digit = str(i).zfill(3)
-        title = song.title[0:30]
+        title = song.title[0:31]
         title_length = len(title)
-        if title_length == 30 :
+        if title_length == 31 :
             title += ' ...'
-        song = f'**{digit}**: {title}'
+        song = f'**``{digit}``**: {title}'
         songs.append(song)
         i += 1
     if len(songs) <= 1:

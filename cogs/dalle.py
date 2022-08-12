@@ -1,6 +1,5 @@
 from discord.ext import commands#FA8D3E
 from PIL import Image#FA8D3E
-from utility import webhook
 import asyncio
 import zipfile
 import discord
@@ -8,7 +7,6 @@ import base64
 import httpx
 import json
 import io
-
 class View(discord.ui.View):
     def __init__(self, message, zippy):
         super().__init__(timeout=180)
@@ -35,7 +33,7 @@ async def DallE_Collage(arg):
     zippy = await loop.run_in_executor(None, CreateZip, images)
     collage = await loop.run_in_executor(None, CreateCollage, images)
     collage = await loop.run_in_executor(None, PillowImageToBytes, collage)
-    return [collage, zippy]
+    return collage, zippy
 
 async def CreateImages(prompt):
     async with httpx.AsyncClient(timeout=180) as requests:
@@ -86,17 +84,17 @@ class dalle(commands.Cog):
     @commands.command()
     @commands.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
+    #@common.decorators.typing
     async def dalle(self, ctx, *, arg="a cute kitten"):
         if ctx.message.author.bot:
             return
-        embed = discord.Embed(color=0xC9EDBE, fields=[], title=arg)
-        embed.set_image(url="attachment://unknown.png")
         async with ctx.typing():
-            files = await DallE_Collage(arg)
-            
-        file = discord.File(fp=files[0], filename="unknown.png")
-        message = await ctx.reply(embed=embed, file=file)
-        await message.edit(view=View(message=message, zippy=files[1]))
+            embed = discord.Embed(color=0xC9EDBE, fields=[], title=arg)
+            embed.set_image(url="attachment://unknown.png")
+            image, zip = await DallE_Collage(arg)
+            file = discord.File(fp=image, filename="unknown.png")
+            message = await ctx.reply(embed=embed, file=file)
+            await message.edit(view=View(message=message, zippy=zip))
         
 def setup(client, tokens):
     client.add_cog(dalle(client))
