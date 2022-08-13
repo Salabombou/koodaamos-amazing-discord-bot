@@ -152,7 +152,9 @@ def play_song(self, ctx, songs=[]):
     append_songs(ctx, self.playlist, songs)
     if not ctx.voice_client.is_playing() and self.playlist[server][0] != []:
         song = self.playlist[server][0][0]
-        url = YouTube.get_raw_audio_url(f'https://www.youtube.com/watch?v={song.id}')
+        try:
+            url = YouTube.get_raw_url(f'https://www.youtube.com/watch?v={song.id}')
+        except: url = YouTube.get_raw_url('https://www.youtube.com/watch?v=J3lXjYWPoys')
         source = discord.FFmpegPCMAudio(url, **ffmpeg_options)
         embed, file = create_info_embed(self, ctx)
         message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed, file=file), self.bot.loop)
