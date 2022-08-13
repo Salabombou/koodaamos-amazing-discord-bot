@@ -21,41 +21,28 @@ class Video: # for the video info
             self.thumbnail = data['thumbnails']['high']['url']
             self.channelId = data['videoOwnerChannelId']
 
-ydl_opts = {
-    'format': 'bestaudio/best',
-    'throttled-rate': '180K',
-    'restrictfilenames': True,
-    'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-}
-async def ExtractInfo(url, audio=False):
-    ydl_opts['format'] = 'mp4'
-    if audio:
-        ydl_opts['format'] = '140'
+
+def get_raw_url(url, video=False):
+    info = get_info(url=url, video=video)
+    return info['url']
+
+def get_info(url, video=False):
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'throttled-rate': '180K',
+        'restrictfilenames': True,
+        'noplaylist': True,
+        'nocheckcertificate': True,
+        'ignoreerrors': False,
+        'logtostderr': False,
+        'quiet': True,
+        'no_warnings': True,
+        'default_search': 'auto',
+    }
+    if video: ydl_opts['format'] = 'mp4'
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
-        try:
-            duration = info['duration']
-        except:
-            raise Exception("Invalid url")
-        if duration > 180:
-            raise Exception("Video is too long. Maximum video length is 3 minutes")
-        else:
-            return info
-
-def get_raw_audio_url(url):
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        try:
-            info = ydl.extract_info(url, download=False)
-            url = info['url']
-            return url
-        except:
-            return ydl.extract_info('https://www.youtube.com/watch?v=J3lXjYWPoys', download=False)['url']
+        return info
 
 def fetch_from_search(youtube, query):
     request = youtube.search().list(

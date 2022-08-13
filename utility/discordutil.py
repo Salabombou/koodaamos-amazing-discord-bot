@@ -23,10 +23,10 @@ async def GetFile(embeds, attachments, no_aud, no_vid, no_img): # gets the file 
         if isinstance(embed,discord.embeds.Embed):
             if isinstance(embed.video.proxy_url, str) and not no_vid:
                 return embed.video
-            if isinstance(embed.thumbnail.proxy_url, str) and not no_img:
-                return embed.thumbnail
             if isinstance(embed.image.proxy_url, str) and not no_img:
                 return embed.image
+            if isinstance(embed.thumbnail.proxy_url, str) and not no_img:
+                return embed.thumbnail
     return None
 
 # Overlay a greenscreen video on top of the target.
