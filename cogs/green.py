@@ -21,7 +21,7 @@ class green(commands.Cog):
         path = urllib.parse.urlparse(targeturl).path
         ext = os.path.splitext(path)[1]
         video_path = f'{os.getcwd()}/files/green/video{ctx.message.author.id}.mp4'
-        resize_path = f'{os.getcwd()}/files/green/resized{str(ctx.message.author.id)}' + '.png' if ext == '.jpg' else ext
+        resize_path = f'{os.getcwd()}/files/green/resized{str(ctx.message.author.id)}' + '.png' if ext == '.jpg' or'.jpeg' else ext
         output_path = f'{os.getcwd()}/files/green/{str(ctx.message.author.id)}.mp4'
         resize_command = f'ffmpeg -i {targeturl} -s 1280x720 -vf setdar=16/9 -loglevel error -y ' + resize_path
         time_to = str(datetime.timedelta(seconds=video['duration']))
