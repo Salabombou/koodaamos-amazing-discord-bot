@@ -41,7 +41,7 @@ async def CreateImages(prompt):
     condition = True
     while condition:
         r = await httpx.AsyncClient(timeout=180).post(headers={'Content-Type': 'application/json'}, data=json.dumps({'prompt': prompt}), url='https://backend.craiyon.com/generate')
-        condition = r.status_code != 524
+        condition = r.status_code == 524
     r.raise_for_status()
     return r.json()['images']
     
