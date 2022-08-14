@@ -1,5 +1,6 @@
-from discord.ext import commands#FA8D3E
-from PIL import Image#FA8D3E
+from discord.ext import commands
+from PIL import Image
+from utility import common
 import asyncio
 import zipfile
 import discord
@@ -7,6 +8,7 @@ import base64
 import httpx
 import json
 import io
+
 class View(discord.ui.View):
     def __init__(self, message, zippy):
         super().__init__(timeout=180)
@@ -36,10 +38,10 @@ async def DallE_Collage(arg):
     return collage, zippy
 
 async def CreateImages(prompt):
-    async with httpx.AsyncClient(timeout=180) as requests:
-        while True:
-            r = await requests.post(headers={'Content-Type': 'application/json'}, data=json.dumps({'prompt': prompt}), url='https://backend.craiyon.com/generate')
-            if r.status_code != 524: break
+    condition = True
+    while condition:
+        r = await httpx.AsyncClient(timeout=180).post(headers={'Content-Type': 'application/json'}, data=json.dumps({'prompt': prompt}), url='https://backend.craiyon.com/generate')
+        condition = r.status_code == 524
     r.raise_for_status()
     return r.json()['images']
     
@@ -84,7 +86,6 @@ class dalle(commands.Cog):
     @commands.command()
     @commands.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    #@common.decorators.typing
     async def dalle(self, ctx, *, arg="a cute kitten"):
         if ctx.message.author.bot:
             return
