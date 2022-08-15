@@ -30,7 +30,7 @@ async def GetFile(embeds, attachments, no_aud, no_vid, no_img): # gets the file 
     return None
 
 # Overlay a greenscreen video on top of the target.
-async def GetFileUrl(ctx, no_aud=False, no_vid=False, no_img=False):
+async def get_target(ctx, no_aud=False, no_vid=False, no_img=False):
     history =  await ctx.channel.history(limit=50).flatten()
     file = None
 
@@ -41,7 +41,7 @@ async def GetFileUrl(ctx, no_aud=False, no_vid=False, no_img=False):
         file = await GetFile(embeds, attachments, no_aud, no_vid, no_img=False)
         if file == None:
             raise Exception("No images/videos in the reply or video or audio is not accepted")
-        return file.proxy_url
+        return file
     else: # if there are embeds or attachments in the command itself
         embeds = ctx.message.embeds
         attachments = ctx.message.attachments
@@ -53,4 +53,4 @@ async def GetFileUrl(ctx, no_aud=False, no_vid=False, no_img=False):
             file = await GetFile(embeds, attachments, no_aud, no_vid, no_img=False)
             if file != None:
                 break
-    return file.proxy_url
+    return file

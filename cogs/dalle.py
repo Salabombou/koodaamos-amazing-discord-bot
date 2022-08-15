@@ -1,6 +1,5 @@
 from discord.ext import commands
 from PIL import Image
-from utility import common
 import asyncio
 import zipfile
 import discord
