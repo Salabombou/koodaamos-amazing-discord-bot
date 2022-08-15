@@ -1,3 +1,4 @@
+from msilib.schema import Condition
 import os
 import discord
 import asyncio
@@ -36,15 +37,15 @@ async def on_voice_state_update(member, before, after):
     vc = after.channel.guild.voice_client
     if before.channel is None and member.id == bot.user.id:
         time = 0
-        while True:
+        condition = True
+        while condition:
             await asyncio.sleep(1)
             time += 1
             if vc.is_playing() and not vc.is_paused():
                 time = 0
-            if time == 1800:
+            if time >= 1800:
                 await vc.disconnect()
-            if not vc.is_connected():
-                return
+            condition = vc.is_connected()
     elif not member.id == bot.user.id and vc != None and bot.user in after.channel.members:
         for member in after.channel.members:
             if member.bot == False:
