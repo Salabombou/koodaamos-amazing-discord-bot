@@ -51,8 +51,10 @@ class green(commands.Cog):
             output_path
             ]
         
-        pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, ffmpeg_command, stderr=subprocess.PIPE))
-        err = pipe.stderr
+        pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, ' '.join(ffmpeg_command), stderr=subprocess.PIPE))
+        err = str(pipe.stderr)
+        if err != '':
+            raise Exception(err)
         compressed = await compress.video(output_path)
         fp = io.BytesIO(compressed)
         for temp in [output_path, target_path, video_path]:
