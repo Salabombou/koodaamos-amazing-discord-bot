@@ -14,13 +14,16 @@ import functools
 class green(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.filter = '[1:v]scale={},scale=-1:720,colorkey=0x00ff00:0.4:0[ckout];[0:v]scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
+        self.filter = '[1:v]scale={},fps=30,scale=-1:720,colorkey=0x00ff00:0.4:0[ckout];[0:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
         self.ffmpeg_command = [
-            f'ffmpeg', '-stream_loop', '-1', '-ss', '00:00:00', '-to', '{}',
+            f'ffmpeg',
+            '-stream_loop', '-1',
+            '-ss', '00:00:00',
+            '-to', '{}',
             '-i', '"{}"',
             '-i', '"{}"',
             '-filter_complex', self.filter.format('"{}"' + ':720'),
-            '-loglevel', 'error',
+            '-loglevel', 'panic',
             '-map', '[out]',
             '-map', '1:a?',
             '-y',
@@ -43,7 +46,7 @@ class green(commands.Cog):
         # because it will fuck up / be slow otherwise
         video_url = urllib.request.urlopen(video['url']).url # sometimes it redirects
         for i in [[video_url, video_path],[target.proxy_url, target_path]]:
-            r = await httpx.AsyncClient().get(i[0])
+            r = await httpx.AsyncClient(timeout=10).get(i[0])
             r.raise_for_status()
             with open(i[1], 'wb') as file:
                 file.write(r.content)
