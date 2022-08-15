@@ -33,7 +33,7 @@ async def wait_for_completion(host, token):
     condition = True
     while condition: # do while in python :PogU:
         await asyncio.sleep(1)
-        r = await httpx.AsyncClient().get(f'{host}/check-progress?token={token}')
+        r = await httpx.AsyncClient().get(host + f'/check-progress?token={token}')
         r.raise_for_status()
         condition = r.json()['status'] != 'Done'
     return
@@ -54,6 +54,6 @@ async def video(file : bytes | str) -> bytes: # compressing using the 8mb.video 
         r = await requests.post(url=host, headers={'Content-Type': data.content_type}, data=data.to_string()) # initialize the compression
         r.raise_for_status()
         await wait_for_completion(host, token) # waits for the compressed video to be ready
-        r = await requests.get(f'{host}/8mb.video-{token}.mp4') # downloads the compressed video
+        r = await requests.get(host + f'/8mb.video-{token}.mp4') # downloads the compressed video
         r.raise_for_status()
     return r.content # returns the compressed video as bytes

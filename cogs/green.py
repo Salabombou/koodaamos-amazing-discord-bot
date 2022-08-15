@@ -9,6 +9,7 @@ import subprocess
 import datetime
 import urllib.parse
 import time
+import functools
 
 class green(commands.Cog):
     def __init__(self, bot):
@@ -20,13 +21,14 @@ class green(commands.Cog):
         video = YouTube.get_info(url=url, video=True)
         if video['duration'] > 60: raise Exception('Video is too long! Maximum duration is 60s.')
 
+        cwd = os.getcwd()
         t_stamp = int(time.time())
-        video_path = f'{os.getcwd()}/files/green/video/{ctx.message.author.id}_{t_stamp}.mp4'
-        target_path = f'{os.getcwd()}/files/green/target/{ctx.message.author.id}_{t_stamp}.mp4'
-        output_path = f'{os.getcwd()}/files/green/output/{ctx.message.author.id}_{t_stamp}.mp4' # time is for more stability
+        video_path = cwd + f'/files/green/video/{ctx.message.author.id}_{t_stamp}.mp4'
+        target_path = cwd + f'/files/green/target/{ctx.message.author.id}_{t_stamp}.mp4'
+        output_path = cwd + f'/files/green/output/{ctx.message.author.id}_{t_stamp}.mp4' # time is for more stability
         
         # because it will fuck up / be slow otherwise
-        video_url = urllib.request.urlopen(video['url']).url
+        video_url = urllib.request.urlopen(video['url']).url # sometimes it redirects
         for i in [[video_url, video_path],[target.proxy_url, target_path]]:
             r = await httpx.AsyncClient().get(i[0])
             r.raise_for_status()
@@ -36,9 +38,21 @@ class green(commands.Cog):
 
         time_to = str(datetime.timedelta(seconds=video['duration']))
         width = int((target.width / target.height) * 720)
-        ffmpeg_command = f'ffmpeg -stream_loop -1 -ss 00:00:00 -to {time_to} -i "{target_path}" -i "{video_path}" -filter_complex {self.filter.format(f"{width}:720")} -loglevel error -map [out] -map 1:a? -y -f mp4 {output_path}'
+        ffmpeg_command = [
+            f'ffmpeg', '-stream_loop', '-1', '-ss', '00:00:00', '-to', time_to,
+            '-i', f'"{target_path}"',
+            '-i', f'"{video_path}"',
+            '-filter_complex', self.filter.format(str(width) + ':720'),
+            '-loglevel', 'error',
+            '-map', '[out]',
+            '-map', '1:a?',
+            '-y',
+            '-f', 'mp4',
+            output_path
+            ]
         
-        await ctx.bot.loop.run_in_executor(None, subprocess.Popen(ffmpeg_command).wait)
+        pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, ffmpeg_command, stderr=subprocess.PIPE))
+        err = pipe.stderr
         compressed = await compress.video(output_path)
         fp = io.BytesIO(compressed)
         for temp in [output_path, target_path, video_path]:
