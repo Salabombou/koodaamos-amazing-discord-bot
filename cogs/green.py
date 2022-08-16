@@ -66,7 +66,6 @@ class green(commands.Cog):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
         width = int((target.width / target.height) * 720)
         video = YouTube.get_info(url=url, video=True)
-        audio = YouTube.get_raw_url(url)
         if video['duration'] > 60: raise Exception('Video is too long! Maximum duration is 60s.')
         time_to = str(datetime.timedelta(seconds=video['duration']))
 
@@ -85,7 +84,7 @@ class green(commands.Cog):
 
         # because it will fuck up / be slow otherwise
         video_url = urllib.request.urlopen(video['url']).url # sometimes it redirects
-        for i in [[video_url, video_path],[target.proxy_url, target_path], [audio, audio_video_path]]:
+        for i in [[video_url, video_path],[target.proxy_url, target_path]]:
             r = await httpx.AsyncClient(timeout=10).get(i[0])
             r.raise_for_status()
             with open(i[1], 'wb') as file:
@@ -95,7 +94,7 @@ class green(commands.Cog):
         time_to = str(datetime.timedelta(seconds=video['duration']))
         width = int((target.width / target.height) * 720)
 
-        filter_cmd = ' '.join(self.ffmpeg_command).format(time_to=time_to, target=target_path, video=video_path, width=width, filtered=filtered_path, audio_target=audio_target_path)
+        filter_cmd = ' '.join(self.ffmpeg_command).format(time_to=time_to, target=target_path, video=video_path, width=width, filtered=filtered_path, audio_target=audio_target_path, audio_video=audio_video_path)
         merge_audio_cmd = ' '.join(self.merge_audio_command).format(audio_target_path, audio_video_path, audio_path)
         merge_cmd = ' '.join(self.merge_command).format(filtered_path, audio_path, output_path)
         for cmd in [filter_cmd, merge_audio_cmd, merge_cmd]:
@@ -106,7 +105,7 @@ class green(commands.Cog):
             
         compressed = await compress.video(output_path)
         fp = io.BytesIO(compressed)
-        for temp in [target_path, filtered_path, audio_video_path, audio_target_path, audio_path, output_path]:
+        for temp in [video_path, target_path, filtered_path, audio_video_path, audio_target_path, audio_path, output_path]:
             os.remove(temp)
         return discord.File(fp=fp, filename='unknown.mp4')
 
