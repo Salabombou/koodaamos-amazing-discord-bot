@@ -37,6 +37,7 @@ class green(commands.Cog):
         video = YouTube.get_info(url=url, video=True)
         if video['duration'] > 60: raise Exception('Video is too long! Maximum duration is 60s.')
         time_to = str(datetime.timedelta(seconds=video['duration']))
+
         cwd = os.getcwd()
         t_stamp = int(time.time())
         video_path = cwd + f'/files/green/video/{ctx.message.author.id}_{t_stamp}.mp4'
@@ -60,6 +61,7 @@ class green(commands.Cog):
         err = pipe.stderr.decode("utf-8") 
         if err != '':
             raise Exception(err)
+            
         compressed = await compress.video(output_path)
         fp = io.BytesIO(compressed)
         for temp in [output_path, target_path, video_path]:
