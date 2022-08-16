@@ -7,7 +7,7 @@ import ast
 
 async def get_host():
     website = await httpx.AsyncClient(timeout=10).get('https://8mb.video/')
-    hosts_online = re.findall('var hosts_online = .*"];', str(website.content))[0].replace('var hosts_online = ', '')[:-1]
+    hosts_online = re.findall('var hosts_online = .*"];', website.content.decode('utf-8'))[0].replace('var hosts_online = ', '')[:-1]
     hosts_online = ast.literal_eval(hosts_online)
     host = hosts_online[0]
     return 'https://' + host

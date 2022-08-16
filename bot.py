@@ -30,7 +30,6 @@ async def on_command_error(ctx, error):
     embed.set_thumbnail(url='https://cdn.discordapp.com/emojis/992830317733871636.gif')
     await ctx.reply(embed=embed)
 
-
 @bot.event
 async def on_voice_state_update(member, before, after):
     if after.channel == None: return
