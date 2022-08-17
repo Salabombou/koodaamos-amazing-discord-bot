@@ -20,10 +20,8 @@ class cat(commands.Cog):
         self.reddit = asyncpraw.Reddit(
             client_id=reddit_file_content[0].strip(),
             client_secret=reddit_file_content[1].strip(),
-            password=reddit_file_content[2].strip(),
             requestor_kwargs={"session": sessions[-1]},  # pass Session
-            user_agent=reddit_file_content[3].strip(),
-            username=reddit_file_content[4].strip(),
+            user_agent=reddit_file_content[3].strip()
         )
     
     @commands.command()
