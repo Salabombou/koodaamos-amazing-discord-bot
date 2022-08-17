@@ -5,13 +5,13 @@ import asyncio
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound, CheckFailure
 
-from cogs import dalle, gpt3, tts, music, green
+from cogs import dalle, gpt3, tts, music, green, download
 
 def get_tokens():
     file = open(os.getcwd() + "/files/tokens", "r")
     return file.read().split("\n")
 
-cogs = [dalle, gpt3, tts, music, green]
+cogs = [dalle, gpt3, tts, music, green, download]
 bot = commands.Bot(command_prefix='.', intents=discord.Intents.all())
 tokens = get_tokens() # returns all the tokens
 
@@ -26,7 +26,7 @@ async def on_command_error(ctx, error):
         await ctx.message.add_reaction('👎')
         return
     embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
-    embed.description = f'```{error}```'[0:4096]
+    embed.description = f'```{str(error)[0:4090]}```'
     embed.set_thumbnail(url='https://cdn.discordapp.com/emojis/992830317733871636.gif')
     await ctx.reply(embed=embed)
 

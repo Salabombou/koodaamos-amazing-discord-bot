@@ -1,4 +1,5 @@
 import yt_dlp
+import urllib
 
 class Video: # for the video info
     def __init__(self, data={
@@ -42,6 +43,7 @@ def get_info(url, video=False):
     if video: ydl_opts['format'] = 'mp4'
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
+        info['url'] = urllib.request.urlopen(info['url']).url
         return info
 
 def fetch_from_search(youtube, query):

@@ -13,29 +13,30 @@ async def get_host():
     return 'https://' + host
 
 async def get_bytes(file):
-    if validators.url(file):
-        r = await httpx.AsyncClient(timeout=10).get(file)
-        r.raise_for_status()
-        file = r.content
-    elif not isinstance(file, bytes):
-        with open(file, 'rb') as f:
-            file = f.read()
-            f.close()
+    if not isinstance(file, bytes):
+        if validators.url(file):
+            resp = await httpx.AsyncClient(timeout=10).get(file)
+            resp.raise_for_status()
+            file = resp.content
+        else:
+            with open(file, 'rb') as f:
+                file = f.read()
+                f.close()
     return file
 
 async def get_token(host):
-    r = await httpx.AsyncClient(timeout=10).post(url=host, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}, data='preflight=true')
-    r.raise_for_status()
-    token = r.json()['token']
+    resp = await httpx.AsyncClient(timeout=10).post(url=host, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}, data='preflight=true')
+    resp.raise_for_status()
+    token = resp.json()['token']
     return token
 
 async def wait_for_completion(host, token):
     condition = True
     while condition: # do while in python :PogU:
         await asyncio.sleep(1)
-        r = await httpx.AsyncClient(timeout=10).get(host + f'/check-progress?token={token}')
-        r.raise_for_status()
-        condition = r.json()['status'] != 'Done'
+        resp = await httpx.AsyncClient(timeout=10).get(host + f'/check-progress?token={token}')
+        resp.raise_for_status()
+        condition = resp.json()['status'] != 'Done'
     return
 
 async def video(file : bytes | str) -> bytes: # compressing using the 8mb.video website
@@ -54,9 +55,9 @@ async def video(file : bytes | str) -> bytes: # compressing using the 8mb.video 
     }
     data = MultipartEncoder(fields=fields)
     async with httpx.AsyncClient(timeout=10) as requests:        
-        r = await requests.post(url=host, headers={'Content-Type': data.content_type}, data=data.to_string()) # initialize the compression
-        r.raise_for_status()
+        resp = await requests.post(url=host, headers={'Content-Type': data.content_type}, data=data.to_string(), timeout=60) # initialize the compression
+        resp.raise_for_status()
         await wait_for_completion(host, token) # waits for the compressed video to be ready
-        r = await requests.get(host + f'/8mb.video-{token}.mp4') # downloads the compressed video
-        r.raise_for_status()
-    return r.content # returns the compressed video as bytes
+        resp = await requests.get(host + f'/8mb.video-{token}.mp4') # downloads the compressed video
+        resp.raise_for_status()
+    return resp.content # returns the compressed video as bytes
