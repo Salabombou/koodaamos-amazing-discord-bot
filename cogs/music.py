@@ -37,7 +37,7 @@ class music(commands.Cog):
     @decorators.add_reaction
     @decorators.delete_after
     async def disconnect(self, ctx):
-        server = common.get_server(ctx)
+        server = music_tools.get_server(ctx)
         self.playlist[server] = [[],[]]
         await VoiceChat.leave(ctx)
 
@@ -63,7 +63,7 @@ class music(commands.Cog):
     @decorators.add_reaction
     @decorators.delete_after
     async def skip(self, ctx, amount='1'):
-        server = common.get_server(ctx)
+        server = music_tools.get_server(ctx)
         temp = self.looping[server]
         self.looping[server] = False
         amount = abs(int(amount))
@@ -79,7 +79,7 @@ class music(commands.Cog):
     @decorators.add_reaction
     @decorators.delete_after
     async def shuffle(self, ctx):
-        server = common.get_server(ctx)
+        server = music_tools.get_server(ctx)
         if self.playlist[server] == [[],[]]: return
         temp = self.playlist[server][0][0]
         self.playlist[server][0].pop(0)
@@ -93,7 +93,7 @@ class music(commands.Cog):
     @decorators.add_reaction
     @decorators.delete_after
     async def loop(self, ctx):
-        server = common.get_server(ctx)
+        server = music_tools.get_server(ctx)
         self.looping[server] = not self.looping[server]
     
     @commands.command()
@@ -110,7 +110,7 @@ class music(commands.Cog):
     @decorators.add_reaction
     @decorators.delete_after
     async def replay(self, ctx):
-        server = common.get_server(ctx)
+        server = music_tools.get_server(ctx)
         self.playlist[server][0].insert(0, self.playlist[server][0][0])
         await VoiceChat.stop(ctx)
 

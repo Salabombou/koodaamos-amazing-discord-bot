@@ -1,6 +1,6 @@
 import discord
 from discord import NotFound
-from utility import common, music_tools, VoiceChat
+from utility import music_tools, VoiceChat
 import math
 import numpy as np
 import asyncio
@@ -17,7 +17,7 @@ class music_view(discord.ui.View):
 
         self.embed = None
         self.index = 0
-        self.server = common.get_server(ctx)
+        self.server = music_tools.get_server(ctx)
         self.children[0].options = music_tools.create_options(ctx, self.playlist)
         self.update_buttons()
 
