@@ -130,3 +130,6 @@ dmypy.json
 files/tokens
 cogs/pixiv
 files/eduko/chromedriver.exe
+*.wav
+*.mp4
+*.mp4

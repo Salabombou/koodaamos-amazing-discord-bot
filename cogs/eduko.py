@@ -2,6 +2,7 @@ from discord.ext import commands
 from bs4 import BeautifulSoup
 from utility import webhook
 import httpx
+import discord
 
 class Food:
     def __init__(self, title, food):
