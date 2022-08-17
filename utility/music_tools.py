@@ -1,6 +1,6 @@
 import io
 import requests
-from utility import common, YouTube
+from utility import YouTube
 import urllib
 from urllib.parse import parse_qs, urlparse
 import isodate
@@ -16,13 +16,16 @@ ffmpeg_options = {
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
     }
 
+def get_server(ctx):
+    return str(ctx.message.guild.id)
+
 class decorators:
     def update_playlist(func):
         @functools.wraps(func)
         async def wrapper(*args):
             self = args[0]
             ctx = args[1]
-            server = common.get_server(ctx)
+            server = get_server(ctx)
             if server not in self.playlist:
                 self.playlist[server] = [[],[]]
             if server not in self.looping:
@@ -31,7 +34,7 @@ class decorators:
         return wrapper
 
 def append_songs(ctx, playlist, songs=[]): # appends songs to the playlist
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     length = len(playlist[server][0])
     playlist[server][1] += songs
     playlist[server][0] += playlist[server][1][0:1000 - length] # limits the visible playlist to go to upto 1000 song at once
@@ -68,7 +71,7 @@ def serialize_songs(playlist, server):
     return songs
 
 def create_embed(ctx, playlist, page_num): # todo add timestamp
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     embed = discord.Embed(title='PLAYLIST', description='', fields=[], color=0xC4FFBD)
     index = page_num * 50
     playlist_length = math.ceil(len(playlist[server][0]) / 50)
@@ -83,7 +86,7 @@ def create_embed(ctx, playlist, page_num): # todo add timestamp
     return embed
 
 def create_options(ctx, playlist):
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     page_amount = math.ceil(len(playlist[server][0]) / 50)
     options = [
         discord.SelectOption(
@@ -115,7 +118,7 @@ def get_thumbnail(url):
     return file
 
 def create_info_embed(self, ctx, number='0', song=None):
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     if song == None:
         num = abs(int(number))
         if len(self.playlist[server][0]) - 1 < num :  
@@ -148,7 +151,7 @@ async def fetch_songs(self, ctx, url, args):
 def play_song(self, ctx, songs=[]):
     if ctx.voice_client == None:
         return
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     append_songs(ctx, self.playlist, songs)
     if not ctx.voice_client.is_playing() and self.playlist[server][0] != []:
         song = self.playlist[server][0][0]
@@ -161,7 +164,7 @@ def play_song(self, ctx, songs=[]):
         ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.8), after=lambda e: next_song(self, ctx, message._result))
 
 def next_song(self, ctx, message):
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     try:
         asyncio.run_coroutine_threadsafe(message.delete(), self.bot.loop)
     except: pass # incase the message was deleted or something so it wont fuck up the whole queue
