@@ -26,7 +26,7 @@ class decorators:
             self = args[0]
             ctx = args[1]
             server = get_server(ctx)
-            if server not in self.playlist:
+            if not server in self.playlist:
                 self.playlist[server] = [[],[]]
             if server not in self.looping:
                 self.looping[server] = False
@@ -122,7 +122,7 @@ def create_info_embed(self, ctx, number='0', song=None):
     if song == None:
         num = abs(int(number))
         if len(self.playlist[server][0]) - 1 < num :  
-            raise Exception('No songs found at that number')
+            raise Exception('No songs found at that number.')
         song = self.playlist[server][0][num]
     embed = discord.Embed(title=song.title, description=song.description, fields=[], color=0xC4FFBD)
     embed.set_image(url='attachment://unknown.jpg')

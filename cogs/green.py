@@ -5,16 +5,18 @@ import os
 import discord
 import httpx
 from utility import discordutil, common, YouTube, compress
+from utility.common import decorators
 import subprocess
 import datetime
 import urllib.parse
 import time
 import functools
+import pathlib
 
 class green(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.filter = '[2:v]scale={},fps=30,scale=-1:720,colorkey=0x00ff00:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
+        self.filter = '[2:v]scale={scale},fps=30,scale=-1:720,colorkey=0x{color}:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
         self.ffmpeg_command = ['ffmpeg',
             '-ss', '00:00:00',
             '-to', '{time_to}',
@@ -26,7 +28,7 @@ class green(commands.Cog):
             '-i', '"{target}"',
             '-i', '"{video}"',
             '-loglevel', 'error',
-            '-filter_complex', self.filter.format('"{width}"' + ':720'),
+            '-filter_complex', self.filter.format(scale='"{width}"' + ':720', color='{color}'),
             '-map', '[out]',
             '-map', '0:a',
             '-y',
@@ -61,8 +63,30 @@ class green(commands.Cog):
             '-y',
             '"{}"'
             ]
+            
+    def delete_temps(self, *args):
+        for temp in args:
+            file = pathlib.Path(temp)
+            file.unlink()
 
-    async def create_output_video(self, ctx, url):
+    def set_color(self, color):
+        option = color[0:1].lower()
+        match option:
+            case 'r':
+                color = 'ff0000'
+            case 'g':
+                color = '00ff00'
+            case 'b':
+                color = '0000ff'
+            case 'c':
+                color = '00ffff'
+            case 'm':
+                color = 'ff00ff'
+            case 'y':
+                color = 'ffff00'
+        return color
+
+    async def create_output_video(self, ctx, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
         width = int((target.width / target.height) * 720)
         video = YouTube.get_info(url=url, video=True)
@@ -82,6 +106,8 @@ class green(commands.Cog):
 
         output_path = cwd + f'/files/green/output/{ctx.message.author.id}_{t_stamp}.mp4'
 
+        remove_args = (video_path, target_path, filtered_path, audio_video_path, audio_target_path, audio_path, output_path)
+
         # because it will fuck up / be slow otherwise
         video_url = urllib.request.urlopen(video['url']).url # sometimes it redirects
         for i in [[video_url, video_path],[target.proxy_url, target_path]]:
@@ -93,29 +119,29 @@ class green(commands.Cog):
 
         time_to = str(datetime.timedelta(seconds=video['duration']))
         width = int((target.width / target.height) * 720)
-
-        filter_cmd = ' '.join(self.ffmpeg_command).format(time_to=time_to, target=target_path, video=video_path, width=width, filtered=filtered_path, audio_target=audio_target_path, audio_video=audio_video_path)
+        color = self.set_color(color)
+        filter_cmd = ' '.join(self.ffmpeg_command).format(time_to=time_to, target=target_path, video=video_path, width=width, color=color, filtered=filtered_path, audio_target=audio_target_path, audio_video=audio_video_path)
         merge_audio_cmd = ' '.join(self.merge_audio_command).format(audio_target_path, audio_video_path, audio_path)
         merge_cmd = ' '.join(self.merge_command).format(filtered_path, audio_path, output_path)
         for cmd in [filter_cmd, merge_audio_cmd, merge_cmd]:
             pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE))
             err = pipe.stderr.decode('utf-8') 
             if err != '':
+                self.delete_temps(*remove_args)
                 raise Exception(err)
             
         compressed = await compress.video(output_path)
         fp = io.BytesIO(compressed)
-        for temp in [video_path, target_path, filtered_path, audio_video_path, audio_target_path, audio_path, output_path]:
-            os.remove(temp)
+        self.delete_temps(*remove_args)
         return discord.File(fp=fp, filename='unknown.mp4')
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @common.decorators.typing
-    async def green(self, ctx, url="https://youtu.be/iUsecpG2bWI"):
+    @decorators.typing
+    async def green(self, ctx, url='https://youtu.be/iUsecpG2bWI', color='g'):
         if ctx.message.author.bot:
             return
-        file = await self.create_output_video(ctx, url)
+        file = await self.create_output_video(ctx, url, color)
         await ctx.reply(file=file)
 
 def setup(client, tokens):

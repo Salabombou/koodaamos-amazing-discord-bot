@@ -3,13 +3,13 @@ import urllib
 
 class Video: # for the video info
     def __init__(self, data={
-        'title': '',
-        'description': '',
-        'resourceId': {'videoId': ''},
-        'channelId': '',
-        'videoOwnerChannelId': '',
-        'videoOwnerChannelTitle': '',
-        'thumbnails': {'high': {'url': ''}}
+        'title': '​',
+        'description': '​',
+        'resourceId': {'videoId': '​'},
+        'channelId': '​',
+        'videoOwnerChannelId': '​',
+        'videoOwnerChannelTitle': '​',
+        'thumbnails': {'high': {'url': '​'}}
     }):
         self.title = data['title'][0:256] # just incase
         self.description = data['description'][0:4096] # just incase
@@ -23,11 +23,11 @@ class Video: # for the video info
             self.channelId = data['videoOwnerChannelId']
 
 
-def get_raw_url(url, video=False):
-    info = get_info(url=url, video=video)
+def get_raw_url(url, video=False, max_duration=None):
+    info = get_info(url=url, video=video, max_duration=max_duration)
     return info['url']
 
-def get_info(url, video=False):
+def get_info(url, video=False, max_duration=None):
     ydl_opts = {
         'format': 'bestaudio/best',
         'throttled-rate': '180K',
@@ -44,7 +44,11 @@ def get_info(url, video=False):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
         info['url'] = urllib.request.urlopen(info['url']).url
-        return info
+        if max_duration != None:
+            if info['duration'] < max_duration:
+                return info
+        else: return info
+        raise Exception('Video is too long to be downloaded.')
 
 def fetch_from_search(youtube, query):
     request = youtube.search().list(
