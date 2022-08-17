@@ -26,6 +26,7 @@ class music(commands.Cog):
     @commands.command()
     @commands.check(VoiceChat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @music_tools.decorators.update_playlist
     async def list(self, ctx):
         embed = music_tools.create_embed(ctx, self.playlist, 0)
         message = await ctx.send(embed=embed)
@@ -46,16 +47,14 @@ class music(commands.Cog):
     @decorators.add_reaction
     @decorators.delete_after
     async def resume(self, ctx):
-        if ctx.voice_client.is_paused():
-            await VoiceChat.resume(ctx)
+        await VoiceChat.resume(ctx)
 
     @commands.command()
     @commands.check(VoiceChat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
     async def pause(self, ctx):
-        if ctx.voice_client.is_playing():
-            await VoiceChat.pause(ctx)
+        await VoiceChat.pause(ctx)
     
     @commands.command()
     @commands.check(VoiceChat.command_check)
@@ -101,6 +100,8 @@ class music(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     async def info(self, ctx, number='0'):
+        server = music_tools.get_server(ctx)
+        if self.playlist[server][0] == []: return
         embed, file = music_tools.create_info_embed(self, ctx, number=number)
         await ctx.reply(embed=embed, file=file, mention_author=False)
 
@@ -111,8 +112,9 @@ class music(commands.Cog):
     @decorators.delete_after
     async def replay(self, ctx):
         server = music_tools.get_server(ctx)
-        self.playlist[server][0].insert(0, self.playlist[server][0][0])
-        await VoiceChat.stop(ctx)
+        if self.playlist[server][0] != []:
+            self.playlist[server][0].insert(0, self.playlist[server][0][0])
+            await VoiceChat.stop(ctx)
 
 def setup(client, tokens):
     client.add_cog(music(client, tokens))

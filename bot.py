@@ -1,4 +1,3 @@
-from msilib.schema import Condition
 import os
 import discord
 import asyncio
