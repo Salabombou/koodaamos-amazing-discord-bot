@@ -15,11 +15,7 @@ class cat(commands.Cog):
         reddit_file_content = reddit_api_file.readlines()
 
         self.catAPI = tokens[4]
-        if (len(sessions) < 0):
-            for session in sessions:
-                session.close()
         sessions.append(ClientSession(trust_env=True))
-        
 
         self.reddit = asyncpraw.Reddit(
             client_id=reddit_file_content[0].strip(),
@@ -41,7 +37,7 @@ class cat(commands.Cog):
                 resp = await resp.json()
         url = resp[0]["url"]
         print(url)
-        if ".false" in url or random.randrange(0,101) == 32:
+        if ".false" in url or random.randrange(32,33) == 32:
             url = await getSecretCatUrl(self) #add easter egg here
         await ctx.send(url)
     
