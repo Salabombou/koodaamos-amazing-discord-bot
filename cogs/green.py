@@ -5,6 +5,7 @@ import os
 import discord
 import httpx
 from utility import discordutil, common, YouTube, compress
+from utility.common import decorators
 import subprocess
 import datetime
 import urllib.parse
@@ -61,6 +62,10 @@ class green(commands.Cog):
             '-y',
             '"{}"'
             ]
+    def delete_temps(*args):
+        for temp in args[1:]:
+            if os.path.exists(temp):
+                os.remove(temp)
 
     async def create_output_video(self, ctx, url):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
@@ -82,6 +87,8 @@ class green(commands.Cog):
 
         output_path = cwd + f'/files/green/output/{ctx.message.author.id}_{t_stamp}.mp4'
 
+        remove_args = (video_path, target_path, filtered_path, audio_video_path, audio_target_path, audio_path, output_path)
+
         # because it will fuck up / be slow otherwise
         video_url = urllib.request.urlopen(video['url']).url # sometimes it redirects
         for i in [[video_url, video_path],[target.proxy_url, target_path]]:
@@ -101,17 +108,17 @@ class green(commands.Cog):
             pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE))
             err = pipe.stderr.decode('utf-8') 
             if err != '':
+                self.delete_temps(*remove_args)
                 raise Exception(err)
             
         compressed = await compress.video(output_path)
         fp = io.BytesIO(compressed)
-        for temp in [video_path, target_path, filtered_path, audio_video_path, audio_target_path, audio_path, output_path]:
-            os.remove(temp)
+        self.delete_temps(*remove_args)
         return discord.File(fp=fp, filename='unknown.mp4')
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @common.decorators.typing
+    @decorators.typing
     async def green(self, ctx, url="https://youtu.be/iUsecpG2bWI"):
         if ctx.message.author.bot:
             return
