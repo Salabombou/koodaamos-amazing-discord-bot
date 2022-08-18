@@ -70,7 +70,7 @@ class green(commands.Cog):
             file.unlink()
 
     def set_color(self, color):
-        option = color[0:1].lower()
+        option = color[0].lower()
         match option:
             case 'r':
                 color = 'ff0000'
