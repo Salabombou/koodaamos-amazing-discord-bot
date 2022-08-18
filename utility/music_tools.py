@@ -1,5 +1,3 @@
-import io
-import requests
 from utility import YouTube
 import urllib
 from urllib.parse import parse_qs, urlparse
@@ -9,7 +7,6 @@ import math
 import asyncio
 import validators
 import functools
-from PIL import Image
 
 ffmpeg_options = {
     'options': '-vn',
@@ -104,19 +101,6 @@ def create_options(ctx, playlist):
             )
     return options
 
-def get_thumbnail(url):
-    buf = io.BytesIO()
-    if not validators.url(str(url)):
-        return None
-    r = requests.get(url=url)
-    r.raise_for_status()
-    image = Image.open(io.BytesIO(r.content))
-    image = image.crop((0, 45, 480, 315)) # crops the ugly black bars off the image
-    image.save(buf, format='JPEG')
-    buf.seek(0)
-    file = discord.File(filename='unknown.jpg', fp=buf)
-    return file
-
 def create_info_embed(self, ctx, number='0', song=None):
     server = get_server(ctx)
     if song == None:
@@ -125,12 +109,11 @@ def create_info_embed(self, ctx, number='0', song=None):
             raise Exception('No songs found at that number.')
         song = self.playlist[server][0][num]
     embed = discord.Embed(title=song.title, description=song.description, fields=[], color=0xC4FFBD)
-    embed.set_image(url='attachment://unknown.jpg')
+    embed.set_image(url=song.thumbnail)
     embed.add_field(name='LINKS:', value=f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})')
     icon = YouTube.fetch_channel_icon(youtube=self.youtube, channelId=song.channelId)
     embed.set_footer(text=song.channel, icon_url=icon)
-    file = get_thumbnail(url=song.thumbnail)
-    return embed, file
+    return embed
 
 async def fetch_songs(self, ctx, url, args):
     if args != () or not validators.url(url): # if there is more than 1 arguement or the url is invalid (implying for a search)
@@ -156,11 +139,14 @@ def play_song(self, ctx, songs=[]):
     if not ctx.voice_client.is_playing() and self.playlist[server][0] != []:
         song = self.playlist[server][0][0]
         try:
-            url = YouTube.get_raw_url(f'https://www.youtube.com/watch?v={song.id}')
-        except: url = YouTube.get_raw_url('https://www.youtube.com/watch?v=J3lXjYWPoys')
-        source = discord.FFmpegPCMAudio(url, **ffmpeg_options)
-        embed, file = create_info_embed(self, ctx)
-        message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed, file=file), self.bot.loop)
+            info = YouTube.get_info(f'https://www.youtube.com/watch?v={song.id}')
+        except: info = YouTube.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
+        duration = None
+        if 'duration' in info:
+            duration = info['duration'] + 10
+        source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
+        embed = create_info_embed(self, ctx)
+        message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed, delete_after=duration), self.bot.loop)
         ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.8), after=lambda e: next_song(self, ctx, message._result))
 
 def next_song(self, ctx, message):
