@@ -4,15 +4,14 @@ from discord.ext import commands
 import os
 import discord
 import httpx
-from utility import discordutil, common, YouTube, compress
-from utility.common import decorators
+from utility import discordutil, YouTube, compress
+from utility.common import decorators, file_management
 import subprocess
 import datetime
 import urllib.parse
 import time
 import functools
-import pathlib
-
+import math
 class green(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -63,11 +62,6 @@ class green(commands.Cog):
             '-y',
             '"{}"'
             ]
-            
-    def delete_temps(self, *args):
-        for temp in args:
-            file = pathlib.Path(temp)
-            file.unlink()
 
     def set_color(self, color):
         option = color[0].lower()
@@ -89,8 +83,8 @@ class green(commands.Cog):
     async def create_output_video(self, ctx, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
         width = int((target.width / target.height) * 720)
-        video = YouTube.get_info(url=url, video=True)
-        if video['duration'] > 60: raise Exception('Video is too long! Maximum duration is 60s.')
+        width = math.ceil(width / 2) * 2
+        video = YouTube.get_info(url=url, video=True, max_duration=60)
         time_to = str(datetime.timedelta(seconds=video['duration']))
 
         cwd = os.getcwd()
@@ -124,15 +118,19 @@ class green(commands.Cog):
         merge_audio_cmd = ' '.join(self.merge_audio_command).format(audio_target_path, audio_video_path, audio_path)
         merge_cmd = ' '.join(self.merge_command).format(filtered_path, audio_path, output_path)
         for cmd in [filter_cmd, merge_audio_cmd, merge_cmd]:
-            pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE))
+            try:
+                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=30))
+            except:
+                file_management.delete_temps(*remove_args)
+                raise Exception('Command timeout.')
             err = pipe.stderr.decode('utf-8') 
             if err != '':
-                self.delete_temps(*remove_args)
+                file_management.delete_temps(*remove_args)
                 raise Exception(err)
             
         compressed = await compress.video(output_path)
         fp = io.BytesIO(compressed)
-        self.delete_temps(*remove_args)
+        file_management.delete_temps(*remove_args)
         return discord.File(fp=fp, filename='unknown.mp4')
 
     @commands.command()

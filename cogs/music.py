@@ -102,8 +102,8 @@ class music(commands.Cog):
     async def info(self, ctx, number='0'):
         server = music_tools.get_server(ctx)
         if self.playlist[server][0] == []: return
-        embed, file = music_tools.create_info_embed(self, ctx, number=number)
-        await ctx.reply(embed=embed, file=file, mention_author=False)
+        embed = music_tools.create_info_embed(self, ctx, number=number)
+        await ctx.reply(embed=embed, mention_author=False)
 
     @commands.command()
     @commands.check(VoiceChat.command_check)
