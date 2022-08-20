@@ -12,6 +12,7 @@ import urllib.parse
 import time
 import functools
 import math
+
 class green(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -64,27 +65,17 @@ class green(commands.Cog):
             ]
 
     def set_color(self, color):
-        option = color[0].lower()
-        match option:
-            case 'r':
-                color = 'ff0000'
-            case 'g':
-                color = '00ff00'
-            case 'b':
-                color = '0000ff'
-            case 'c':
-                color = '00ffff'
-            case 'm':
-                color = 'ff00ff'
-            case 'y':
-                color = 'ffff00'
+        color = color.lower()
+        color = color[:6].zfill(6)
+        try: int(color, 16)
+        except: color = '00ff00'
         return color
 
     async def create_output_video(self, ctx, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
         width = int((target.width / target.height) * 720)
         width = math.ceil(width / 2) * 2
-        video = YouTube.get_info(url=url, video=True, max_duration=60)
+        video = YouTube.get_info(url=url, video=True, max_duration=100)
         time_to = str(datetime.timedelta(seconds=video['duration']))
 
         cwd = os.getcwd()
@@ -128,15 +119,15 @@ class green(commands.Cog):
                 file_management.delete_temps(*remove_args)
                 raise Exception(err)
             
-        compressed = await compress.video(output_path)
-        fp = io.BytesIO(compressed)
+        compressed = await compress.video(output_path, ctx)
         file_management.delete_temps(*remove_args)
+        fp = io.BytesIO(compressed)
         return discord.File(fp=fp, filename='unknown.mp4')
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
-    async def green(self, ctx, url='https://youtu.be/iUsecpG2bWI', color='g'):
+    async def green(self, ctx, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
         if ctx.message.author.bot:
             return
         file = await self.create_output_video(ctx, url, color)
