@@ -18,10 +18,8 @@ class audio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.target_audio_command = ['ffmpeg',
-        '-ss', '00:00:00',
-        '-to', '{}',
         '-f', 'lavfi',
-        '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100',
+        '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
         '-i', '"{}"',
         '-loglevel', 'error',
         '-map', '1:a?',
@@ -81,7 +79,7 @@ class audio(commands.Cog):
             with open(i[1], 'wb') as file:
                 file.write(r.content)
                 file.close()
-        target_audio_cmd = ' '.join(self.target_audio_command).format(time_to, target_path, target_audio_path)
+        target_audio_cmd = ' '.join(self.target_audio_command).format(target_path, target_audio_path)
         merge_audio_cmd = ' '.join(self.merge_audio_command).format(time_to, target_audio_path, audio_audio_path, audio_path)
         merge_cmd = ' '.join(self.merge_command).format(time_to, target_path, audio_path, width, output_path)
         for cmd in [target_audio_cmd, merge_audio_cmd, merge_cmd]:
