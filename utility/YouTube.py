@@ -1,32 +1,32 @@
 import yt_dlp
+import urllib
+import validators
 
 class Video: # for the video info
     def __init__(self, data={
-        'title': '',
-        'description': '',
-        'resourceId': {'videoId': ''},
-        'channelId': '',
-        'videoOwnerChannelId': '',
-        'videoOwnerChannelTitle': '',
-        'thumbnails': {'high': {'url': ''}}
-    }):
+        'title': '​',
+        'description': '​',
+        'resourceId': {'videoId': '​'},
+        'channelId': '​',
+        'videoOwnerChannelId': '​',
+        'videoOwnerChannelTitle': '​'
+        }):
         self.title = data['title'][0:256] # just incase
         self.description = data['description'][0:4096] # just incase
         self.channel = '???'
-        self.thumbnail = None
         self.id = data['resourceId']['videoId']
+        self.thumbnail = f'https://i.ytimg.com/vi/{self.id}/mqdefault.jpg'
         self.channelId = data['channelId']
         if data['title'] != 'Private video' and data['title'] != 'Deleted video': # if i can retrieve these stuff
             self.channel = data['videoOwnerChannelTitle']
-            self.thumbnail = data['thumbnails']['high']['url']
             self.channelId = data['videoOwnerChannelId']
 
-
-def get_raw_url(url, video=False):
-    info = get_info(url=url, video=video)
+def get_raw_url(url, video=False, max_duration=None):
+    info = get_info(url=url, video=video, max_duration=max_duration)
     return info['url']
 
-def get_info(url, video=False):
+def get_info(url, video=False, max_duration=None):
+    if not validators.url(url): raise Exception('Invalid url.')
     ydl_opts = {
         'format': 'bestaudio/best',
         'throttled-rate': '180K',
@@ -42,7 +42,12 @@ def get_info(url, video=False):
     if video: ydl_opts['format'] = 'mp4'
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
-        return info
+        info['url'] = urllib.request.urlopen(info['url']).url
+        if max_duration != None:
+            if info['duration'] < max_duration:
+                return info
+        else: return info
+        raise Exception('Video is too long to be downloaded.')
 
 def fetch_from_search(youtube, query):
     request = youtube.search().list(

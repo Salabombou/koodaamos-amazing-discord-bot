@@ -1,6 +1,7 @@
 from discord.ext import commands
 import asyncio
-from utility import VoiceChat, music_tools, common
+from utility import VoiceChat, music_tools
+from utility.common import decorators
 from utility.views.music import music_view
 import googleapiclient.discovery
 import numpy as np
@@ -16,7 +17,7 @@ class music(commands.Cog):
     @commands.check(VoiceChat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
-    @common.decorators.add_reaction
+    @decorators.add_reaction
     async def play(self, ctx, url='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau', *args):
         await VoiceChat.join(ctx)
         songs = await music_tools.fetch_songs(self, ctx, url, args)
@@ -25,6 +26,7 @@ class music(commands.Cog):
     @commands.command()
     @commands.check(VoiceChat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @music_tools.decorators.update_playlist
     async def list(self, ctx):
         embed = music_tools.create_embed(ctx, self.playlist, 0)
         message = await ctx.send(embed=embed)
@@ -33,36 +35,34 @@ class music(commands.Cog):
         
     @commands.command()
     @commands.check(VoiceChat.command_check)
-    @common.decorators.add_reaction
-    @common.decorators.delete_after
+    @decorators.add_reaction
+    @decorators.delete_after
     async def disconnect(self, ctx):
-        server = common.get_server(ctx)
+        server = music_tools.get_server(ctx)
         self.playlist[server] = [[],[]]
         await VoiceChat.leave(ctx)
 
     @commands.command()
     @commands.check(VoiceChat.command_check)
-    @common.decorators.add_reaction
-    @common.decorators.delete_after
+    @decorators.add_reaction
+    @decorators.delete_after
     async def resume(self, ctx):
-        if ctx.voice_client.is_paused():
-            await VoiceChat.resume(ctx)
+        await VoiceChat.resume(ctx)
 
     @commands.command()
     @commands.check(VoiceChat.command_check)
-    @common.decorators.add_reaction
-    @common.decorators.delete_after
+    @decorators.add_reaction
+    @decorators.delete_after
     async def pause(self, ctx):
-        if ctx.voice_client.is_playing():
-            await VoiceChat.pause(ctx)
+        await VoiceChat.pause(ctx)
     
     @commands.command()
     @commands.check(VoiceChat.command_check)
     @music_tools.decorators.update_playlist
-    @common.decorators.add_reaction
-    @common.decorators.delete_after
+    @decorators.add_reaction
+    @decorators.delete_after
     async def skip(self, ctx, amount='1'):
-        server = common.get_server(ctx)
+        server = music_tools.get_server(ctx)
         temp = self.looping[server]
         self.looping[server] = False
         amount = abs(int(amount))
@@ -75,10 +75,10 @@ class music(commands.Cog):
     @commands.command()
     @commands.check(VoiceChat.command_check)
     @music_tools.decorators.update_playlist
-    @common.decorators.add_reaction
-    @common.decorators.delete_after
+    @decorators.add_reaction
+    @decorators.delete_after
     async def shuffle(self, ctx):
-        server = common.get_server(ctx)
+        server = music_tools.get_server(ctx)
         if self.playlist[server] == [[],[]]: return
         temp = self.playlist[server][0][0]
         self.playlist[server][0].pop(0)
@@ -89,10 +89,10 @@ class music(commands.Cog):
     @commands.command()
     @commands.check(VoiceChat.command_check)
     @music_tools.decorators.update_playlist
-    @common.decorators.add_reaction
-    @common.decorators.delete_after
+    @decorators.add_reaction
+    @decorators.delete_after
     async def loop(self, ctx):
-        server = common.get_server(ctx)
+        server = music_tools.get_server(ctx)
         self.looping[server] = not self.looping[server]
     
     @commands.command()
@@ -100,18 +100,21 @@ class music(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     async def info(self, ctx, number='0'):
-        embed, file = music_tools.create_info_embed(self, ctx, number=number)
-        await ctx.reply(embed=embed, file=file, mention_author=False)
+        server = music_tools.get_server(ctx)
+        if self.playlist[server][0] == []: return
+        embed = music_tools.create_info_embed(self, ctx, number=number)
+        await ctx.reply(embed=embed, mention_author=False)
 
     @commands.command()
     @commands.check(VoiceChat.command_check)
     @music_tools.decorators.update_playlist
-    @common.decorators.add_reaction
-    @common.decorators.delete_after
+    @decorators.add_reaction
+    @decorators.delete_after
     async def replay(self, ctx):
-        server = common.get_server(ctx)
-        self.playlist[server][0].insert(0, self.playlist[server][0][0])
-        await VoiceChat.stop(ctx)
+        server = music_tools.get_server(ctx)
+        if self.playlist[server][0] != []:
+            self.playlist[server][0].insert(0, self.playlist[server][0][0])
+            await VoiceChat.stop(ctx)
 
 def setup(client, tokens):
     client.add_cog(music(client, tokens))

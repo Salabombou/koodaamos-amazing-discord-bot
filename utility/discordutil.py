@@ -12,10 +12,11 @@ import discord
 # 2. From the command message itself
 # 3. From the channel history
 
-async def GetFile(embeds, attachments, no_aud, no_vid, no_img): # gets the file for the img if there is one
+async def get_file(embeds, attachments, no_aud, no_vid, no_img): # gets the file for the img if there is one
     for attachment in attachments:
         if attachment.content_type != None:
-            not_allowed = ("audio" in attachment.content_type and no_aud) or ("video" in attachment.content_type and no_vid) or ("image" in attachment.content_type and no_img)
+            content_type = attachment.content_type[0:5]
+            not_allowed = (content_type == 'audio' and no_aud) or (content_type == 'video' and no_vid) or (content_type == 'image' and no_img)
             if not_allowed:
                 continue
             return attachment
@@ -38,19 +39,19 @@ async def get_target(ctx, no_aud=False, no_vid=False, no_img=False):
         reply = await ctx.channel.fetch_message(ctx.message.reference.message_id)
         embeds = reply.embeds
         attachments = reply.attachments
-        file = await GetFile(embeds, attachments, no_aud, no_vid, no_img=False)
+        file = await get_file(embeds, attachments, no_aud, no_vid, no_img)
         if file == None:
             raise Exception("No images/videos in the reply or video or audio is not accepted")
         return file
     else: # if there are embeds or attachments in the command itself
         embeds = ctx.message.embeds
         attachments = ctx.message.attachments
-        file = await GetFile([], attachments, no_aud, no_vid, no_img=False)
+        file = await get_file([], attachments, no_aud, no_vid, no_img)
     if file == None:
         for message in history[1:]:
             embeds = message.embeds
             attachments = message.attachments
-            file = await GetFile(embeds, attachments, no_aud, no_vid, no_img=False)
+            file = await get_file(embeds, attachments, no_aud, no_vid, no_img)
             if file != None:
                 break
     return file

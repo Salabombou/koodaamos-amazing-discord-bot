@@ -1,6 +1,4 @@
-import io
-import requests
-from utility import common, YouTube
+from utility import YouTube
 import urllib
 from urllib.parse import parse_qs, urlparse
 import isodate
@@ -9,12 +7,14 @@ import math
 import asyncio
 import validators
 import functools
-from PIL import Image
 
 ffmpeg_options = {
     'options': '-vn',
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
     }
+
+def get_server(ctx):
+    return str(ctx.message.guild.id)
 
 class decorators:
     def update_playlist(func):
@@ -22,8 +22,8 @@ class decorators:
         async def wrapper(*args):
             self = args[0]
             ctx = args[1]
-            server = common.get_server(ctx)
-            if server not in self.playlist:
+            server = get_server(ctx)
+            if not server in self.playlist:
                 self.playlist[server] = [[],[]]
             if server not in self.looping:
                 self.looping[server] = False
@@ -31,7 +31,7 @@ class decorators:
         return wrapper
 
 def append_songs(ctx, playlist, songs=[]): # appends songs to the playlist
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     length = len(playlist[server][0])
     playlist[server][1] += songs
     playlist[server][0] += playlist[server][1][0:1000 - length] # limits the visible playlist to go to upto 1000 song at once
@@ -68,7 +68,7 @@ def serialize_songs(playlist, server):
     return songs
 
 def create_embed(ctx, playlist, page_num): # todo add timestamp
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     embed = discord.Embed(title='PLAYLIST', description='', fields=[], color=0xC4FFBD)
     index = page_num * 50
     playlist_length = math.ceil(len(playlist[server][0]) / 50)
@@ -83,7 +83,7 @@ def create_embed(ctx, playlist, page_num): # todo add timestamp
     return embed
 
 def create_options(ctx, playlist):
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     page_amount = math.ceil(len(playlist[server][0]) / 50)
     options = [
         discord.SelectOption(
@@ -101,33 +101,19 @@ def create_options(ctx, playlist):
             )
     return options
 
-def get_thumbnail(url):
-    buf = io.BytesIO()
-    if not validators.url(str(url)):
-        return None
-    r = requests.get(url=url)
-    r.raise_for_status()
-    image = Image.open(io.BytesIO(r.content))
-    image = image.crop((0, 45, 480, 315)) # crops the ugly black bars off the image
-    image.save(buf, format='JPEG')
-    buf.seek(0)
-    file = discord.File(filename='unknown.jpg', fp=buf)
-    return file
-
 def create_info_embed(self, ctx, number='0', song=None):
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     if song == None:
         num = abs(int(number))
         if len(self.playlist[server][0]) - 1 < num :  
-            raise Exception('No songs found at that number')
+            raise Exception('No songs found at that number.')
         song = self.playlist[server][0][num]
     embed = discord.Embed(title=song.title, description=song.description, fields=[], color=0xC4FFBD)
-    embed.set_image(url='attachment://unknown.jpg')
+    embed.set_image(url=song.thumbnail)
     embed.add_field(name='LINKS:', value=f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})')
     icon = YouTube.fetch_channel_icon(youtube=self.youtube, channelId=song.channelId)
     embed.set_footer(text=song.channel, icon_url=icon)
-    file = get_thumbnail(url=song.thumbnail)
-    return embed, file
+    return embed
 
 async def fetch_songs(self, ctx, url, args):
     if args != () or not validators.url(url): # if there is more than 1 arguement or the url is invalid (implying for a search)
@@ -148,23 +134,26 @@ async def fetch_songs(self, ctx, url, args):
 def play_song(self, ctx, songs=[]):
     if ctx.voice_client == None:
         return
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     append_songs(ctx, self.playlist, songs)
     if not ctx.voice_client.is_playing() and self.playlist[server][0] != []:
         song = self.playlist[server][0][0]
         try:
-            url = YouTube.get_raw_url(f'https://www.youtube.com/watch?v={song.id}')
-        except: url = YouTube.get_raw_url('https://www.youtube.com/watch?v=J3lXjYWPoys')
-        source = discord.FFmpegPCMAudio(url, **ffmpeg_options)
-        embed, file = create_info_embed(self, ctx)
-        message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed, file=file), self.bot.loop)
-        ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.5), after=lambda e: next_song(self, ctx, message._result))
+            info = YouTube.get_info(f'https://www.youtube.com/watch?v={song.id}')
+        except: info = YouTube.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
+        duration = None
+        if 'duration' in info:
+            duration = info['duration'] + 10
+        source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
+        embed = create_info_embed(self, ctx)
+        message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed, delete_after=duration), self.bot.loop)
+        ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.8), after=lambda e: next_song(self, ctx, message._result))
 
 def next_song(self, ctx, message):
-    server = common.get_server(ctx)
+    server = get_server(ctx)
     try:
         asyncio.run_coroutine_threadsafe(message.delete(), self.bot.loop)
-    except: pass # incase the message was deleted or something so it wont fuck up the whole queue
+    except: pass # incase the message was already deleted or something so it wont fuck up the whole queue
     if self.playlist[server][0] != []:
         if not self.looping[server]:
             self.playlist[server][0].pop(0)

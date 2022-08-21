@@ -71,9 +71,6 @@ instance/
 # Sphinx documentation
 docs/_build/
 
-# PyBuilder
-target/
-
 # Jupyter Notebook
 .ipynb_checkpoints
 
@@ -130,3 +127,6 @@ dmypy.json
 files/tokens
 cogs/pixiv
 files/eduko/chromedriver.exe
+*.wav
+*.mp4
+*.mp4
