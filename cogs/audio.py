@@ -18,15 +18,15 @@ class audio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.target_audio_command = ['ffmpeg',
-        '-f', 'lavfi',
-        '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
-        '-i', '"{}"',
-        '-loglevel', 'error',
-        '-map', '1:a?',
-        '-vn',
-        '-y',
-        '-f', 'wav',
-        '"{}"'
+            '-f', 'lavfi',
+            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
+            '-i', '"{}"',
+            '-loglevel', 'error',
+            '-map', '1:a?',
+            '-vn',
+            '-y',
+            '-f', 'wav',
+            '"{}"'
         ]
         self.merge_audio_command = ['ffmpeg',
             '-stream_loop', '-1',
