@@ -10,6 +10,8 @@ sessions = []
 
 class cat(commands.Cog):
     def __init__(self, bot, tokens=None):
+        self.reddit_id_file = open("./files/id_list", "r+")
+        self.reddit_id_file_content = self.reddit_id_file.read().split("\n")
         self.bot = bot
         reddit_api_file = open("./files/reddit_api.api", "r")
         reddit_file_content = reddit_api_file.readlines()
@@ -26,16 +28,15 @@ class cat(commands.Cog):
     
     @commands.command()
     @commands.is_nsfw()
-    async def cat(self, ctx):
+    async def cat(self, ctx, *args):
         random.seed(a=None, version=2)
 
         resp = None
         async with ClientSession() as session:
-            async with session.get("https://api.thecatapi.com/v1/images/search", headers={'x-api-key': str(self.catAPI)} ) as resp:
+            async with session.get("https://api.thecatapi.com/v1/images/search", headers={'x-api-key': str(self.catAPI)}) as resp:
                 resp = await resp.json()
         url = resp[0]["url"]
-        print(url)
-        if ".false" in url or random.randrange(32,33) == 32:
+        if ".false" in url or random.randrange(0,101) == 32 or "-f" in args:
             url = await getSecretCatUrl(self) #add easter egg here
         await ctx.send(url)
     
@@ -51,23 +52,23 @@ async def async_exit_handler():
     print("\nClient closed")
 
 async def getSecretCatUrl(self):
-    random.seed(a=None, version=2)
-    i = random.randrange(0,11)
-    print(i)
     subreddit = await self.reddit.subreddit("eroonigiri")
-    async for submission in subreddit.hot(limit=20): # use random to get a random post # will fix later 
-        if not submission.stickied and not submission.is_self:
-            if not i: 
-                print(submission.id)
-                if hasattr(submission, "is_gallery"):
-                    gallery = []
-                    for i in submission.media_metadata.items():
-                        url = i[1]['p'][0]['u'].split("?")[0].replace("preview", "i") #fuck you reddit # 4 dimensional cluster fuck
-                        gallery.append(url)
-                    return gallery[random.randrange(0,len(gallery))]
-                return submission.url
-            else:
-                i -= 1
+    submission = await subreddit.random()
+    while submission.stickied or submission.is_self or submission.id in self.reddit_id_file_content:
+        submission = await subreddit.random()
+        print("fuck")
+    self.reddit_id_file_content.append(submission.id)
+    open("./files/id_list", "a").write(str(submission.id) + "\n")
+    print(self.reddit_id_file_content)
+    
+    if hasattr(submission, "is_gallery"):
+        gallery = []
+        for i in submission.media_metadata.items():
+            url = i[1]['p'][0]['u'].split("?")[0].replace("preview", "i") #fuck you reddit # 4 dimensional cluster fuck
+            gallery.append(url)
+        return gallery[random.randrange(0,len(gallery))]
+    return submission.url
+
 
 def setup(client, tokens):
     client.add_cog(cat(client, tokens))
