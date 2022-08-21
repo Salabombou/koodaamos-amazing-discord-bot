@@ -21,7 +21,7 @@ class download(commands.Cog):
             resp = await httpx.AsyncClient(timeout=10).get(url)
             resp.raise_for_status()
             file = resp.content
-            file = await compress.video(file)
+            file = await compress.video(file, ctx)
             file = io.BytesIO(file)
             file = discord.File(fp=file, filename='unknown.' + ext)
             await ctx.reply(file=file)

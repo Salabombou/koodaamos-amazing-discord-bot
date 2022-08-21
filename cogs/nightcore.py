@@ -15,7 +15,7 @@ class nightcore(commands.Cog):
         self.ffmpeg_command = ['ffmpeg',
             '-i', '"{}"',
             '-loglevel', 'error',
-            '-filter_complex', '"[0:a:0]asetrate=1.15*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[out]"',
+            '-filter_complex', '"[0:a:0]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[out]"',
             '-map', '[out]',
             '-ac', '1',
             '"{}"'
@@ -26,7 +26,7 @@ class nightcore(commands.Cog):
             '-i', '"{}"',
             '-i', '"{}"',
             '-loglevel', 'error',
-            '-vf', '[1:v?]setpts=PTS/1.15',
+            '-vf', '[1:v?]setpts=PTS/1.25',
             '-map', '1:v?',
             '-map', '0:v',
             '-map', '2:a:0',
@@ -50,7 +50,7 @@ class nightcore(commands.Cog):
         merge_cmd = ' '.join(self.merge_command).format(target_path, audio_path, output_path)
         for cmd in [ffmpeg_cmd, merge_cmd]:
             try:
-                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=15))
+                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=20))
             except:
                 file_management.delete_temps(*remove_args)
                 raise Exception('Command timeout.')
