@@ -94,7 +94,7 @@ class audio(commands.Cog):
             if err != '':
                 file_management.delete_temps(*remove_args)
                 raise Exception(err)
-        file = await compress.video(file=output_path)
+        file = await compress.video(output_path, ctx)
         fp = io.BytesIO(file)
         file = discord.File(fp=fp, filename='unknown.mp4')
         file_management.delete_temps(*remove_args)
@@ -102,9 +102,9 @@ class audio(commands.Cog):
         
     @commands.command()
     @decorators.typing
-    async def audio(self, ctx, url="https://youtu.be/NOaSdO5H91M"): 
-            file = await self.create_output(ctx, url)
-            await ctx.reply(file=file)
+    async def audio(self, ctx, url="https://youtu.be/NOaSdO5H91M"):
+        file = await self.create_output(ctx, url)
+        await ctx.reply(file=file)
 
 def setup(client, tokens):
     client.add_cog(audio(client))

@@ -153,7 +153,7 @@ def next_song(self, ctx, message):
     server = get_server(ctx)
     try:
         asyncio.run_coroutine_threadsafe(message.delete(), self.bot.loop)
-    except: pass # incase the message was deleted or something so it wont fuck up the whole queue
+    except: pass # incase the message was already deleted or something so it wont fuck up the whole queue
     if self.playlist[server][0] != []:
         if not self.looping[server]:
             self.playlist[server][0].pop(0)
