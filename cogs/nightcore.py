@@ -9,6 +9,8 @@ import functools
 import subprocess
 import os
 import httpx
+import math
+
 class nightcore(commands.Cog):
     def __init__(self, bot, tokens):
         self.bot = bot
@@ -26,7 +28,7 @@ class nightcore(commands.Cog):
             '-i', '"{}"',
             '-i', '"{}"',
             '-loglevel', 'error',
-            '-vf', '[1:v?]setpts=PTS/1.25',
+            '-vf', '"[1:v?]setpts=PTS/1.25,scale={}:720"',
             '-map', '1:v?',
             '-map', '0:v',
             '-map', '2:a:0',
@@ -35,6 +37,7 @@ class nightcore(commands.Cog):
             ]
     async def create_output_video(self, ctx):
         target = await discordutil.get_target(ctx, no_img=True)
+        width = math.ceil(((target.width / target.height) * 720) / 2) * 2
         cwd = os.getcwd()
         t_stamp = int(time.time())
         target_path = cwd + f'/files/nightcore/target/{ctx.message.author.id}_{t_stamp}.mp4'
@@ -47,10 +50,10 @@ class nightcore(commands.Cog):
             file.write(r.content)
             file.close()
         ffmpeg_cmd = ' '.join(self.ffmpeg_command).format(target_path, audio_path)
-        merge_cmd = ' '.join(self.merge_command).format(target_path, audio_path, output_path)
+        merge_cmd = ' '.join(self.merge_command).format(target_path, audio_path, width, output_path)
         for cmd in [ffmpeg_cmd, merge_cmd]:
             try:
-                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=20))
+                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
             except:
                 file_management.delete_temps(*remove_args)
                 raise Exception('Command timeout.')

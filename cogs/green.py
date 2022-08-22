@@ -73,7 +73,7 @@ class green(commands.Cog):
 
     async def create_output_video(self, ctx, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
-        width = int((target.width / target.height) * 720)
+        width = math.ceil((target.width / target.height) * 720 / 2) * 2
         width = math.ceil(width / 2) * 2
         video = YouTube.get_info(url=url, video=True, max_duration=100)
         time_to = str(datetime.timedelta(seconds=video['duration']))
@@ -110,7 +110,7 @@ class green(commands.Cog):
         merge_cmd = ' '.join(self.merge_command).format(filtered_path, audio_path, output_path)
         for cmd in [filter_cmd, merge_audio_cmd, merge_cmd]:
             try:
-                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=30))
+                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
             except:
                 file_management.delete_temps(*remove_args)
                 raise Exception('Command timeout.')
