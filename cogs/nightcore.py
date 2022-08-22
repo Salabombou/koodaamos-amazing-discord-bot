@@ -53,7 +53,7 @@ class nightcore(commands.Cog):
         merge_cmd = ' '.join(self.merge_command).format(target_path, audio_path, width, output_path)
         for cmd in [ffmpeg_cmd, merge_cmd]:
             try:
-                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE))
+                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
             except:
                 file_management.delete_temps(*remove_args)
                 raise Exception('Command timeout.')
