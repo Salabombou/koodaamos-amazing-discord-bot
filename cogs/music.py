@@ -68,6 +68,7 @@ class music(commands.Cog):
         amount = abs(int(amount))
         del self.playlist[server][0][1:amount]
         music_tools.append_songs(ctx, self.playlist)
+        await VoiceChat.resume(ctx)
         await VoiceChat.stop(ctx) # skips one song
         await asyncio.sleep(0.5) #why? # just incase
         self.looping[server] = temp
