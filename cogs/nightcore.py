@@ -14,6 +14,7 @@ import math
 class nightcore(commands.Cog):
     def __init__(self, bot, tokens):
         self.bot = bot
+        self.client = httpx.AsyncClient(timeout=10)
         self.ffmpeg_command = ['ffmpeg',
             '-i', '"{}"',
             '-loglevel', 'error',
@@ -44,7 +45,7 @@ class nightcore(commands.Cog):
         audio_path = cwd + f'/files/nightcore/audio/{ctx.message.author.id}_{t_stamp}.mp3'
         output_path = cwd + f'/files/nightcore/output/{ctx.message.author.id}_{t_stamp}.mp3'
         remove_args = (target_path, audio_path, output_path)
-        r = await httpx.AsyncClient(timeout=10).get(target.proxy_url)
+        r = await self.client.get(target.proxy_url)
         r.raise_for_status()
         with open(target_path, 'wb') as file:
             file.write(r.content)

@@ -10,6 +10,7 @@ import discord
 class download(commands.Cog):
     def __init__(self, bot, tokens):
         self.bot = bot
+        self.client = httpx.AsyncClient(timeout=10)
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
@@ -18,7 +19,7 @@ class download(commands.Cog):
         if validators.url(url):
             resp = urllib.request.urlopen(url)
             url, ext = await downl.from_url(url=resp.url)
-            resp = await httpx.AsyncClient(timeout=10).get(url)
+            resp = await self.client.get(url)
             resp.raise_for_status()
             file = resp.content
             file = await compress.video(file, ctx)

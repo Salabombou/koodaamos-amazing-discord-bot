@@ -16,6 +16,7 @@ import math
 class green(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.client = httpx.AsyncClient(timeout=10)
         self.filter = '[2:v]scale={scale},fps=30,scale=-1:720,colorkey=0x{color}:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
         self.ffmpeg_command = ['ffmpeg',
             '-ss', '00:00:00',
@@ -96,7 +97,7 @@ class green(commands.Cog):
         # because it will fuck up / be slow otherwise
         video_url = urllib.request.urlopen(video['url']).url # sometimes it redirects
         for i in [[video_url, video_path],[target.proxy_url, target_path]]:
-            r = await httpx.AsyncClient(timeout=10).get(i[0])
+            r = await self.client.get(i[0])
             r.raise_for_status()
             with open(i[1], 'wb') as file:
                 file.write(r.content)
