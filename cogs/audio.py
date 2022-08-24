@@ -17,6 +17,7 @@ import math
 class audio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.client = httpx.AsyncClient(timeout=10)
         self.target_audio_command = ['ffmpeg',
             '-f', 'lavfi',
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
@@ -73,7 +74,7 @@ class audio(commands.Cog):
         remove_args = (target_path, audio_audio_path, target_audio_path, audio_path, output_path)
 
         for i in [[target.proxy_url, target_path], [audio['url'], audio_audio_path]]:
-            r = await httpx.AsyncClient(timeout=10).get(i[0])
+            r = await self.client.get(i[0])
             r.raise_for_status()
             with open(i[1], 'wb') as file:
                 file.write(r.content)

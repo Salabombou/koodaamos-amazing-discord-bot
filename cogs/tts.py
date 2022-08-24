@@ -34,7 +34,7 @@ class tts(commands.Cog):
         if ctx.message.author.bot:
             return 
         async with ctx.typing():
-            wav = await CreateSpeech(text=arg)
+            wav = await self.CreateSpeech(text=arg)
         file = discord.File(fp=wav, filename="unknown.wav")
         await ctx.reply(file=file, mention_author=False)
 

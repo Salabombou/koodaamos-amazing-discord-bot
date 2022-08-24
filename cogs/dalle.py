@@ -91,7 +91,7 @@ class dalle(commands.Cog):
         async with ctx.typing():
             embed = discord.Embed(color=0xC9EDBE, fields=[], title=arg)
             embed.set_image(url="attachment://unknown.png")
-            image, zip = await self.DallE_Collage(arg, loop=ctx.bot.loop)
+            image, zip = await self.DallE_Collage(ctx.bot.loop, arg)
             file = discord.File(fp=image, filename="unknown.png")
             message = await ctx.reply(embed=embed, file=file)
             await message.edit(view=View(message=message, zippy=zip))

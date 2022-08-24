@@ -5,7 +5,7 @@ import validators
 import re
 import ast
 
-client = httpx.AsyncClient(timeout=60)
+client = httpx.AsyncClient(timeout=10)
 
 async def get_host(): # gets the best server that is online to be used to compress the video
     website = await client.get('https://8mb.video/')
@@ -61,10 +61,12 @@ async def video(file : bytes | str, ctx) -> bytes: # compressing videos using th
         'submit': 'true',
         'fileToUpload': ('video.mp4', file, 'video/mp4') # filename, file in bytes, filetype
     }
-    data = MultipartEncoder(fields=fields)       
-    resp = await client.post(url=host, headers={'Content-Type': data.content_type}, data=data.to_string(), timeout=60) # sends the video to be compressed to the server and begins the compression
+    data = MultipartEncoder(fields=fields)
+    resp = await httpx.AsyncClient(timeout=300).post(url=host, headers={'Content-Type': data.content_type}, data=data.to_string(), timeout=60) # sends the video to be compressed to the server and begins the compression
     resp.raise_for_status()
+
     await wait_for_completion(host, token) # waits for the compressed video to be ready
     resp = await client.get(host + f'/8mb.video-{token}.mp4') # downloads the compressed video
     resp.raise_for_status()
+    
     return resp.content # returns the compressed video as bytes
