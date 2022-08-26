@@ -58,7 +58,7 @@ class green(commands.Cog):
             '-i', '"{}"',
             '-i', '"{}"',
             '-loglevel', 'error',
-            '-c:v', 'copy',
+            '-c:a', 'copy',
             '-map', '0:v:0',
             '-map', '1:a:0',
             '-y',
@@ -111,7 +111,7 @@ class green(commands.Cog):
         merge_cmd = ' '.join(self.merge_command).format(filtered_path, audio_path, output_path)
         for cmd in [filter_cmd, merge_audio_cmd, merge_cmd]:
             try:
-                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
+                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=30))
             except:
                 file_management.delete_temps(*remove_args)
                 raise Exception('Command timeout.')

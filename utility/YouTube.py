@@ -70,11 +70,13 @@ def fetch_from_video(youtube, videoId):
         id=videoId
     )
     r = request.execute()
-    r['items'][0]['snippet']['resourceId'] = {'videoId': videoId}
-    song = r['items'][0]['snippet']
-    song['videoOwnerChannelTitle'] = song['channelTitle']
-    song['videoOwnerChannelId'] = song['channelId']
-    return [Video(data=song)]
+    if r['items'] != []:
+        r['items'][0]['snippet']['resourceId'] = {'videoId': videoId}
+        song = r['items'][0]['snippet']
+        song['videoOwnerChannelTitle'] = song['channelTitle']
+        song['videoOwnerChannelId'] = song['channelId']
+        return [Video(data=song)]
+    else: raise Exception('Video not available')
 
 async def fetch_from_playlist(ctx, youtube, playlistId):
     request = youtube.playlistItems().list(

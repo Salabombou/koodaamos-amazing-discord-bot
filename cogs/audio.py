@@ -25,6 +25,7 @@ class audio(commands.Cog):
             '-loglevel', 'error',
             '-map', '1:a?',
             '-vn',
+            '-c:a', 'copy',
             '-y',
             '-f', 'wav',
             '"{}"'
@@ -50,9 +51,10 @@ class audio(commands.Cog):
             '-i', '"{}"',
             '-i', '"{}"',
             '-loglevel', 'error',
-            '-filter_complex', '"[0:v]scale={}:720"',
+            '-vf', '"[0:v]scale={}:720"',
             '-map', '0:v:0',
             '-map', '1:a:0',
+            '-c:a', 'copy',
             '-y',
             '-f', 'mp4',
             '"{}"'
@@ -84,7 +86,7 @@ class audio(commands.Cog):
         merge_cmd = ' '.join(self.merge_command).format(time_to, target_path, audio_path, width, output_path)
         for cmd in [target_audio_cmd, merge_audio_cmd, merge_cmd]:
             try:
-                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
+                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=30))
             except:
                 file_management.delete_temps(*remove_args)
                 raise Exception('Command timeout.')

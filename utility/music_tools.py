@@ -157,4 +157,4 @@ def next_song(self, ctx, message):
     if self.playlist[server][0] != []:
         if not self.looping[server]:
             self.playlist[server][0].pop(0)
-        play_song(self, ctx)    
+        play_song(self, ctx)
