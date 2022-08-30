@@ -74,6 +74,8 @@ class green(commands.Cog):
 
     async def create_output_video(self, ctx, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
+        if None in [target.height, target.width]:
+            raise Exception('Target is invalid')
         width = math.ceil((target.width / target.height) * 720 / 2) * 2
         width = math.ceil(width / 2) * 2
         video = YouTube.get_info(url=url, video=True, max_duration=100)
