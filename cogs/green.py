@@ -58,7 +58,6 @@ class green(commands.Cog):
             '-i', '"{}"',
             '-i', '"{}"',
             '-loglevel', 'error',
-            '-c:a', 'copy',
             '-map', '0:v:0',
             '-map', '1:a:0',
             '-y',

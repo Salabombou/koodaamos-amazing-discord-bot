@@ -25,7 +25,6 @@ class audio(commands.Cog):
             '-loglevel', 'error',
             '-map', '1:a?',
             '-vn',
-            '-c:a', 'copy',
             '-y',
             '-f', 'wav',
             '"{}"'
@@ -54,7 +53,6 @@ class audio(commands.Cog):
             '-vf', '"[0:v]scale={}:720"',
             '-map', '0:v:0',
             '-map', '1:a:0',
-            '-c:a', 'copy',
             '-y',
             '-f', 'mp4',
             '"{}"'
