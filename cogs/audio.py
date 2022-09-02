@@ -34,6 +34,8 @@ class audio(commands.Cog):
             '-ss', '00:00:00',
             '-to', '{}',
             '-i', '"{}"',
+            '-ss', '00:00:00',
+            '-to', '00:00:30',
             '-i', '"{}"',
             '-loglevel', 'error',
             '-filter_complex', '"[0][1]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
@@ -59,8 +61,8 @@ class audio(commands.Cog):
             ]
     async def create_output(self, ctx, url): 
         target = await discordutil.get_target(ctx, no_aud=True)
-        audio = YouTube.get_info(url, video=False, max_duration=100)
-        time_to = str(datetime.timedelta(seconds=audio['duration']))
+        audio = YouTube.get_info(url, video=False, max_duration=300)
+        time_to = str(datetime.timedelta(seconds=audio['duration'] if audio['duration'] < 30 else 30))
         t_stamp = int(time.time())
         cwd = os.getcwd()
         width = math.ceil(((target.width / target.height) * 720) / 2) * 2

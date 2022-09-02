@@ -27,6 +27,8 @@ class green(commands.Cog):
             '-ss', '00:00:00',
             '-to', '{time_to}',
             '-i', '"{target}"',
+            '-ss', '00:00:00',
+            '-to', '00:00:30',
             '-i', '"{video}"',
             '-loglevel', 'error',
             '-filter_complex', self.filter.format(scale='"{width}"' + ':720', color='{color}'),
@@ -55,7 +57,11 @@ class green(commands.Cog):
             '"{}"'
             ]
         self.merge_command = ['ffmpeg',
+            '-ss', '00:00:00',
+            '-to', '00:00:30',
             '-i', '"{}"',
+            '-ss', '00:00:00',
+            '-to', '00:00:30',
             '-i', '"{}"',
             '-loglevel', 'error',
             '-map', '0:v:0',
@@ -77,8 +83,8 @@ class green(commands.Cog):
             raise Exception('Target is invalid')
         width = math.ceil((target.width / target.height) * 720 / 2) * 2
         width = math.ceil(width / 2) * 2
-        video = YouTube.get_info(url=url, video=True, max_duration=100)
-        time_to = str(datetime.timedelta(seconds=video['duration']))
+        video = YouTube.get_info(url=url, video=True, max_duration=300)
+        time_to = str(datetime.timedelta(seconds=video['duration'] if video['duration'] < 30 else 30))
 
         cwd = os.getcwd()
         t_stamp = int(time.time())
