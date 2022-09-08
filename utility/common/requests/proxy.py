@@ -1,19 +1,29 @@
+import asyncio
 import httpx
-import bs4
 import random
+import os
 
 client = httpx.AsyncClient()
+proxies = []
 
-async def get_proxies():
-    resp = await client.get('https://www.sslproxies.org/')
-    resp.raise_for_status()
-    soup = bs4.BeautifulSoup(resp.content, features='lxml')
-    proxies = soup.select('table.table.table-striped.table-bordered tbody tr')[:25]
-    rand = random.randint(0, 24)
-    proxy = proxies[rand]
-    ip = proxy.contents[0].text
-    port = proxy.contents[1].text
-    return {'https://': f'http://{ip}:{port}'}
+def get_url(): # https://www.webshare.io/
+    file = open(os.getcwd() + "/files/tokens", "r")
+    return file.read().split("\n")[4]
+
+async def update_proxies():
+    global proxies
+    url = get_url()
+    while True:
+        resp = await client.get(url)
+        resp.raise_for_status()
+        proxies = resp.content.decode('utf-8').split('\r\n')
+        await asyncio.sleep(300)
+asyncio.ensure_future(update_proxies())
+
+async def get_proxy():
+    rand = random.randint(0, len(proxies) - 1)
+    proxy = proxies[rand].split(':')
+    return {'https://': f'http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}'} # username:password@ip:port
 
 
 

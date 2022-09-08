@@ -18,8 +18,8 @@ class sauce(commands.Cog):
             'url': url
         }
         data = MultipartEncoder(fields=fields)
-        proxies = await proxy.get_proxies()
-        resp = await self.client(proxies=proxies, verify=False, timeout=None).post(url='https://saucenao.com/search.php', data=data.to_string(), headers={'Content-Type': data.content_type})
+        selected_proxy = await proxy.get_proxy()
+        resp = await self.client(proxies=selected_proxy, verify=False, timeout=10).post(url='https://saucenao.com/search.php', data=data.to_string(), headers={'Content-Type': data.content_type})
         resp.raise_for_status()
         soup = bs4.BeautifulSoup(resp.content, features='lxml')
         hidden = True if soup.select('div #result-hidden-notification') != [] else False

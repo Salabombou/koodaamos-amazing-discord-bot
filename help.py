@@ -9,7 +9,7 @@ class help_command(commands.HelpCommand):
         return '%s%s %s' % (self.context.clean_prefix, command.qualified_name, signature)
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title="Help", color=discord.Color.blurple())
+        embed = discord.Embed(title="Help", color=0xC9EDBE)
         for cog, commands in mapping.items():
             filtered = await self.filter_commands(commands, sort=True)
             if command_signatures := [
@@ -22,7 +22,7 @@ class help_command(commands.HelpCommand):
         await channel.send(embed=embed)
 
     async def send_command_help(self, command):
-        embed = discord.Embed(title=self.get_command_signature(command) , color=discord.Color.blurple())
+        embed = discord.Embed(title=self.get_command_signature(command) , color=0xC9EDBE)
         if command.help:
             embed.description = command.help
         if alias := command.aliases:
