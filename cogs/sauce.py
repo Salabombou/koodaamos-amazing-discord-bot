@@ -26,7 +26,9 @@ class sauce(commands.Cog):
         results = soup.select('div.result')
         if hidden:
             results = soup.select('div.result.hidden')
-        return results, hidden
+        if results != []:
+            return results, hidden
+        raise Exception('Could not find the sauce...')
 
     @commands.command()
     async def sauce(self, ctx, url=None):
