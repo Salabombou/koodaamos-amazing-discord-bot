@@ -29,6 +29,7 @@ class View(discord.ui.View):
 
 class dalle(commands.Cog):
     def __init__(self, bot):
+        self.description = 'Creates an image collage from images produced by an AI with a prompt'
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=180)
 
@@ -82,16 +83,16 @@ class dalle(commands.Cog):
         buf.seek(0)
         return buf
 
-    @commands.command()
+    @commands.command(help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    async def dalle(self, ctx, *, arg="a cute kitten"):
+    async def dalle(self, ctx, *, prompt="a cute kitten"):
         if ctx.message.author.bot:
             return
         async with ctx.typing():
-            embed = discord.Embed(color=0xC9EDBE, fields=[], title=arg)
+            embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
             embed.set_image(url="attachment://unknown.png")
-            image, zip = await self.DallE_Collage(ctx.bot.loop, arg)
+            image, zip = await self.DallE_Collage(ctx.bot.loop, prompt)
             file = discord.File(fp=image, filename="unknown.png")
             message = await ctx.reply(embed=embed, file=file)
             await message.edit(view=View(message=message, zippy=zip))

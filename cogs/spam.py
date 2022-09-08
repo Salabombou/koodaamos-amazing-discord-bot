@@ -3,6 +3,7 @@ import asyncio
 
 class spam(commands.Cog):
     def __init__(self, bot):
+        self.description = 'Spams the specified user(s) until stopped'
         self.bot = bot
         self.spamming = {}
     
@@ -14,7 +15,7 @@ class spam(commands.Cog):
             await ctx.send(content, delete_after=0.5)
             await asyncio.sleep(0.5)
 
-    @commands.command()
+    @commands.command(help='mention the users you would like to annoy')
     async def spam(self, ctx):
         if ctx.message.author.bot: return
         server = str(ctx.message.guild.id)

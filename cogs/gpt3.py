@@ -3,10 +3,10 @@ import discord
 import openai
 import asyncio
 
-def CreateText(arg):
+def CreateText(prompt):
     response = openai.Completion.create(
         engine="text-davinci-002",
-        prompt=arg + ':',
+        prompt=prompt + ':',
         temperature=0.5,
         max_tokens=256,
         top_p=1.0,
@@ -19,20 +19,21 @@ def CreateText(arg):
     
 class gpt3(commands.Cog):
     def __init__(self, bot, tokens):
+        self.description = 'Outputs a response from a chat bot ai from the specified prompt'
         self.bot = bot
         self.tokens = tokens
         openai.api_key = self.tokens[1]
 
-    @commands.command(aliases=["text", "ai"])
+    @commands.command(aliases=["text", "ai"], help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def gpt3(self, ctx, *, arg="make up a 4chan greentext post"):
+    async def gpt3(self, ctx, *, prompt="make up a 4chan greentext post"):
         if ctx.message.author.bot:
             return
-        embed = discord.Embed(color=0xC9EDBE, fields=[], title=arg)   
+        embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)   
         async with ctx.typing():
             loop = asyncio.get_event_loop()
-            text = await loop.run_in_executor(None, CreateText, arg)
+            text = await loop.run_in_executor(None, CreateText, prompt)
         embed.description = f'```{text}```'
         await ctx.reply(embed=embed, mention_author=False)
 

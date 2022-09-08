@@ -16,6 +16,7 @@ import math
 
 class audio(commands.Cog):
     def __init__(self, bot):
+        self.description = 'Adds audio to a image or a video'
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=10)
         self.target_audio_command = ['ffmpeg',
@@ -100,7 +101,7 @@ class audio(commands.Cog):
         file_management.delete_temps(*remove_args)
         return file
         
-    @commands.command()
+    @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def audio(self, ctx, url="https://youtu.be/NOaSdO5H91M"):

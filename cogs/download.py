@@ -9,10 +9,11 @@ import discord
 
 class download(commands.Cog):
     def __init__(self, bot, tokens):
+        self.description = 'Downloads a video / image / audio from multiple sources'
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=10)
 
-    @commands.command()
+    @commands.command(help= 'url: a link to the downloadable content (YouTube, Reddit)')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def dl(self, ctx, url):

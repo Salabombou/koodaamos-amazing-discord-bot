@@ -13,6 +13,7 @@ import math
 
 class nightcore(commands.Cog):
     def __init__(self, bot, tokens):
+        self.description = 'makes the audio of a video / audio nightcore'
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=10)
         self.ffmpeg_command = ['ffmpeg',

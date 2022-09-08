@@ -32,6 +32,7 @@ class Food:
         return food
 class eduko(commands.Cog):
     def __init__(self, bot):
+        self.description = 'Gets the Eduko diner menu for the week(s)'
         self.client = httpx.AsyncClient()
         self.embeds = []
         self.bot = bot

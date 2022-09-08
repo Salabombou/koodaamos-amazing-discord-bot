@@ -15,6 +15,7 @@ import math
 
 class green(commands.Cog):
     def __init__(self, bot):
+        self.description = 'Overlays a greenscreen video on top of an image / video'
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=10)
         self.filter = '[2:v]scale={scale},fps=30,scale=-1:720,colorkey=0x{color}:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
@@ -132,7 +133,7 @@ class green(commands.Cog):
         fp = io.BytesIO(compressed)
         return discord.File(fp=fp, filename='unknown.mp4')
 
-    @commands.command()
+    @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def green(self, ctx, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
