@@ -22,21 +22,21 @@ class sauce(commands.Cog):
         resp = await self.client(proxies=selected_proxy, verify=False, timeout=10).post(url='https://saucenao.com/search.php', data=data.to_string(), headers={'Content-Type': data.content_type})
         resp.raise_for_status()
         soup = bs4.BeautifulSoup(resp.content, features='lxml')
-        hidden = True if soup.select('div #result-hidden-notification') != [] else False
-        if hidden:
-            raise Exception('Sauce could not be found...')
+        hidden = soup.select('div #result-hidden-notification') != []
         results = soup.select('div.result')
-        return results
+        if hidden:
+            results = soup.select('div.result.hidden')
+        return results, hidden
 
     @commands.command()
     async def sauce(self, ctx, url=None):
         if url == None:
             url = await discordutil.get_target(ctx, no_aud=True, no_vid=True)
             url = url.proxy_url
-        results = await self.get_sauce(url)
-        embed = sauce_tools.create_embed(results[0], url)
+        results, hidden = await self.get_sauce(url)
+        embed = sauce_tools.create_embed(results[0], url, hidden=hidden)
         message = await ctx.reply(embed=embed, mention_author=False)
-        await message.edit(view=sauce_view(results=results, url=url))
+        await message.edit(view=sauce_view(results=results, url=url, hidden=hidden))
 
 def setup(client, tokens):
     client.add_cog(sauce(client))
