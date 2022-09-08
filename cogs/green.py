@@ -15,7 +15,9 @@ import math
 
 class green(commands.Cog):
     def __init__(self, bot):
+        self.description = 'Overlays a greenscreen video on top of an image / video'
         self.bot = bot
+        self.client = httpx.AsyncClient(timeout=10)
         self.filter = '[2:v]scale={scale},fps=30,scale=-1:720,colorkey=0x{color}:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
         self.ffmpeg_command = ['ffmpeg',
             '-ss', '00:00:00',
@@ -26,6 +28,8 @@ class green(commands.Cog):
             '-ss', '00:00:00',
             '-to', '{time_to}',
             '-i', '"{target}"',
+            '-ss', '00:00:00',
+            '-to', '00:00:30',
             '-i', '"{video}"',
             '-loglevel', 'error',
             '-filter_complex', self.filter.format(scale='"{width}"' + ':720', color='{color}'),
@@ -54,10 +58,13 @@ class green(commands.Cog):
             '"{}"'
             ]
         self.merge_command = ['ffmpeg',
+            '-ss', '00:00:00',
+            '-to', '00:00:30',
             '-i', '"{}"',
+            '-ss', '00:00:00',
+            '-to', '00:00:30',
             '-i', '"{}"',
             '-loglevel', 'error',
-            '-c:v', 'copy',
             '-map', '0:v:0',
             '-map', '1:a:0',
             '-y',
@@ -73,10 +80,12 @@ class green(commands.Cog):
 
     async def create_output_video(self, ctx, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
+        if None in [target.height, target.width]:
+            raise Exception('Target is invalid')
         width = math.ceil((target.width / target.height) * 720 / 2) * 2
         width = math.ceil(width / 2) * 2
-        video = YouTube.get_info(url=url, video=True, max_duration=100)
-        time_to = str(datetime.timedelta(seconds=video['duration']))
+        video = YouTube.get_info(url=url, video=True, max_duration=300)
+        time_to = str(datetime.timedelta(seconds=video['duration'] if video['duration'] < 30 else 30))
 
         cwd = os.getcwd()
         t_stamp = int(time.time())
@@ -96,7 +105,7 @@ class green(commands.Cog):
         # because it will fuck up / be slow otherwise
         video_url = urllib.request.urlopen(video['url']).url # sometimes it redirects
         for i in [[video_url, video_path],[target.proxy_url, target_path]]:
-            r = await httpx.AsyncClient(timeout=10).get(i[0])
+            r = await self.client.get(i[0])
             r.raise_for_status()
             with open(i[1], 'wb') as file:
                 file.write(r.content)
@@ -124,7 +133,7 @@ class green(commands.Cog):
         fp = io.BytesIO(compressed)
         return discord.File(fp=fp, filename='unknown.mp4')
 
-    @commands.command()
+    @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def green(self, ctx, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):

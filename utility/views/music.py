@@ -112,6 +112,7 @@ class music_view(discord.ui.View):
     async def skip_callback(self, button, interaction):
         temp = self.looping[self.server]
         self.looping[self.server] = False
+        await VoiceChat.resume(self.ctx)
         await VoiceChat.stop(self.ctx)
         await asyncio.sleep(0.5)
         self.looping[self.server] = temp

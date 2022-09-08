@@ -27,71 +27,72 @@ class View(discord.ui.View):
         await interaction.response.send_message("Here are all the images invidually!", file=file)
         await self.message.edit(view=self)
 
-async def DallE_Collage(arg):
-    loop = asyncio.get_event_loop()
-    images = await CreateImages(prompt=arg)
-    images = await loop.run_in_executor(None, ConvertImages, images)
-    zippy = await loop.run_in_executor(None, CreateZip, images)
-    collage = await loop.run_in_executor(None, CreateCollage, images)
-    collage = await loop.run_in_executor(None, PillowImageToBytes, collage)
-    return collage, zippy
-
-async def CreateImages(prompt):
-    condition = True
-    while condition:
-        r = await httpx.AsyncClient(timeout=180).post(headers={'Content-Type': 'application/json'}, data=json.dumps({'prompt': prompt}), url='https://backend.craiyon.com/generate')
-        condition = r.status_code == 524
-    r.raise_for_status()
-    return r.json()['images']
-    
-def ConvertImages(images):
-    imgs = []
-    for image in images:
-        image = str.encode(image)             # encodes string to bytes
-        image = base64.decodebytes(image)     # decodes the base64 data to bytes image
-        image = Image.open(io.BytesIO(image)) # opens the image in PIL
-        imgs.append(image)                    # appends the finished image to the imgs array
-    return imgs
-
-def CreateCollage(images):
-    collage = Image.new("RGBA", (768, 768))
-    for y in range(0, 768, 256):
-        for x in range(0, 768, 256):
-            collage.paste(images[0], (x, y)) # pastes the images to a white canvas in 9x9 alignment
-            images.pop(0)
-    return collage
-
-def PillowImageToBytes(image):
-    buf = io.BytesIO()
-    image.save(buf, format='PNG')
-    buf.seek(0)
-    return buf
-
-def CreateZip(images):
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, 'a') as zippy:
-        i = 1
-        for image in images:
-            image = PillowImageToBytes(image)
-            zippy.writestr(f'image{i}.png', image.getvalue())
-            i += 1
-    buf.seek(0)
-    return buf
-
 class dalle(commands.Cog):
     def __init__(self, bot):
+        self.description = 'Creates an image collage from images produced by an AI with a prompt'
         self.bot = bot
+        self.client = httpx.AsyncClient(timeout=180)
+
+    async def DallE_Collage(self, loop, arg):
+        images = await self.CreateImages(prompt=arg)
+        images = await loop.run_in_executor(None, self.ConvertImages, images, )
+        zippy = await loop.run_in_executor(None, self.CreateZip, images)
+        collage = await loop.run_in_executor(None, self.CreateCollage, images)
+        collage = await loop.run_in_executor(None, self.PillowImageToBytes, collage)
+        return collage, zippy
+
+    async def CreateImages(self, prompt):
+        condition = True
+        while condition:
+            r = await self.client.post(headers={'Content-Type': 'application/json'}, data=json.dumps({'prompt': prompt}), url='https://backend.craiyon.com/generate')
+            condition = r.status_code == 524
+        r.raise_for_status()
+        return r.json()['images']
     
-    @commands.command()
+    def ConvertImages(self, images):
+        imgs = []
+        for image in images:
+            image = str.encode(image)             # encodes string to bytes
+            image = base64.decodebytes(image)     # decodes the base64 data to bytes image
+            image = Image.open(io.BytesIO(image)) # opens the image in PIL
+            imgs.append(image)                    # appends the finished image to the imgs array
+        return imgs
+
+    def CreateCollage(self, images):
+        collage = Image.new("RGBA", (768, 768))
+        for y in range(0, 768, 256):
+            for x in range(0, 768, 256):
+                collage.paste(images[0], (x, y)) # pastes the images to a white canvas in 9x9 alignment
+                images.pop(0)
+        return collage
+
+    def PillowImageToBytes(self, image):
+        buf = io.BytesIO()
+        image.save(buf, format='PNG')
+        buf.seek(0)
+        return buf
+
+    def CreateZip(self, images):
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, 'a') as zippy:
+            i = 1
+            for image in images:
+                image = self.PillowImageToBytes(image)
+                zippy.writestr(f'image{i}.png', image.getvalue())
+                i += 1
+        buf.seek(0)
+        return buf
+
+    @commands.command(help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    async def dalle(self, ctx, *, arg="a cute kitten"):
+    async def dalle(self, ctx, *, prompt="a cute kitten"):
         if ctx.message.author.bot:
             return
         async with ctx.typing():
-            embed = discord.Embed(color=0xC9EDBE, fields=[], title=arg)
+            embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
             embed.set_image(url="attachment://unknown.png")
-            image, zip = await DallE_Collage(arg)
+            image, zip = await self.DallE_Collage(ctx.bot.loop, prompt)
             file = discord.File(fp=image, filename="unknown.png")
             message = await ctx.reply(embed=embed, file=file)
             await message.edit(view=View(message=message, zippy=zip))

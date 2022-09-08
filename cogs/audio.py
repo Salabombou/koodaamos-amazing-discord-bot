@@ -16,7 +16,9 @@ import math
 
 class audio(commands.Cog):
     def __init__(self, bot):
+        self.description = 'Adds audio to a image or a video'
         self.bot = bot
+        self.client = httpx.AsyncClient(timeout=10)
         self.target_audio_command = ['ffmpeg',
             '-f', 'lavfi',
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
@@ -33,6 +35,8 @@ class audio(commands.Cog):
             '-ss', '00:00:00',
             '-to', '{}',
             '-i', '"{}"',
+            '-ss', '00:00:00',
+            '-to', '00:00:30',
             '-i', '"{}"',
             '-loglevel', 'error',
             '-filter_complex', '"[0][1]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
@@ -49,7 +53,7 @@ class audio(commands.Cog):
             '-i', '"{}"',
             '-i', '"{}"',
             '-loglevel', 'error',
-            '-filter_complex', '"[0:v]scale={}:720"',
+            '-vf', '"[0:v]scale={}:720"',
             '-map', '0:v:0',
             '-map', '1:a:0',
             '-y',
@@ -58,8 +62,8 @@ class audio(commands.Cog):
             ]
     async def create_output(self, ctx, url): 
         target = await discordutil.get_target(ctx, no_aud=True)
-        audio = YouTube.get_info(url, video=False, max_duration=100)
-        time_to = str(datetime.timedelta(seconds=audio['duration']))
+        audio = YouTube.get_info(url, video=False, max_duration=300)
+        time_to = str(datetime.timedelta(seconds=audio['duration'] if audio['duration'] < 30 else 30))
         t_stamp = int(time.time())
         cwd = os.getcwd()
         width = math.ceil(((target.width / target.height) * 720) / 2) * 2
@@ -73,7 +77,7 @@ class audio(commands.Cog):
         remove_args = (target_path, audio_audio_path, target_audio_path, audio_path, output_path)
 
         for i in [[target.proxy_url, target_path], [audio['url'], audio_audio_path]]:
-            r = await httpx.AsyncClient(timeout=10).get(i[0])
+            r = await self.client.get(i[0])
             r.raise_for_status()
             with open(i[1], 'wb') as file:
                 file.write(r.content)
@@ -97,7 +101,7 @@ class audio(commands.Cog):
         file_management.delete_temps(*remove_args)
         return file
         
-    @commands.command()
+    @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def audio(self, ctx, url="https://youtu.be/NOaSdO5H91M"):
