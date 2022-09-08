@@ -1,47 +1,101 @@
+import asyncio
+import math
 from discord.ext import commands
-from bs4 import BeautifulSoup
-from utility import webhook
-import httpx
 import discord
+import httpx
+import bs4
+import datetime
+import time
+
+from utility import webhook
+
+#from utility import webhook
 
 class Food:
-    def __init__(self, title, food):
-        self.title = title
-        self.food = food
-        
-async def GetStuff():
-    async with httpx.AsyncClient() as requests:
-        r = await requests.get('https://www.eduko.fi/eduko/ruokalistat/')
-    soup = BeautifulSoup(r.content, features='lxml')
-    sections = soup.find_all('section', {"class" : "elementor-section elementor-inner-section elementor-element elementor-element-70f81ef elementor-section-boxed elementor-section-height-default elementor-section-height-default"})
-    foods = []
-    for section in sections:
-        dates = section.find_all('div', {'class': 'elementor-column elementor-col-50 elementor-inner-column elementor-element elementor-element-24a4cb1'})
-        for date in dates:
-            title = date.find('b').text
-            date.find('b').decompose()
-            food = date.text.replace('\n\n', '\n').split('\n')
-            foods.append(Food(title=date.find, food='\n'.join(date[1:])))
-    embeds = []
-    for i in range(0, len(foods) / 5):
-        embed = discord.Embed(color=0xC9EDBE, fields=[], title='RUOKALISTA')
-        for food in foods[0:5]:
-            embed.add_field(name=food.title, value=food.food, inline=True)
-            food.pop(0)
-        embed.add_field(name="​", value="​", inline=True)
-        embeds.append(embed)
-    return embeds
+    def __init__(self, p):
+        self.header = None
+        self.the_actual_food = None
+        spans = p.select('span')
+        bs = p.select('b')
+        for spam in spans:
+            self.header = spam.text
+            self.the_actual_food = self.get_food(p)
+        for b in bs:
+            self.header = b.text
+            self.the_actual_food = self.get_food(p)
 
+    def get_food(self, p):
+        food = ''
+        for content in p.contents:
+            if isinstance(content, str):
+                food += content + '\n'
+        return food
 class eduko(commands.Cog):
     def __init__(self, bot):
+        self.client = httpx.AsyncClient()
+        self.embeds = []
         self.bot = bot
+        asyncio.ensure_future(self.update_embeds())
+
+    def section_filter(self, soup):
+        sections = soup.select('section')
+        for section in sections:
+            divs = section.select('div .elementor-container.elementor-column-gap-narrow')
+            if 'data-settings' in section or divs == []:
+                sections.remove(section)
+        sections = sections[6:-2]
+        return sections
+
+    def get_food(self, sections):
+        foods = []
+        for section in sections:
+            for p in section.select('p'):
+                foods.append(Food(p))
+        for food in foods:
+            if food.header == None:
+                foods.remove(food)
+        return foods
+
+    def create_embeds(self, foods):
+        embeds = []
+        weeks = self.splice_list(foods, 5)
+        seconds = 0
+        for week in weeks:
+            embed = discord.Embed(color=0xC9EDBE, fields=[], title='VIIKKO ' + self.get_week_num(seconds))
+            week_spliced = self.splice_list(week, 2)
+            for week in week_spliced:
+                for food in week:
+                    embed.add_field(name=food.header, value=food.the_actual_food, inline=False)
+            embed.add_field(name='​', value='​', inline=True)
+            embeds.append(embed)
+            seconds += 604800
+        return embeds
+    
+    def splice_list(self, arr, index):
+        spliced = []
+        length = math.ceil(len(arr) / index)
+        for _ in range(0, length):
+            spliced.append(arr[:index])
+            del arr[:index]
+        return spliced
+
+    def get_week_num(self, seconds):
+        timestamp = math.ceil(time.time()) + seconds
+        week_num = str(datetime.date.fromtimestamp(timestamp).isocalendar().week)
+        return week_num
+
+    async def update_embeds(self):
+        while True:
+            resp = await self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
+            soup = bs4.BeautifulSoup(resp.content, features='lxml')
+            sections = self.section_filter(soup)
+            foods = self.get_food(sections)
+            self.embeds = self.create_embeds(foods)
+            await asyncio.sleep(100)
 
     @commands.command()
     async def food(self,ctx):
-        async with ctx.channel.typing():
-            embeds = await GetStuff()
-            await webhook.send_message(ctx, embeds=embeds)
-        return
+        await webhook.send_message(embeds=self.embeds, ctx=ctx)
 
 def setup(client, tokens):
     client.add_cog(eduko(client))

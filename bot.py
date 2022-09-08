@@ -4,13 +4,13 @@ import asyncio
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound, CheckFailure
 
-from cogs import dalle, gpt3, tts, music, green, download, audio, nightcore
+from cogs import dalle, gpt3, tts, music, green, download, audio, nightcore, spam, eduko
 
 def get_tokens():
     file = open(os.getcwd() + "/files/tokens", "r")
     return file.read().split("\n")
 
-cogs = [dalle, gpt3, tts, music, green, download, audio, nightcore]
+cogs = [dalle, gpt3, tts, music, green, download, audio, nightcore, spam, eduko]
 bot = commands.Bot(command_prefix='.', intents=discord.Intents.all())
 tokens = get_tokens() # returns all the tokens
 
