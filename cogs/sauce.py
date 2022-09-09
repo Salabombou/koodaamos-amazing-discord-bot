@@ -14,12 +14,14 @@ class sauce(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.client = httpx.AsyncClient
-        self.fields = [
+        self.fields = [ 
             ['url', '']
         ]
-        for i in ['0','2','3','5','8','9','10','11','12','15','16','18','19','20','21','22','23','24','25','26','27','28','30','31','32','33','35','36','37','38','39','41','43','44']:
-            self.fields.append(['dbs[]', i])
-            
+        rejected_dbs = [1,4,6,7.13,14,17,29,34,40,42]
+        for i in range(0, 44 + 1):
+            if not i in rejected_dbs:
+                self.fields.append(['dbs[]', str(i)])
+                
     async def get_sauce(self, url):
         try:
             fields = self.fields
@@ -36,8 +38,7 @@ class sauce(commands.Cog):
             if  len(results) > 1:
                 return results, hidden
             raise Exception()
-        except Exception as e:
-            print(str(e))
+        except:
             raise Exception('Could not find the sauce...')
 
     @commands.command()
