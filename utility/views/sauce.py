@@ -8,21 +8,21 @@ class sauce_view(discord.ui.View):
         self.url = url
         self.hidden = hidden
         self.index = 0
+        self.update_index()
 
-    def update_buttons(self):
-        self.children[0].disabled = self.index - 1 <= 0
-        self.children[1].disabled = self.index + 1 >= len(self.results)
+    def update_index(self):
+        self.index = -1 if self.index + 1 > len(self.results) - 1 else self.index
 
-    @discord.ui.button(label='LAST RESULT ◀', style=discord.ButtonStyle.gray, disabled=True)
+    @discord.ui.button(label='◀', style=discord.ButtonStyle.gray)
     async def backward_callback(self, button, interaction):
         self.index -= 1
+        self.update_index()
         self.embed = sauce_tools.create_embed(self.results[self.index], self.url, self.hidden)
-        self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
-    @discord.ui.button(label='NEXT RESULT ▶', style=discord.ButtonStyle.gray)
+    @discord.ui.button(label='▶', style=discord.ButtonStyle.gray)
     async def forward_callback(self, button, interaction):
         self.index += 1
+        self.update_index()
         self.embed = sauce_tools.create_embed(self.results[self.index], self.url, self.hidden)
-        self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
