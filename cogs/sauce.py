@@ -32,10 +32,11 @@ class sauce(commands.Cog):
             resp.raise_for_status()
             soup = bs4.BeautifulSoup(resp.content, features='lxml')
             hidden = soup.select('div #result-hidden-notification') != []
-            results = soup.select('div.result')
-            if hidden:
-                results = soup.select('div.result.hidden')
-            if  len(results) > 1:
+            results = soup.select('div.result') + soup.select('div.result.hidden')
+            for result in results:
+                if 'onclick' in result.attrs:
+                    results.remove(result)
+            if len(results) > 1:
                 return results, hidden
             raise Exception()
         except:

@@ -5,6 +5,7 @@ class parsed_result:
     def __init__(self, result, hidden):
         contents = result.select('div.resultcontent')[0]
         column = contents.select('div.resultcontentcolumn')[0]
+        self.content = self.get_content(column)
         self.similarity = result.select('div.resultsimilarityinfo')[0].text
 
         title = '???'
@@ -13,29 +14,27 @@ class parsed_result:
         self.title = title
 
         self.image = result.select('img')[0]
-        self.content = self.get_content(column)
-        if not hidden:
+
+        if not 'data-src' in self.image.attrs:
             self.image = self.image['src']
-        else:
+        elif hidden:
             self.image = self.image['data-src']
 
     def get_content(self, column):
         def get_string(content):
             if content.name == 'strong':
-                return content.text.rstrip() + ' '
-            elif content.name in ['a', 'div']:
+                return content.text.strip() + ' '
+            elif content.name == 'a':
+                return f"[{content.text}]({content['href']})" + '\n'
+            elif content.name == 'div':
                 return content.text.strip() + '\n'
             elif isinstance(content, str):
-                return content.strip() + '\n'
+                return content.strip() +'\n'
             return ''
 
         description = ''
         for content in column.contents:
-            if hasattr(content, 'contents'):
-                for c in content.contents:
-                    description += get_string(c)
-            else:
-                description += get_string(content)
+            description += get_string(content)
         description = description[:-1]
         if description != '':
             return description
@@ -43,7 +42,7 @@ class parsed_result:
 
 def create_embed(result, url, hidden):
     result = parsed_result(result, hidden)
-    embed = discord.Embed(title=result.title, fields=[], color=0xC9EDBE, description=f'```{result.content}```')
+    embed = discord.Embed(title=result.title, fields=[], color=0xC9EDBE, description=result.content)
     embed.set_image(url=result.image)
     embed.set_footer(icon_url=url, text='Similarity: ' + result.similarity)
     return embed
