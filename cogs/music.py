@@ -20,7 +20,8 @@ class music(commands.Cog):
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     async def play(self, ctx, url='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau', *args):
-        url = url + ' ' + ' '.join(args)
+        if args != ():
+            url = url + ' ' + ' '.join(args)
         await VoiceChat.join(ctx)
         songs = await music_tools.fetch_songs(self, ctx, url)
         music_tools.play_song(self, ctx, songs)
