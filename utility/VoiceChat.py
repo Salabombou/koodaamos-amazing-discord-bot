@@ -7,6 +7,7 @@ def command_check(ctx):
         return True # if the bot is currently not in a voice channel
     if ctx.author.voice.channel == ctx.me.voice.channel:
         return True # if the bot and the user are in the same voice channel
+    return False
     
 async def join(ctx):
     if ctx.message.author.voice == None: return
