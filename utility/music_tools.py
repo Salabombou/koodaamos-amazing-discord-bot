@@ -30,7 +30,7 @@ class decorators:
             return await func(*args)
         return wrapper
 
-def append_songs(ctx, playlist, playnext, songs=[]): # appends songs to the playlist
+def append_songs(ctx, playlist, playnext=False, songs=[]): # appends songs to the playlist
     server = get_server(ctx)
     if playnext:
         playlist[server][0].insert(1, songs[0])
