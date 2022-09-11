@@ -30,10 +30,15 @@ class decorators:
             return await func(*args)
         return wrapper
 
-def append_songs(ctx, playlist, songs=[]): # appends songs to the playlist
+def append_songs(ctx, playlist, playnext, songs=[]): # appends songs to the playlist
     server = get_server(ctx)
+    if playnext:
+        playlist[server][0].insert(1, songs[0])
+        playlist[server][1].insert(0, playlist[server][0][-1])
+        del playlist[server][0][-1]
+    else:
+        playlist[server][1] += songs
     length = len(playlist[server][0])
-    playlist[server][1] += songs
     playlist[server][0] += playlist[server][1][0:1000 - length] # limits the visible playlist to go to upto 1000 song at once
     del playlist[server][1][0:1000 - length]
 
@@ -115,9 +120,8 @@ def create_info_embed(self, ctx, number='0', song=None):
     embed.set_footer(text=song.channel, icon_url=icon)
     return embed
 
-async def fetch_songs(self, ctx, url, args):
-    if not validators.url(url) or args != (): # if there is more than 1 arguement or the url is invalid (implying for a search)
-        url = url + ' '.join(args)
+async def fetch_songs(self, ctx, url, no_playlists=False):
+    if not validators.url(url): # if url is invalid (implying for a search)
         song = YouTube.fetch_from_search(self.youtube, query=url)[0] # searches for the video and returns the url to it
         await ctx.reply(f"found a video with the query '{url}' with the title '{song.title}'.", delete_after=10, mention_author=False)
         return [song]
@@ -126,20 +130,20 @@ async def fetch_songs(self, ctx, url, args):
     query = parse_qs(urlparse(url).query, keep_blank_values=True)
     if 'v' in query:
         return YouTube.fetch_from_video(self.youtube, videoId=query['v'][0])
-    elif 'list' in query:
+    elif 'list' in query and not no_playlists:
         songs = await YouTube.fetch_from_playlist(ctx, self.youtube, playlistId=query['list'][0])
         return songs
     raise Exception('Invalid url')
 
-def play_song(self, ctx, songs=[]):
+def play_song(self, ctx, songs=[], playnext=False):
     if ctx.voice_client == None:
         return
     server = get_server(ctx)
-    append_songs(ctx, self.playlist, songs)
+    append_songs(ctx, self.playlist, playnext, songs)
     if not ctx.voice_client.is_playing() and self.playlist[server][0] != []:
         song = self.playlist[server][0][0]
         try:
-            info = YouTube.get_info(f'https://www.youtube.com/watch?v={song.id}')
+            info = YouTube.get_info('https://www.youtube.com/watch?v=' + song.id)
         except: info = YouTube.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
         duration = None
         if 'duration' in info:
