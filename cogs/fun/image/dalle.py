@@ -1,31 +1,11 @@
 from discord.ext import commands
+from utility.common import decorators
 from PIL import Image
-import asyncio
-import zipfile
 import discord
 import base64
 import httpx
 import json
 import io
-
-class View(discord.ui.View):
-    def __init__(self, message, zippy):
-        super().__init__(timeout=180)
-        self.message = message
-        self.zippy = zippy
-
-    async def on_timeout(self):
-        for child in self.children:
-            child.disabled = True
-        await self.message.edit(view=self)
-        
-    @discord.ui.button(label="Get invidual images", style=discord.ButtonStyle.green)
-    async def button_callback(self, button, interaction):
-        for child in self.children:
-            child.disabled = True
-        file = discord.File(fp=self.zippy, filename='images.zip')
-        await interaction.response.send_message("Here are all the images invidually!", file=file)
-        await self.message.edit(view=self)
 
 class dalle(commands.Cog):
     def __init__(self, bot):
@@ -35,11 +15,10 @@ class dalle(commands.Cog):
 
     async def DallE_Collage(self, loop, arg):
         images = await self.CreateImages(prompt=arg)
-        images = await loop.run_in_executor(None, self.ConvertImages, images, )
-        zippy = await loop.run_in_executor(None, self.CreateZip, images)
+        images = await loop.run_in_executor(None, self.ConvertImages, images)
         collage = await loop.run_in_executor(None, self.CreateCollage, images)
         collage = await loop.run_in_executor(None, self.PillowImageToBytes, collage)
-        return collage, zippy
+        return collage
 
     async def CreateImages(self, prompt):
         condition = True
@@ -72,30 +51,16 @@ class dalle(commands.Cog):
         buf.seek(0)
         return buf
 
-    def CreateZip(self, images):
-        buf = io.BytesIO()
-        with zipfile.ZipFile(buf, 'a') as zippy:
-            i = 1
-            for image in images:
-                image = self.PillowImageToBytes(image)
-                zippy.writestr(f'image{i}.png', image.getvalue())
-                i += 1
-        buf.seek(0)
-        return buf
-
     @commands.command(help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
+    @decorators.typing
     async def dalle(self, ctx, *, prompt="a cute kitten"):
-        if ctx.message.author.bot:
-            return
-        async with ctx.typing():
-            embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
-            embed.set_image(url="attachment://unknown.png")
-            image, zip = await self.DallE_Collage(ctx.bot.loop, prompt)
-            file = discord.File(fp=image, filename="unknown.png")
-            message = await ctx.reply(embed=embed, file=file)
-            await message.edit(view=View(message=message, zippy=zip))
+        embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
+        embed.set_image(url="attachment://unknown.png")
+        image = await self.DallE_Collage(ctx.bot.loop, prompt)
+        file = discord.File(fp=image, filename="unknown.png")
+        await ctx.reply(embed=embed, file=file)
         
 def setup(client, tokens):
     client.add_cog(dalle(client))

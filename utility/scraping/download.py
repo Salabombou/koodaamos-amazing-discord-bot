@@ -1,4 +1,5 @@
 from utility.scraping import YouTube, Reddit
+from utility.common.errors import UnsupportedUrl
 import urllib
 import os
 
@@ -19,4 +20,4 @@ async def from_url(url):
     host = parsed.hostname
     if host in supported_sites:
         return await fetch_url(url, host)
-    raise Exception('url is not supported.')
+    raise UnsupportedUrl()

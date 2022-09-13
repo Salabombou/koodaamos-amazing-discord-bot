@@ -8,7 +8,7 @@ import datetime
 import time
 
 from utility.discord import webhook
-
+from utility.common import string
 #from utility import webhook
 
 class Food:
@@ -60,16 +60,17 @@ class eduko(commands.Cog):
     def create_embeds(self, foods):
         embeds = []
         weeks = self.splice_list(foods, 5)
-        seconds = 0
+        zero_width = string.zero_width_space()
+        title = 'EDUKON RUOKALISTA'
         for week in weeks:
-            embed = discord.Embed(color=0xC9EDBE, fields=[], title='VIIKKO ' + self.get_week_num(seconds))
+            embed = discord.Embed(color=0xC9EDBE, fields=[], title=title)
             week_spliced = self.splice_list(week, 2)
             for week in week_spliced:
                 for food in week:
                     embed.add_field(name=food.header, value=food.the_actual_food, inline=False)
-            embed.add_field(name='​', value='​', inline=True)
+            embed.add_field(name=zero_width, value=zero_width, inline=True)
             embeds.append(embed)
-            seconds += 604800
+            title = zero_width
         return embeds
     
     def splice_list(self, arr, index):
@@ -80,14 +81,10 @@ class eduko(commands.Cog):
             del arr[:index]
         return spliced
 
-    def get_week_num(self, seconds):
-        timestamp = math.ceil(time.time()) + seconds
-        week_num = str(datetime.date.fromtimestamp(timestamp).isocalendar().week)
-        return week_num
-
     async def update_embeds(self):
         while True:
             resp = await self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
+            resp.raise_for_status()
             soup = bs4.BeautifulSoup(resp.content, features='lxml')
             sections = self.section_filter(soup)
             foods = self.get_food(sections)

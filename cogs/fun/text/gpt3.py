@@ -1,7 +1,8 @@
 from discord.ext import commands
 import discord
 import openai
-import asyncio
+
+from utility.common import decorators
 
 def CreateText(prompt):
     response = openai.Completion.create(
@@ -27,14 +28,12 @@ class gpt3(commands.Cog):
     @commands.command(aliases=["text", "ai"], help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
     @commands.cooldown(1, 5, commands.BucketType.user)
+    @decorators.typing
     async def gpt3(self, ctx, *, prompt="make up a 4chan greentext post"):
-        if ctx.message.author.bot:
-            return
         embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)   
-        async with ctx.typing():
-            loop = asyncio.get_event_loop()
-            text = await loop.run_in_executor(None, CreateText, prompt)
-        embed.description = f'```{text}```'
+        loop = ctx.bot.loop
+        text = await loop.run_in_executor(None, CreateText, prompt)
+        embed.description = f'```{text[:4090]}```'
         await ctx.reply(embed=embed, mention_author=False)
 
 def setup(client, tokens):

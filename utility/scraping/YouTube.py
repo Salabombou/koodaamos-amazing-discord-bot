@@ -1,6 +1,7 @@
 import yt_dlp
 import urllib
 import validators
+from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable
 
 class Video: # for the video info
     def __init__(self, data={
@@ -26,7 +27,7 @@ def get_raw_url(url, video=False, max_duration=None):
     return info['url']
 
 def get_info(url, video=False, max_duration=None):
-    if not validators.url(url): raise Exception('Invalid url.')
+    if not validators.url(url): raise UrlInvalid()
     ydl_opts = {
         'format': 'bestaudio/best',
         'throttled-rate': '180K',
@@ -47,7 +48,7 @@ def get_info(url, video=False, max_duration=None):
             if info['duration'] < max_duration:
                 return info
         else: return info
-        raise Exception('Video is too long to be downloaded.')
+        raise VideoTooLong(max_duration)
 
 def fetch_from_search(youtube, query):
     request = youtube.search().list(
@@ -61,7 +62,7 @@ def fetch_from_search(youtube, query):
     if len(r['items']) > 0:
         videoId = r['items'][0]['id']['videoId']
         return fetch_from_video(youtube, videoId=videoId)
-    raise Exception(f"No videos were found with the query '{query}'")
+    raise VideoSearchNotFound(query)
     
 
 def fetch_from_video(youtube, videoId):
@@ -76,7 +77,7 @@ def fetch_from_video(youtube, videoId):
         song['videoOwnerChannelTitle'] = song['channelTitle']
         song['videoOwnerChannelId'] = song['channelId']
         return [Video(data=song)]
-    else: raise Exception('Video not available')
+    else: raise VideoUnavailable()
 
 async def fetch_from_playlist(ctx, youtube, playlistId):
     request = youtube.playlistItems().list(

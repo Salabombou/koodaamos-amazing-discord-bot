@@ -1,37 +1,51 @@
-import os
+from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailure
+from discord import HTTPException
+from utility.discord.help import help_command
+from discord.ext import commands
 import discord
 import asyncio
-from discord.ext import commands
-from discord.ext.commands import CommandNotFound
-from utility.discord.help import help_command
+import os
 
-from cogs.ffmpeg.video import green
 from cogs.ffmpeg.audio import audio, nightcore, earrape
+from cogs.ffmpeg.video import green
 from cogs.fun import eduko, sauce, spam
 from cogs.fun.image import dalle
 from cogs.fun.text import gpt3
-from cogs.tools import download
 from cogs.voice_chat import music
+from cogs.tools import download
 
 def get_tokens():
     file = open(os.getcwd() + "/files/tokens", "r")
     return file.read().split("\n")
 
-cogs = [dalle, gpt3, music, green, download, audio, nightcore, spam, eduko, sauce, earrape]
+cogs = (dalle, gpt3, music, green, download, audio, nightcore, spam, eduko, sauce, earrape)
 bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help_command())
 tokens = get_tokens() # returns all the tokens
 
 for cog in cogs:
     cog.setup(bot, tokens)
 
+error_emote = 'https://cdn.discordapp.com/emojis/992830317733871636.gif'
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, CommandNotFound): # ignores the error if it just didnt find the command
         return
+    if isinstance(error, CheckFailure):
+        return
+    if isinstance(error, CommandInvokeError):
+        error = error.original
     embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
-    embed.description = f'```{str(error)[0:4090]}```'
-    embed.set_thumbnail(url='https://cdn.discordapp.com/emojis/992830317733871636.gif')
+    embed.description = f'```{str(error)[:4090]}```'
+    embed.set_footer(icon_url=error_emote, text=type(error).__name__)
     await ctx.reply(embed=embed)
+
+@bot.event
+async def on_error(event, ctx, error):
+    if isinstance(error, CommandInvokeError):
+        error = error.original
+    if isinstance(error, HTTPException):
+        return
+    print(type(error).__name__)
 
 @bot.event
 async def on_voice_state_update(member, before, after):

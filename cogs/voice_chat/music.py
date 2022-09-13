@@ -20,11 +20,9 @@ class music(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
-    async def play(self, ctx, url='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau', *args):
-        if args != ():
-            url = url + ' ' + ' '.join(args)
+    async def play(self, ctx, *, arg='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'):
         await voice_chat.join(ctx)
-        songs = await music_tools.fetch_songs(self, ctx, url)
+        songs = await music_tools.fetch_songs(self, ctx, arg)
         music_tools.play_song(self, ctx, songs)
     
     @commands.command(help='url: YouTube url to a song / playlist')
@@ -32,12 +30,9 @@ class music(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
-    async def playnext(self, ctx, *args):
-        if args == ():
-            raise Exception('No songs specified.')
-        url = ' '.join(args)
+    async def playnext(self, ctx, *, arg):
         await voice_chat.join(ctx)
-        songs = await music_tools.fetch_songs(self, ctx, url, True)
+        songs = await music_tools.fetch_songs(self, ctx, arg, True)
         music_tools.play_song(self, ctx, songs, True)
 
     @commands.command(help='lists the bot\'s playlist')

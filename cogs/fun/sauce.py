@@ -1,14 +1,14 @@
-import discord
-from discord.ext import commands
 from utility.discord import target as discordutil
-import httpx
-from requests_toolbelt import MultipartEncoder
-import bs4
 from utility.tools import sauce_tools
 from utility.views.sauce import sauce_view
 from utility.common import proxy
 from utility.common import decorators
-import json
+from utility.common.errors import SauceNotFound
+
+from discord.ext import commands
+import httpx
+from requests_toolbelt import MultipartEncoder
+import bs4
 
 class sauce(commands.Cog):
     def __init__(self, bot):
@@ -38,9 +38,9 @@ class sauce(commands.Cog):
                     results.remove(result)
             if len(results) > 1:
                 return results, hidden
-            raise Exception()
+            raise SauceNotFound()
         except:
-            raise Exception('Could not find the sauce...')
+            raise SauceNotFound()
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)

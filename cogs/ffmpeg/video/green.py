@@ -1,4 +1,3 @@
-import imp
 import io
 import discord
 from discord.ext import commands
@@ -8,6 +7,7 @@ import httpx
 from utility.discord import target as discordutil
 from utility.scraping import YouTube, compress
 from utility.common import decorators, file_management
+from utility.common.errors import CommandTimeout, FfmpegError
 import subprocess
 import datetime
 import urllib.parse
@@ -124,11 +124,11 @@ class green(commands.Cog):
                 pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
             except:
                 file_management.delete_temps(*remove_args)
-                raise Exception('Command timeout.')
+                raise CommandTimeout()
             err = pipe.stderr.decode('utf-8') 
             if err != '':
                 file_management.delete_temps(*remove_args)
-                raise Exception(err)
+                raise FfmpegError(err)
             
         compressed = await compress.video(output_path, ctx)
         file_management.delete_temps(*remove_args)
@@ -139,8 +139,6 @@ class green(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def green(self, ctx, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
-        if ctx.message.author.bot:
-            return
         file = await self.create_output_video(ctx, url, color)
         await ctx.reply(file=file)
 

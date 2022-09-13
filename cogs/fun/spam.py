@@ -17,7 +17,6 @@ class spam(commands.Cog):
 
     @commands.command(help='mention the users you would like to annoy')
     async def spam(self, ctx):
-        if ctx.message.author.bot: return
         server = str(ctx.message.guild.id)
         if not server in self.spamming:
             self.spamming[server] = False

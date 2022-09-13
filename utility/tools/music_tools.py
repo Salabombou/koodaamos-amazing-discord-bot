@@ -1,4 +1,5 @@
 from utility.scraping import YouTube
+from utility.common.errors import UrlInvalid, SongNotFound
 import urllib
 from urllib.parse import parse_qs, urlparse
 import isodate
@@ -19,7 +20,7 @@ def get_server(ctx):
 class decorators:
     def update_playlist(func):
         @functools.wraps(func)
-        async def wrapper(*args):
+        async def wrapper(*args, **kwargs):
             self = args[0]
             ctx = args[1]
             server = get_server(ctx)
@@ -27,7 +28,7 @@ class decorators:
                 self.playlist[server] = [[],[]]
             if server not in self.looping:
                 self.looping[server] = False
-            return await func(*args)
+            return await func(*args, **kwargs)
         return wrapper
 
 def append_songs(ctx, playlist, playnext=False, songs=[]): # appends songs to the playlist
@@ -111,7 +112,7 @@ def create_info_embed(self, ctx, number='0', song=None):
     if song == None:
         num = abs(int(number))
         if len(self.playlist[server][0]) - 1 < num :  
-            raise Exception('No songs found at that number.')
+            raise SongNotFound()
         song = self.playlist[server][0][num]
     embed = discord.Embed(title=song.title, description=song.description, fields=[], color=0xC4FFBD)
     embed.set_image(url=song.thumbnail)
@@ -133,7 +134,7 @@ async def fetch_songs(self, ctx, url, no_playlists=False):
     elif 'list' in query and not no_playlists:
         songs = await YouTube.fetch_from_playlist(ctx, self.youtube, playlistId=query['list'][0])
         return songs
-    raise Exception('Invalid url')
+    raise UrlInvalid()
 
 def play_song(self, ctx, songs=[], playnext=False):
     if ctx.voice_client == None:

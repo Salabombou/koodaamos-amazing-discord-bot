@@ -3,6 +3,7 @@ from discord.ext import commands
 from utility.discord import target as discordutil
 from utility.scraping import compress
 from utility.common import decorators, file_management
+from utility.common.errors import CommandTimeout, FfmpegError
 import io
 import discord
 import functools
@@ -59,11 +60,11 @@ class nightcore(commands.Cog):
                 pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
             except:
                 file_management.delete_temps(*remove_args)
-                raise Exception('Command timeout.')
+                raise CommandTimeout()
             err = pipe.stderr.decode('utf-8') 
             if err != '':
                 file_management.delete_temps(*remove_args)
-                raise Exception(err)
+                raise FfmpegError(err)
         file = await compress.video(output_path, ctx)
         fp = io.BytesIO(file)
         file = discord.File(fp=fp, filename='unknown.mp4')
@@ -74,8 +75,6 @@ class nightcore(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def nc(self, ctx):
-        if ctx.message.author.bot:
-            return
         file = await self.create_output_video(ctx)
         await ctx.reply(file=file, mention_author=False)
 
