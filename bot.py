@@ -2,15 +2,22 @@ import os
 import discord
 import asyncio
 from discord.ext import commands
-from discord.ext.commands import CommandNotFound, CheckFailure
-from help import help_command
-from cogs import dalle, gpt3, tts, music, green, download, audio, nightcore, spam, eduko, sauce, earrape
+from discord.ext.commands import CommandNotFound
+from utility.discord.help import help_command
+
+from cogs.ffmpeg.video import green
+from cogs.ffmpeg.audio import audio, nightcore, earrape
+from cogs.fun import eduko, sauce, spam
+from cogs.fun.image import dalle
+from cogs.fun.text import gpt3
+from cogs.tools import download
+from cogs.voice_chat import music
 
 def get_tokens():
     file = open(os.getcwd() + "/files/tokens", "r")
     return file.read().split("\n")
 
-cogs = [dalle, gpt3, tts, music, green, download, audio, nightcore, spam, eduko, sauce, earrape]
+cogs = [dalle, gpt3, music, green, download, audio, nightcore, spam, eduko, sauce, earrape]
 bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help_command())
 tokens = get_tokens() # returns all the tokens
 
@@ -20,9 +27,6 @@ for cog in cogs:
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, CommandNotFound): # ignores the error if it just didnt find the command
-        return
-    if isinstance(error, CheckFailure): # if the command didnt pass the check
-        await ctx.message.add_reaction('👎')
         return
     embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
     embed.description = f'```{str(error)[0:4090]}```'

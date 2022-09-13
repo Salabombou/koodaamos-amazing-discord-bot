@@ -1,8 +1,8 @@
 import time
 from discord.ext import commands
-from utility import discordutil
-from utility.common import file_management, decorators
-from utility import compress
+from utility.discord import target as discordutil
+from utility.scraping import compress
+from utility.common import decorators, file_management
 import io
 import discord
 import functools

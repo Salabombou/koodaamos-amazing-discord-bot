@@ -1,4 +1,4 @@
-from utility import YouTube, Reddit
+from utility.scraping import YouTube, Reddit
 import urllib
 import os
 
