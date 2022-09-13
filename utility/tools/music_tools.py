@@ -1,4 +1,4 @@
-from utility import YouTube
+from utility.scraping import YouTube
 import urllib
 from urllib.parse import parse_qs, urlparse
 import isodate

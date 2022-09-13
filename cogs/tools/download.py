@@ -2,10 +2,12 @@ import io
 from discord.ext import commands
 import urllib
 import validators
-from utility.common import download as downl, decorators
-from utility import compress
+from utility.common import decorators
+from utility.scraping import compress
 import httpx
 import discord
+
+from utility.scraping import download as downl
 
 class download(commands.Cog):
     def __init__(self, bot, tokens):
