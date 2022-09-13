@@ -20,7 +20,7 @@ def get_server(ctx):
 class decorators:
     def update_playlist(func):
         @functools.wraps(func)
-        async def wrapper(*args):
+        async def wrapper(*args, **kwargs):
             self = args[0]
             ctx = args[1]
             server = get_server(ctx)
@@ -28,7 +28,7 @@ class decorators:
                 self.playlist[server] = [[],[]]
             if server not in self.looping:
                 self.looping[server] = False
-            return await func(*args)
+            return await func(*args, **kwargs)
         return wrapper
 
 def append_songs(ctx, playlist, playnext=False, songs=[]): # appends songs to the playlist

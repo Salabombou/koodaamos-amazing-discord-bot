@@ -2,6 +2,8 @@ from discord.ext import commands
 import discord
 import openai
 
+from utility.common import decorators
+
 def CreateText(prompt):
     response = openai.Completion.create(
         engine="text-davinci-002",
@@ -26,6 +28,7 @@ class gpt3(commands.Cog):
     @commands.command(aliases=["text", "ai"], help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
     @commands.cooldown(1, 5, commands.BucketType.user)
+    @decorators.typing
     async def gpt3(self, ctx, *, prompt="make up a 4chan greentext post"):
         embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)   
         loop = ctx.bot.loop

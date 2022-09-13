@@ -1,4 +1,5 @@
 from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailure
+from discord import HTTPException
 from utility.discord.help import help_command
 from discord.ext import commands
 import discord
@@ -39,8 +40,12 @@ async def on_command_error(ctx, error):
     await ctx.reply(embed=embed)
 
 @bot.event
-async def on_error(event, *args):
-    print(type(event).__name__)
+async def on_error(event, ctx, error):
+    if isinstance(error, CommandInvokeError):
+        error = error.original
+    if isinstance(error, HTTPException):
+        return
+    print(type(error).__name__)
 
 @bot.event
 async def on_voice_state_update(member, before, after):
