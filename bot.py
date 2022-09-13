@@ -17,7 +17,7 @@ def get_tokens():
     file = open(os.getcwd() + "/files/tokens", "r")
     return file.read().split("\n")
 
-cogs = [dalle, gpt3, music, green, download, audio, nightcore, spam, eduko, sauce, earrape]
+cogs = (dalle, gpt3, music, green, download, audio, nightcore, spam, eduko, sauce, earrape)
 bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help_command())
 tokens = get_tokens() # returns all the tokens
 
