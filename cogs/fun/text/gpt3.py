@@ -1,7 +1,6 @@
 from discord.ext import commands
 import discord
 import openai
-import asyncio
 
 def CreateText(prompt):
     response = openai.Completion.create(

@@ -2,6 +2,7 @@ import yt_dlp
 import urllib
 import validators
 from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable
+
 class Video: # for the video info
     def __init__(self, data={
         'title': '​',

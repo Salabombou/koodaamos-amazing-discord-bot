@@ -1,8 +1,6 @@
 from discord.ext import commands
 from utility.common import decorators
 from PIL import Image
-import asyncio
-import zipfile
 import discord
 import base64
 import httpx

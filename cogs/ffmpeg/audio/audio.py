@@ -8,10 +8,7 @@ from utility.scraping import YouTube, compress
 from utility.common import decorators, file_management
 from utility.common.errors import CommandTimeout, FfmpegError
 import os
-import yt_dlp
 import datetime
-import ffmpeg
-import asyncio
 import functools
 import httpx
 import math

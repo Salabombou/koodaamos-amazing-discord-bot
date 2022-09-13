@@ -1,11 +1,9 @@
 
 from discord.ext import commands
 import discord
-import openai
 import asyncio
 import httpx
 import json
-import io
     
 class moist(commands.Cog):
     def __init__(self, bot, tokens):

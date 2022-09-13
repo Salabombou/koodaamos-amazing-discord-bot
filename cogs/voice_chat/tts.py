@@ -1,8 +1,6 @@
 
 from discord.ext import commands
 import discord
-import openai
-import asyncio
 import httpx
 import json
 import io
