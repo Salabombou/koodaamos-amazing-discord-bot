@@ -1,12 +1,12 @@
 import discord
 from discord.ext import commands
-from utility import discordutil
+from utility.discord import target as discordutil
 import httpx
 from requests_toolbelt import MultipartEncoder
 import bs4
 from utility.tools import sauce_tools
 from utility.views.sauce import sauce_view
-from utility.common.requests import proxy
+from utility.common import proxy
 from utility.common import decorators
 import json
 

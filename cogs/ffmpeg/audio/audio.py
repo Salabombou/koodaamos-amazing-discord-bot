@@ -3,8 +3,9 @@ import time
 import discord
 from discord.ext import commands
 import subprocess
-from utility import discordutil, compress, YouTube
-from utility.common import file_management, decorators
+from utility.discord import target as discordutil
+from utility.scraping import YouTube, compress
+from utility.common import decorators, file_management
 import os
 import yt_dlp
 import datetime

@@ -1,6 +1,7 @@
 import discord
 from discord import NotFound
-from utility import music_tools, VoiceChat
+from utility.discord import voice_chat
+from utility.tools import music_tools
 import math
 import numpy as np
 import asyncio
@@ -112,8 +113,8 @@ class music_view(discord.ui.View):
     async def skip_callback(self, button, interaction):
         temp = self.looping[self.server]
         self.looping[self.server] = False
-        await VoiceChat.resume(self.ctx)
-        await VoiceChat.stop(self.ctx)
+        await voice_chat.resume(self.ctx)
+        await voice_chat.stop(self.ctx)
         await asyncio.sleep(0.5)
         self.looping[self.server] = temp
         self.update_embed()
@@ -141,7 +142,7 @@ class music_view(discord.ui.View):
     async def pauseresume_callback(self, button, interaction):
         if self.ctx.voice_client == None: return
         if not self.ctx.voice_client.is_paused():
-            await VoiceChat.pause(self.ctx)
+            await voice_chat.pause(self.ctx)
         else:
-            await VoiceChat.resume(self.ctx)
+            await voice_chat.resume(self.ctx)
         await interaction.response.edit_message(view=self)

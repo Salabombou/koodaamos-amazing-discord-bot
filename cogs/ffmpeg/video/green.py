@@ -1,10 +1,12 @@
+import imp
 import io
 import discord
 from discord.ext import commands
 import os
 import discord
 import httpx
-from utility import discordutil, YouTube, compress
+from utility.discord import target as discordutil
+from utility.scraping import YouTube, compress
 from utility.common import decorators, file_management
 import subprocess
 import datetime

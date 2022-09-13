@@ -1,6 +1,7 @@
 from discord.ext import commands
 import asyncio
-from utility import VoiceChat, music_tools
+from utility.discord import voice_chat
+from utility.tools import music_tools
 from utility.common import decorators
 from utility.views.music import music_view
 import googleapiclient.discovery
@@ -15,19 +16,19 @@ class music(commands.Cog):
         self.looping = {}
 
     @commands.command(help='url: YouTube url to a song / playlist')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     async def play(self, ctx, url='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau', *args):
         if args != ():
             url = url + ' ' + ' '.join(args)
-        await VoiceChat.join(ctx)
+        await voice_chat.join(ctx)
         songs = await music_tools.fetch_songs(self, ctx, url)
         music_tools.play_song(self, ctx, songs)
     
     @commands.command(help='url: YouTube url to a song / playlist')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
@@ -35,12 +36,12 @@ class music(commands.Cog):
         if args == ():
             raise Exception('No songs specified.')
         url = ' '.join(args)
-        await VoiceChat.join(ctx)
+        await voice_chat.join(ctx)
         songs = await music_tools.fetch_songs(self, ctx, url, True)
         music_tools.play_song(self, ctx, songs, True)
 
     @commands.command(help='lists the bot\'s playlist')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     async def list(self, ctx):
@@ -50,30 +51,30 @@ class music(commands.Cog):
         await message.edit(view=music_view(music_self=self, ctx=ctx))
         
     @commands.command(help='disconnects from the voice channel')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
     async def disconnect(self, ctx):
         server = music_tools.get_server(ctx)
         self.playlist[server] = [[],[]]
-        await VoiceChat.leave(ctx)
+        await voice_chat.leave(ctx)
 
     @commands.command(help='resumes the currently playing song')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
     async def resume(self, ctx):
-        await VoiceChat.resume(ctx)
+        await voice_chat.resume(ctx)
 
     @commands.command(help='pauses the currently playing song')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
     async def pause(self, ctx):
-        await VoiceChat.pause(ctx)
+        await voice_chat.pause(ctx)
     
     @commands.command(help='skips the currently playing song')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
@@ -84,13 +85,13 @@ class music(commands.Cog):
         amount = abs(int(amount))
         del self.playlist[server][0][1:amount]
         music_tools.append_songs(ctx, self.playlist)
-        await VoiceChat.resume(ctx)
-        await VoiceChat.stop(ctx) # skips one song
+        await voice_chat.resume(ctx)
+        await voice_chat.stop(ctx) # skips one song
         await asyncio.sleep(0.5) #why? # just incase
         self.looping[server] = temp
     
     @commands.command(help='shuffles the playlist')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
@@ -104,7 +105,7 @@ class music(commands.Cog):
         self.playlist[server][0].insert(0, temp)
 
     @commands.command(help='Loops the currently playing song until stopped')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
@@ -113,7 +114,7 @@ class music(commands.Cog):
         self.looping[server] = not self.looping[server]
     
     @commands.command(help='number: number of the song in the playlist')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     async def info(self, ctx, number='0'):
@@ -123,7 +124,7 @@ class music(commands.Cog):
         await ctx.reply(embed=embed, mention_author=False)
 
     @commands.command(help='replays the current song')
-    @commands.check(VoiceChat.command_check)
+    @commands.check(voice_chat.command_check)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
@@ -131,7 +132,7 @@ class music(commands.Cog):
         server = music_tools.get_server(ctx)
         if self.playlist[server][0] != []:
             self.playlist[server][0].insert(0, self.playlist[server][0][0])
-            await VoiceChat.stop(ctx)
+            await voice_chat.stop(ctx)
 
 def setup(client, tokens):
     client.add_cog(music(client, tokens))
