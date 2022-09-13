@@ -33,7 +33,7 @@ class gpt3(commands.Cog):
         embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)   
         loop = ctx.bot.loop
         text = await loop.run_in_executor(None, CreateText, prompt)
-        embed.description = f'```{text}```'
+        embed.description = f'```{text[:4090]}```'
         await ctx.reply(embed=embed, mention_author=False)
 
 def setup(client, tokens):
