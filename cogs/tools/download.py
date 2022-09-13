@@ -4,6 +4,7 @@ import urllib
 import validators
 from utility.common import decorators
 from utility.scraping import compress
+from utility.common.errors import UrlInvalid
 import httpx
 import discord
 
@@ -29,7 +30,7 @@ class download(commands.Cog):
             file = io.BytesIO(file)
             file = discord.File(fp=file, filename='unknown.' + ext)
             await ctx.reply(file=file)
-        else: raise Exception('Invalid url.')
+        else: raise UrlInvalid()
 
 def setup(client, tokens):
     client.add_cog(download(client, tokens))

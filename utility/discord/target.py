@@ -1,5 +1,5 @@
 import discord
-
+from utility.common.errors import TargetNotFound
 # THE ORDER FOR THE FILES
 # 1.   Attachments
 # 2.   Embeds
@@ -41,7 +41,7 @@ async def get_target(ctx, no_aud=False, no_vid=False, no_img=False):
         attachments = reply.attachments
         file = await get_file(embeds, attachments, no_aud, no_vid, no_img)
         if file == None:
-            raise Exception("No images/videos in the reply or video or audio is not accepted")
+            raise TargetNotFound()
         return file
     else: # if there are embeds or attachments in the command itself
         embeds = ctx.message.embeds

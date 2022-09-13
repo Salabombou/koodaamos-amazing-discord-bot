@@ -32,10 +32,9 @@ class music(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
-    async def playnext(self, ctx, *args):
-        if args == ():
-            raise Exception('No songs specified.')
-        url = ' '.join(args)
+    async def playnext(self, ctx, url, *args):
+        if args != ():
+            url = url + ' ' + ' '.join(args)
         await voice_chat.join(ctx)
         songs = await music_tools.fetch_songs(self, ctx, url, True)
         music_tools.play_song(self, ctx, songs, True)

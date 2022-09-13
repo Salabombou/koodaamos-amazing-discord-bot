@@ -21,7 +21,12 @@ class music_view(discord.ui.View):
         self.server = music_tools.get_server(ctx)
         self.children[0].options = music_tools.create_options(ctx, self.playlist)
         self.update_buttons()
-
+    
+    async def on_error(self, error, button, interaction):
+        if isinstance(error, NotFound):
+            return
+        print(str(error))
+        
     async def interaction_check(self, interaction) -> bool:
         if interaction.user.bot:
             return False # if the user is bot

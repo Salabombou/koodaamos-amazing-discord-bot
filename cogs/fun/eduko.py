@@ -88,6 +88,7 @@ class eduko(commands.Cog):
     async def update_embeds(self):
         while True:
             resp = await self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
+            resp.raise_for_status()
             soup = bs4.BeautifulSoup(resp.content, features='lxml')
             sections = self.section_filter(soup)
             foods = self.get_food(sections)
