@@ -1,6 +1,4 @@
 def command_check(ctx):
-    if ctx.author.bot:
-        return False  # if the user is a bot
     if ctx.author.voice == None:
         return False # if the user is not connected to a voice channel
     if ctx.me.voice == None:

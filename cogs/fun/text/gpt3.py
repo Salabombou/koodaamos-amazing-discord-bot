@@ -28,12 +28,9 @@ class gpt3(commands.Cog):
     @commands.is_nsfw()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def gpt3(self, ctx, *, prompt="make up a 4chan greentext post"):
-        if ctx.message.author.bot:
-            return
         embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)   
-        async with ctx.typing():
-            loop = asyncio.get_event_loop()
-            text = await loop.run_in_executor(None, CreateText, prompt)
+        loop = ctx.bot.loop
+        text = await loop.run_in_executor(None, CreateText, prompt)
         embed.description = f'```{text}```'
         await ctx.reply(embed=embed, mention_author=False)
 

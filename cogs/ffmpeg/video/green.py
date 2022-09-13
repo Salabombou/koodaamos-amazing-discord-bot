@@ -140,8 +140,6 @@ class green(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def green(self, ctx, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
-        if ctx.message.author.bot:
-            return
         file = await self.create_output_video(ctx, url, color)
         await ctx.reply(file=file)
 

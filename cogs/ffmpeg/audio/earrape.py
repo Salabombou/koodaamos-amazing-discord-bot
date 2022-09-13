@@ -57,8 +57,6 @@ class earrape(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def er(self, ctx):
-        if ctx.message.author.bot:
-            return
         file = await self.create_output_video(ctx)
         await ctx.reply(file=file, mention_author=False)
 

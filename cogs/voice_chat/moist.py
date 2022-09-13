@@ -35,8 +35,6 @@ class moist(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def moist(self, ctx, *, arg="Hi there!"):
         arg = arg.replace('\n', ' ')
-        if ctx.message.author.bot:
-            return
         if ctx.message.author.voice == None:
             return
         channel = ctx.message.author.voice.channel
