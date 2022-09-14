@@ -60,9 +60,10 @@ async def on_voice_state_update(member, before, after):
             time += 1
             if vc.is_playing() and not vc.is_paused():
                 time = 0
+            condition = vc.is_connected()
             if time >= 1800:
                 await vc.disconnect()
-            condition = vc.is_connected()
+                condition = False
     elif not member.id == bot.user.id and vc != None and bot.user in after.channel.members:
         for member in after.channel.members:
             if not member.bot:
