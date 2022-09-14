@@ -64,7 +64,7 @@ async def on_voice_state_update(member, before, after):
             if time >= 1800:
                 await vc.disconnect()
                 condition = False
-    elif not member.id == bot.user.id and vc != None and bot.user in after.channel.members:
+    elif member.id != bot.user.id and vc != None and bot.user in after.channel.members:
         for member in after.channel.members:
             if not member.bot:
                 vc.resume()
