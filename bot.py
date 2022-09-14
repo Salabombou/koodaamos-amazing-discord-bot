@@ -52,7 +52,7 @@ async def on_error(event, ctx, error):
 async def on_voice_state_update(member, before, after):
     if after.channel == None: return
     vc = after.channel.guild.voice_client
-    if before.channel is None and member.id == bot.user.id:
+    if before.channel == None and member.id == bot.user.id:
         time = 0
         condition = True
         while condition:
