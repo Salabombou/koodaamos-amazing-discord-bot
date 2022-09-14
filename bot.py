@@ -1,5 +1,5 @@
 from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailure
-from discord import HTTPException
+from discord import HTTPException, Forbidden
 from utility.discord.help import help_command
 from discord.ext import commands
 import discord
@@ -25,7 +25,6 @@ tokens = get_tokens() # returns all the tokens
 for cog in cogs:
     cog.setup(bot, tokens)
 
-error_emote = 'https://cdn.discordapp.com/emojis/992830317733871636.gif'
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, CommandNotFound): # ignores the error if it just didnt find the command
@@ -36,7 +35,7 @@ async def on_command_error(ctx, error):
         error = error.original
     embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
     embed.description = f'```{str(error)[:4090]}```'
-    embed.set_footer(icon_url=error_emote, text=type(error).__name__)
+    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
     await ctx.reply(embed=embed)
 
 @bot.event
@@ -44,6 +43,8 @@ async def on_error(event, ctx, error):
     if isinstance(error, CommandInvokeError):
         error = error.original
     if isinstance(error, HTTPException):
+        return
+    if isinstance(error, Forbidden):
         return
     print(str(error))
 
