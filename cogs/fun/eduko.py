@@ -72,7 +72,7 @@ class eduko(commands.Cog):
             embeds.append(embed)
             title = zero_width
         return embeds
-    
+
     def splice_list(self, arr, index):
         spliced = []
         length = math.ceil(len(arr) / index)

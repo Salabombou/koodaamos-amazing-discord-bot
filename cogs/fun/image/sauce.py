@@ -17,7 +17,7 @@ class sauce(commands.Cog):
         self.fields = [ 
             ['url', '']
         ]
-        rejected_dbs = [1,4,6,7.13,14,17,29,34,40,42]
+        rejected_dbs = [1,4,6,7.13,14,17,29,34,40,42] # everything furry
         for i in range(0, 44 + 1):
             if not i in rejected_dbs:
                 self.fields.append(['dbs[]', str(i)])

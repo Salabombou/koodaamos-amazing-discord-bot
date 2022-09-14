@@ -8,8 +8,8 @@ import os
 
 from cogs.ffmpeg.audio import audio, nightcore, earrape
 from cogs.ffmpeg.video import green
-from cogs.fun import eduko, sauce, spam
-from cogs.fun.image import dalle
+from cogs.fun import eduko, spam
+from cogs.fun.image import dalle, sauce
 from cogs.fun.text import gpt3
 from cogs.voice_chat import music
 from cogs.tools import download
@@ -45,7 +45,7 @@ async def on_error(event, ctx, error):
         error = error.original
     if isinstance(error, HTTPException):
         return
-    print(type(error).__name__)
+    print(str(error))
 
 @bot.event
 async def on_voice_state_update(member, before, after):

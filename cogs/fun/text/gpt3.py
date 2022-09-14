@@ -27,7 +27,7 @@ class gpt3(commands.Cog):
 
     @commands.command(aliases=["text", "ai"], help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     @decorators.typing
     async def gpt3(self, ctx, *, prompt="make up a 4chan greentext post"):
         embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)   
