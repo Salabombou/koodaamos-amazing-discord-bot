@@ -5,7 +5,6 @@ class help_command(commands.HelpCommand):
 
     def get_command_signature(self, command):
         signature =  command.signature
-        signature = signature.split('=')[0] + ': ' + '='.join(signature.split('=')[1:])
         return '%s%s %s' % (self.context.clean_prefix, command.qualified_name, signature)
 
     async def send_bot_help(self, mapping):

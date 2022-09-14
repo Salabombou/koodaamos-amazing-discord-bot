@@ -1,5 +1,5 @@
 from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailure
-from discord import HTTPException
+from discord import HTTPException, Forbidden
 from utility.discord.help import help_command
 from discord.ext import commands
 import discord
@@ -8,8 +8,8 @@ import os
 
 from cogs.ffmpeg.audio import audio, nightcore, earrape
 from cogs.ffmpeg.video import green
-from cogs.fun import eduko, sauce, spam
-from cogs.fun.image import dalle
+from cogs.fun import eduko, spam
+from cogs.fun.image import dalle, sauce
 from cogs.fun.text import gpt3
 from cogs.voice_chat import music
 from cogs.tools import download
@@ -25,7 +25,6 @@ tokens = get_tokens() # returns all the tokens
 for cog in cogs:
     cog.setup(bot, tokens)
 
-error_emote = 'https://cdn.discordapp.com/emojis/992830317733871636.gif'
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, CommandNotFound): # ignores the error if it just didnt find the command
@@ -36,7 +35,7 @@ async def on_command_error(ctx, error):
         error = error.original
     embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
     embed.description = f'```{str(error)[:4090]}```'
-    embed.set_footer(icon_url=error_emote, text=type(error).__name__)
+    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
     await ctx.reply(embed=embed)
 
 @bot.event
@@ -45,13 +44,15 @@ async def on_error(event, ctx, error):
         error = error.original
     if isinstance(error, HTTPException):
         return
-    print(type(error).__name__)
+    if isinstance(error, Forbidden):
+        return
+    print(str(error))
 
 @bot.event
 async def on_voice_state_update(member, before, after):
     if after.channel == None: return
     vc = after.channel.guild.voice_client
-    if before.channel is None and member.id == bot.user.id:
+    if before.channel == None and member.id == bot.user.id:
         time = 0
         condition = True
         while condition:
@@ -59,12 +60,13 @@ async def on_voice_state_update(member, before, after):
             time += 1
             if vc.is_playing() and not vc.is_paused():
                 time = 0
+            condition = vc.is_connected()
             if time >= 1800:
                 await vc.disconnect()
-            condition = vc.is_connected()
-    elif not member.id == bot.user.id and vc != None and bot.user in after.channel.members:
+                condition = False
+    elif member.id != bot.user.id and vc != None and bot.user in after.channel.members:
         for member in after.channel.members:
-            if member.bot == False:
+            if not member.bot:
                 vc.resume()
                 return
         vc.pause()
@@ -72,7 +74,7 @@ async def on_voice_state_update(member, before, after):
         for voice_client in bot.voice_clients:
             if voice_client.guild == vc.guild:
                 for member in voice_client.channel.members:
-                    if member.bot == False:
+                    if not member.bot:
                         voice_client.resume()
                         return
                 voice_client.pause()
