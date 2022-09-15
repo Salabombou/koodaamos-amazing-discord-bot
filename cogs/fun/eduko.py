@@ -5,25 +5,6 @@ import discord
 import httpx
 import bs4
 
-class Food:
-    def __init__(self, p):
-        self.header = None
-        self.the_actual_food = None
-        spans = p.select('span')
-        bs = p.select('b')
-        for spam in spans:
-            self.header = spam.text
-            self.the_actual_food = self.get_food(p)
-        for b in bs:
-            self.header = b.text
-            self.the_actual_food = self.get_food(p)
-
-    def get_food(self, p):
-        food = ''
-        for content in p.contents:
-            if isinstance(content, str):
-                food += content + '\n'
-        return food
 class eduko(commands.Cog):
     def __init__(self, bot):
         self.description = 'Gets the Eduko diner menu for the week(s)'
@@ -32,6 +13,26 @@ class eduko(commands.Cog):
         self.bot = bot
         asyncio.ensure_future(self.update_embeds())
 
+    class Food:
+        def __init__(self, p):
+            self.header = None
+            self.the_actual_food = None
+            spans = p.select('span')
+            bs = p.select('b')
+            for spam in spans:
+                self.header = spam.text
+                self.the_actual_food = self.get_food(p)
+            for b in bs:
+                self.header = b.text
+                self.the_actual_food = self.get_food(p)
+
+        def get_food(self, p):
+            food = ''
+            for content in p.contents:
+                if isinstance(content, str):
+                    food += content + '\n'
+            return food
+    
     def section_filter(self):
         sections = self.soup.select('section')
         for section in sections:
@@ -45,7 +46,7 @@ class eduko(commands.Cog):
         foods = []
         for section in self.sections:
             for p in section.select('p'):
-                foods.append(Food(p))
+                foods.append(self.Food(p))
         for food in foods:
             if food.header == None:
                 foods.remove(food)
@@ -54,14 +55,14 @@ class eduko(commands.Cog):
     def create_embeds(self):
         embeds = []
         weeks = self.splice_list(self.foods, 5)
-        for week in weeks:
-            embed = discord.Embed(color=0xC9EDBE, fields=[], title='VIIKKO ' + self.week_nums[0])
+        for week in weeks[::-1]:
+            embed = discord.Embed(color=0xC9EDBE, fields=[], title='VIIKKO ' + self.week_nums[-1])
             week_spliced = self.splice_list(week, 2)
             for week in week_spliced:
                 for food in week:
                     embed.add_field(name=food.header, value=food.the_actual_food, inline=False)
             embeds.append(embed)
-            del self.week_nums[0]
+            del self.week_nums[-1]
         return embeds
 
     def splice_list(self, arr, index):
@@ -91,7 +92,7 @@ class eduko(commands.Cog):
             self.sections = self.section_filter()
             self.foods = self.get_food()
             self.embeds = self.create_embeds()
-            await asyncio.sleep(100)
+            await asyncio.sleep(1000)
 
     @commands.command()
     async def food(self,ctx):
