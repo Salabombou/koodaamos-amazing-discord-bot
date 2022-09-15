@@ -1,7 +1,13 @@
+import json
 import yt_dlp
 import urllib
+import urllib.parse
 import validators
 from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable
+import httpx
+import re
+
+client = httpx.AsyncClient()
 
 class Video: # for the video info
     def __init__(self, data={
@@ -50,22 +56,22 @@ def get_info(url, video=False, max_duration=None):
         else: return info
         raise VideoTooLong(max_duration)
 
-def fetch_from_search(youtube, query):
-    request = youtube.search().list(
-        part='snippet',
-        maxResults=1,
-        type='video', # only videos
-        safeSearch='none',
-        q=query
-    )
-    r = request.execute()
-    if len(r['items']) > 0:
-        videoId = r['items'][0]['id']['videoId']
-        return fetch_from_video(youtube, videoId=videoId)
+async def fetch_from_search(youtube, query) -> Video: # youtube api searches are expensive so webscraping it is
+    urlsafe_quote = urllib.parse.quote(query)
+    url = 'https://www.youtube.com/results?search_query=' + urlsafe_quote
+    resp = await client.get(url)
+    resp.raise_for_status()
+    content = resp.content.decode('utf-8')
+    ytInitialData = re.findall('var ytInitialData = .*}}}};', content)[0][20:-1]
+    ytInitialData = json.loads(ytInitialData)
+    results = ytInitialData['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']
+    for result in results:
+        if 'videoRenderer' in result:
+            videoId = result['videoRenderer']['videoId']
+            return fetch_from_video(youtube, videoId)[0]
     raise VideoSearchNotFound(query)
     
-
-def fetch_from_video(youtube, videoId):
+def fetch_from_video(youtube, videoId) -> list[Video]:
     request = youtube.videos().list(
         part='snippet',
         id=videoId
@@ -79,7 +85,7 @@ def fetch_from_video(youtube, videoId):
         return [Video(data=song)]
     else: raise VideoUnavailable()
 
-async def fetch_from_playlist(ctx, youtube, playlistId):
+async def fetch_from_playlist(ctx, youtube, playlistId) -> list[Video]:
     request = youtube.playlistItems().list(
         part='snippet',
         playlistId=playlistId,
@@ -96,7 +102,7 @@ async def fetch_from_playlist(ctx, youtube, playlistId):
         songs.append(Video(data=song))
     return songs
 
-def fetch_channel_icon(youtube, channelId):
+def fetch_channel_icon(youtube, channelId) -> str:
     request = youtube.channels().list(
         part='snippet',
         id=channelId

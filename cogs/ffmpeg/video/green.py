@@ -14,6 +14,7 @@ import urllib.parse
 import time
 import functools
 import math
+import asyncio
 
 class green(commands.Cog):
     def __init__(self, bot):
@@ -123,17 +124,17 @@ class green(commands.Cog):
             try:
                 pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
             except:
-                file_management.delete_temps(*remove_args)
+                asyncio.ensure_future(file_management.delete_temps(*remove_args))
                 raise CommandTimeout()
             err = pipe.stderr.decode('utf-8') 
             if err != '':
-                file_management.delete_temps(*remove_args)
+                asyncio.ensure_future(file_management.delete_temps(*remove_args))
                 raise FfmpegError(err)
-            
-        compressed = await compress.video(output_path, ctx)
-        file_management.delete_temps(*remove_args)
-        fp = io.BytesIO(compressed)
-        return discord.File(fp=fp, filename='unknown.mp4')
+        file = await compress.video(output_path, ctx)
+        fp = io.BytesIO(file)
+        file = discord.File(fp=fp, filename='unknown.mp4')
+        asyncio.ensure_future(file_management.delete_temps(*remove_args))
+        return file
 
     @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)

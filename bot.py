@@ -1,10 +1,11 @@
 from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailure
-from discord import HTTPException, Forbidden
+from discord import HTTPException, Forbidden, NotFound, ApplicationCommandInvokeError
 from utility.discord.help import help_command
 from discord.ext import commands
 import discord
 import asyncio
 import os
+import json
 
 from cogs.ffmpeg.audio import audio, nightcore, earrape
 from cogs.ffmpeg.video import green
@@ -15,8 +16,8 @@ from cogs.voice_chat import music
 from cogs.tools import download
 
 def get_tokens():
-    file = open(os.getcwd() + "/files/tokens", "r")
-    return file.read().split("\n")
+    file = open(os.getcwd() + '/tokens.json', 'r')
+    return json.loads(file.read())
 
 cogs = (dalle, gpt3, music, green, download, audio, nightcore, spam, eduko, sauce, earrape)
 bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help_command())
@@ -27,17 +28,30 @@ for cog in cogs:
 
 @bot.event
 async def on_command_error(ctx, error):
+    if isinstance(error, CommandInvokeError):
+        error = error.original
     if isinstance(error, CommandNotFound): # ignores the error if it just didnt find the command
         return
     if isinstance(error, CheckFailure):
         return
-    if isinstance(error, CommandInvokeError):
-        error = error.original
     embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
     embed.description = f'```{str(error)[:4090]}```'
     embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
     await ctx.reply(embed=embed)
 
+@bot.event
+async def on_application_command_error(ctx, error):
+    if isinstance(error, ApplicationCommandInvokeError):
+        error = error.original
+    if isinstance(error, NotFound):
+        return
+    if isinstance(error, CheckFailure):
+        return
+    embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
+    embed.description = f'```{str(error)[:4090]}```'
+    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
+    await ctx.send(embed=embed)
+    
 @bot.event
 async def on_error(event, ctx, error):
     if isinstance(error, CommandInvokeError):
@@ -82,7 +96,11 @@ async def on_voice_state_update(member, before, after):
 
 @bot.event
 async def on_ready():
+    for root, dirs, files in os.walk('./files', topdown=False):
+        for file in files:
+            if file == '.gitignore': continue
+            os.remove(f'{root}/{file}')
     os.system('cls' if os.name == 'nt' else 'clear')
     print('ready')
 
-bot.run(tokens[0])
+bot.run(tokens['discord'])

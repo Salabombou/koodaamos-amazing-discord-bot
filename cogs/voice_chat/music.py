@@ -11,7 +11,7 @@ class music(commands.Cog):
     def __init__(self, bot=None, tokens=None):
         self.description = 'Plays songs from a playlist to a discord voice channel'
         self.bot = bot
-        self.youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=tokens[3])
+        self.youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=tokens["youtube_v3"])
         self.playlist = {}
         self.looping = {}
 
