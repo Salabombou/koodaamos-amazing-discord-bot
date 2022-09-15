@@ -29,8 +29,8 @@ class earrape(commands.Cog):
         cwd = os.getcwd()
         t_stamp = int(time.time())
 
-        target_path = cwd + f'/files/nightcore/target/{ctx.message.author.id}_{t_stamp}.mp4'
-        output_path = cwd + f'/files/nightcore/output/{ctx.message.author.id}_{t_stamp}.mp4'
+        target_path = cwd + f'/files/earrape/target/{ctx.message.author.id}_{t_stamp}.mp4'
+        output_path = cwd + f'/files/earrape/output/{ctx.message.author.id}_{t_stamp}.mp4'
         remove_args = (target_path, output_path)
 
         r = await self.client.get(target.proxy_url)

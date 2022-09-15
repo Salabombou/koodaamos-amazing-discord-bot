@@ -152,7 +152,7 @@ def play_song(self, ctx, songs=[], playnext=False):
         source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
         embed = create_info_embed(self, ctx)
         message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed, delete_after=duration), self.bot.loop)
-        ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.8), after=lambda e: next_song(self, ctx, message._result))
+        ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.5), after=lambda e: next_song(self, ctx, message._result))
 
 def next_song(self, ctx, message):
     server = get_server(ctx)
