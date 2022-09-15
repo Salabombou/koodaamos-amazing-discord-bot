@@ -123,7 +123,8 @@ def create_info_embed(self, ctx, number='0', song=None):
 
 async def fetch_songs(self, ctx, url, no_playlists=False):
     if not validators.url(url): # if url is invalid (implying for a search)
-        song = YouTube.fetch_from_search(self.youtube, query=url)[0] # searches for the video and returns the url to it
+        song = await YouTube.fetch_from_search(self.youtube, query=url) # searches for the video and returns the url to it
+        song = song[0]
         await ctx.reply(f"found a video with the query '{url}' with the title '{song.title}'.", delete_after=10, mention_author=False)
         return [song]
     r = urllib.request.urlopen(url)

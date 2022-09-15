@@ -2,13 +2,14 @@ import asyncio
 import httpx
 import random
 import os
+import json
 
 client = httpx.AsyncClient()
 proxies = []
 
 def get_url(): # https://www.webshare.io/
-    file = open(os.getcwd() + "/files/tokens", "r")
-    return file.read().split("\n")[4]
+    file = open(os.getcwd() + '/tokens.json', 'r')
+    return json.loads(file.read())['webshare']
 
 async def update_proxies():
     global proxies

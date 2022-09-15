@@ -1,7 +1,9 @@
+import asyncio
 import os
 
-def delete_temps(*args):
+async def delete_temps(*args):
+    await asyncio.sleep(10)
     for temp in args:
-        if os.path.exists(temp):
+        try:
             os.remove(temp)
-            delete_temps(*args)
+        except: print('Failed to delete file ' + temp)

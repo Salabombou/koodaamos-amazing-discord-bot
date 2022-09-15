@@ -9,7 +9,7 @@ class gpt3(commands.Cog):
         self.description = 'Outputs a response from a chat bot ai from the specified prompt'
         self.bot = bot
         self.tokens = tokens
-        openai.api_key = self.tokens[1]
+        openai.api_key = self.tokens['openai']
 
     def create_text(self, prompt):
         response = openai.Completion.create(

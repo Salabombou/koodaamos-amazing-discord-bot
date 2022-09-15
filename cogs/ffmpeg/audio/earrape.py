@@ -10,6 +10,7 @@ import functools
 import subprocess
 import os
 import httpx
+import asyncio
 
 class earrape(commands.Cog):
     def __init__(self, bot, tokens):
@@ -41,16 +42,16 @@ class earrape(commands.Cog):
         try:
             pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, ffmpeg_cmd, stderr=subprocess.PIPE, timeout=60))
         except:
-            file_management.delete_temps(*remove_args)
+            asyncio.ensure_future(file_management.delete_temps(*remove_args))
             raise CommandTimeout()
         err = pipe.stderr.decode('utf-8') 
         if err != '':
-            file_management.delete_temps(*remove_args)
+            asyncio.ensure_future(file_management.delete_temps(*remove_args))
             raise FfmpegError(err)
         file = await compress.video(output_path, ctx)
         fp = io.BytesIO(file)
         file = discord.File(fp=fp, filename='unknown.mp4')
-        file_management.delete_temps(*remove_args)
+        asyncio.ensure_future(file_management.delete_temps(*remove_args))
         return file
 
     @commands.command()

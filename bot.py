@@ -5,6 +5,7 @@ from discord.ext import commands
 import discord
 import asyncio
 import os
+import json
 
 from cogs.ffmpeg.audio import audio, nightcore, earrape
 from cogs.ffmpeg.video import green
@@ -15,8 +16,8 @@ from cogs.voice_chat import music
 from cogs.tools import download
 
 def get_tokens():
-    file = open(os.getcwd() + "/files/tokens", "r")
-    return file.read().split("\n")
+    file = open(os.getcwd() + '/tokens.json', 'r')
+    return json.loads(file.read())
 
 cogs = (dalle, gpt3, music, green, download, audio, nightcore, spam, eduko, sauce, earrape)
 bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help_command())
@@ -95,7 +96,11 @@ async def on_voice_state_update(member, before, after):
 
 @bot.event
 async def on_ready():
+    for root, dirs, files in os.walk('./files', topdown=False):
+        for file in files:
+            if file == '.gitignore': continue
+            os.remove(f'{root}/{file}')
     os.system('cls' if os.name == 'nt' else 'clear')
     print('ready')
 
-bot.run(tokens[0])
+bot.run(tokens['discord'])
