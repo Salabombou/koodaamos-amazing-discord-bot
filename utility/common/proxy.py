@@ -15,12 +15,10 @@ async def update_proxies():
     global proxies
     url = get_url()
     while True:
-        try:
-            resp = await client.get(url)
-            resp.raise_for_status()
-            proxies = resp.content.decode('utf-8').split('\r\n')[:-1]
-            await asyncio.sleep(300)
-        except: continue
+        resp = await client.get(url)
+        resp.raise_for_status()
+        proxies = resp.content.decode('utf-8').split('\r\n')[:-1]
+        await asyncio.sleep(300)
 asyncio.ensure_future(update_proxies())
 
 def get_proxy():
