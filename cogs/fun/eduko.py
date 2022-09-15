@@ -94,9 +94,9 @@ class eduko(commands.Cog):
             self.embeds = self.create_embeds()
             await asyncio.sleep(1000)
 
-    @commands.command()
-    async def food(self,ctx):
-        await ctx.reply(embeds=self.embeds, mention_author=False)
+    @commands.slash_command()
+    async def food(self, ctx):
+        await ctx.respond(embeds=self.embeds)
 
 def setup(client, tokens):
     client.add_cog(eduko(client))
