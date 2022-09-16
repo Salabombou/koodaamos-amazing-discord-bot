@@ -58,3 +58,9 @@ class VideoSearchNotFound(Exception):
         self.message = f'No videos were found with the query "{query}"'
     def __str__(self) -> str:
         return self.message
+
+class PomfUploadFail(Exception):
+    def __init__(self) -> None:
+        self.message = 'Failed to upload the file to pomf.cat'
+    def __str__(self) -> str:
+        return self.message

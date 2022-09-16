@@ -1,7 +1,7 @@
 import time
 from discord.ext import commands
 from utility.discord import target as discordutil
-from utility.scraping import compress
+from utility.scraping import compress, pomf
 from utility.common import decorators, file_management
 from utility.common.errors import CommandTimeout, FfmpegError
 import io
@@ -21,6 +21,7 @@ class nightcore(commands.Cog):
         self.ffmpeg_command = ['ffmpeg',
             '-i', '"{}"',
             '-loglevel', 'error',
+            '-t', '00:01:00',
             '-filter_complex', '"[0:a:0]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[out]"',
             '-map', '[out]',
             '-ac', '1',
@@ -32,6 +33,7 @@ class nightcore(commands.Cog):
             '-i', '"{}"',
             '-i', '"{}"',
             '-loglevel', 'error',
+            '-t', '00:01:00',
             '-vf', '"[1:v?]setpts=PTS/1.25,scale={}:720"',
             '-map', '1:v?',
             '-map', '0:v',
@@ -67,17 +69,19 @@ class nightcore(commands.Cog):
                 asyncio.ensure_future(file_management.delete_temps(*remove_args))
                 raise FfmpegError(err)
         file = await compress.video(output_path, ctx)
-        fp = io.BytesIO(file)
-        file = discord.File(fp=fp, filename='unknown.mp4')
+        pomf_url = await pomf.upload(output_path, ctx)
+        if file != None:
+            fp = io.BytesIO(file)
+            file = discord.File(fp=fp, filename='unknown.mp4')
         asyncio.ensure_future(file_management.delete_temps(*remove_args))
-        return file
+        return file, pomf_url
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def nc(self, ctx):
-        file = await self.create_output_video(ctx)
-        await ctx.reply(file=file, mention_author=False)
+        file, pomf_url = await self.create_output_video(ctx)
+        await ctx.reply(pomf_url, file=file, mention_author=False)
 
 def setup(client, tokens):
     client.add_cog(nightcore(client, tokens))

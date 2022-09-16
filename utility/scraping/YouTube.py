@@ -6,7 +6,6 @@ import validators
 from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable
 import httpx
 import re
-
 client = httpx.AsyncClient()
 
 class Video: # for the video info
@@ -62,14 +61,19 @@ async def fetch_from_search(youtube, query) -> Video: # youtube api searches are
     resp = await client.get(url)
     resp.raise_for_status()
     content = resp.content.decode('utf-8')
-    ytInitialData = re.findall('var ytInitialData = .*}}}};', content)[0][20:-1]
-    ytInitialData = json.loads(ytInitialData)
-    results = ytInitialData['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']
-    for result in results:
-        if 'videoRenderer' in result:
-            videoId = result['videoRenderer']['videoId']
-            return fetch_from_video(youtube, videoId)[0]
-    raise VideoSearchNotFound(query)
+    try:
+        ytInitialData = re.findall('var ytInitialData = .*};', content) # gets the variable that contains the search results
+        ytInitialData = ytInitialData[0][20:] # removes the variable declaration itself
+        ytInitialData = ytInitialData.split('};')[0] + '}' # trims the end of any gunk that would otherwise run the conversion
+        ytInitialData = json.loads(ytInitialData) # str => dict
+        results = ytInitialData['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'] # the videos
+        for result in results:
+            if 'videoRenderer' in result:
+                videoId = result['videoRenderer']['videoId']
+                return fetch_from_video(youtube, videoId)[0]
+        raise VideoSearchNotFound(query)
+    except:
+        raise VideoSearchNotFound(query)
     
 def fetch_from_video(youtube, videoId) -> list[Video]:
     request = youtube.videos().list(
