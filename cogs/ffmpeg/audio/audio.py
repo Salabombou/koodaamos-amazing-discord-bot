@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 import subprocess
 from utility.discord import target as discordutil
-from utility.scraping import YouTube, compress
+from utility.scraping import YouTube, compress, pomf
 from utility.common import decorators, file_management
 from utility.common.errors import CommandTimeout, FfmpegError
 import os
@@ -24,6 +24,7 @@ class audio(commands.Cog):
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
             '-i', '"{}"',
             '-loglevel', 'error',
+            '-t', '00:01:00',
             '-map', '1:a?',
             '-vn',
             '-y',
@@ -39,6 +40,7 @@ class audio(commands.Cog):
             '-to', '00:00:30',
             '-i', '"{}"',
             '-loglevel', 'error',
+            '-t', '00:01:00',
             '-filter_complex', '"[0][1]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
             '-map', '"[a]"',
             '-ac', '1',
@@ -53,6 +55,7 @@ class audio(commands.Cog):
             '-i', '"{}"',
             '-i', '"{}"',
             '-loglevel', 'error',
+            '-t', '00:01:00',
             '-vf', '"[0:v]scale={}:720"',
             '-map', '0:v:0',
             '-map', '1:a:0',
@@ -96,17 +99,19 @@ class audio(commands.Cog):
                 asyncio.ensure_future(file_management.delete_temps(*remove_args))
                 raise FfmpegError(err)
         file = await compress.video(output_path, ctx)
-        fp = io.BytesIO(file)
-        file = discord.File(fp=fp, filename='unknown.mp4')
+        pomf_url = await pomf.upload(output_path, ctx)
+        if file != None:
+            fp = io.BytesIO(file)
+            file = discord.File(fp=fp, filename='unknown.mp4')
         asyncio.ensure_future(file_management.delete_temps(*remove_args))
-        return file
+        return file, pomf_url
         
     @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def audio(self, ctx, url="https://youtu.be/NOaSdO5H91M"):
-        file = await self.create_output(ctx, url)
-        await ctx.reply(file=file)
+        file, pomf_url = await self.create_output(ctx, url)
+        await ctx.reply(pomf_url, file=file)
 
 def setup(client, tokens):
     client.add_cog(audio(client))

@@ -5,7 +5,7 @@ import os
 import discord
 import httpx
 from utility.discord import target as discordutil
-from utility.scraping import YouTube, compress
+from utility.scraping import YouTube, compress, pomf
 from utility.common import decorators, file_management
 from utility.common.errors import CommandTimeout, FfmpegError
 import subprocess
@@ -35,6 +35,7 @@ class green(commands.Cog):
             '-to', '00:00:30',
             '-i', '"{video}"',
             '-loglevel', 'error',
+            '-t', '00:01:00',
             '-filter_complex', self.filter.format(scale='"{width}"' + ':720', color='{color}'),
             '-map', '[out]',
             '-map', '0:a',
@@ -53,8 +54,9 @@ class green(commands.Cog):
         self.merge_audio_command = ['ffmpeg',
             '-i', '"{}"',
             '-i', '"{}"',
-            '-filter_complex', '"[0][1]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
             '-loglevel', 'error',
+            '-t', '00:01:00',
+            '-filter_complex', '"[0][1]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
             '-map', '"[a]"',
             '-ac', '1',
             '-y',
@@ -68,6 +70,7 @@ class green(commands.Cog):
             '-to', '00:00:30',
             '-i', '"{}"',
             '-loglevel', 'error',
+            '-t', '00:01:00',
             '-map', '0:v:0',
             '-map', '1:a:0',
             '-y',
@@ -131,17 +134,19 @@ class green(commands.Cog):
                 asyncio.ensure_future(file_management.delete_temps(*remove_args))
                 raise FfmpegError(err)
         file = await compress.video(output_path, ctx)
-        fp = io.BytesIO(file)
-        file = discord.File(fp=fp, filename='unknown.mp4')
+        pomf_url = await pomf.upload(output_path, ctx)
+        if file != None:
+            fp = io.BytesIO(file)
+            file = discord.File(fp=fp, filename='unknown.mp4')
         asyncio.ensure_future(file_management.delete_temps(*remove_args))
-        return file
+        return file, pomf_url
 
     @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def green(self, ctx, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
-        file = await self.create_output_video(ctx, url, color)
-        await ctx.reply(file=file)
+        file, pomf_url = await self.create_output_video(ctx, url, color)
+        await ctx.reply(pomf_url, file=file)
 
 def setup(client, tokens):
     client.add_cog(green(client))

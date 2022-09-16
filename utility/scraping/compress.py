@@ -3,29 +3,17 @@ import asyncio
 from requests_toolbelt import MultipartEncoder
 import validators
 import re
-import ast
-
+import json
+from utility.common.file_management import get_bytes
 client = httpx.AsyncClient(timeout=10)
 
 async def get_host(): # gets the best server that is online to be used to compress the video
     website = await client.get('https://8mb.video/')
     webpage_source = website.content.decode('utf-8')
     hosts_online = re.findall('var hosts_online = .*"];', webpage_source)[0].replace('var hosts_online = ', '')[:-1]
-    hosts_online = ast.literal_eval(hosts_online)
+    hosts_online = json.loads(hosts_online)
     host = 'https://' + hosts_online[0]
     return host
-
-async def get_bytes(file): # returns the bytes of the file to be converted
-    if not isinstance(file, bytes): # if it is not already bytes
-        if validators.url(file): # if its from the web
-            resp = await client.get(file)
-            resp.raise_for_status()
-            file = resp.content
-        else: # if its stored in a directory somewhere locally
-            with open(file, 'rb') as f:
-                file = f.read()
-                f.close()
-    return file
 
 async def get_token(host): # creates the compression instance at the server and returns the token of the said instance
     resp = await client.post(url=host, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}, data='preflight=true')
@@ -44,12 +32,14 @@ async def wait_for_completion(host, token): # waits for the compression to be fi
 
 upload_limit_levels = ['8', '8', '50', '100']
 
-async def video(file : bytes | str, ctx) -> bytes: # compressing videos using the 8mb.video website so the video can be sent to discord channel
+async def video(file : bytes | str, ctx) -> bytes | str: # compressing videos using the 8mb.video website so the video can be sent to discord channel
     file = await get_bytes(file)
     filesize_limit = ctx.guild.filesize_limit
     filesize = len(file)
     if filesize < filesize_limit:
         return file # no need to compress
+    if filesize < 75 * 1000 * 1000:
+        return None
     server_level = ctx.guild.premium_tier
     size = upload_limit_levels[server_level]
     host = await get_host()

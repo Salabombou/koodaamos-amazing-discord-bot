@@ -20,6 +20,7 @@ class music(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
+    @decorators.delete_after
     async def play(self, ctx, *, arg='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'):
         await voice_chat.join(ctx)
         songs = await music_tools.fetch_songs(self, ctx, arg)
@@ -30,6 +31,7 @@ class music(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
+    @decorators.delete_after
     async def playnext(self, ctx, *, arg):
         await voice_chat.join(ctx)
         songs = await music_tools.fetch_songs(self, ctx, arg, True)
@@ -39,6 +41,8 @@ class music(commands.Cog):
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
+    @decorators.add_reaction
+    @decorators.delete_after
     async def list(self, ctx):
         embed = music_tools.create_embed(ctx, self.playlist, 0)
         message = await ctx.send(embed=embed)
@@ -112,11 +116,13 @@ class music(commands.Cog):
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
+    @decorators.add_reaction
+    @decorators.delete_after
     async def info(self, ctx, number='0'):
         server = music_tools.get_server(ctx)
-        if self.playlist[server][0] == []: return
-        embed = music_tools.create_info_embed(self, ctx, number=number)
-        await ctx.reply(embed=embed, mention_author=False)
+        if self.playlist[server][0] != []:
+            embed = music_tools.create_info_embed(self, ctx, number=number)
+            await ctx.send(embed=embed, mention_author=False)
 
     @commands.command(help='replays the current song')
     @commands.check(voice_chat.command_check)

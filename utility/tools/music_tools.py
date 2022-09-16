@@ -15,7 +15,7 @@ ffmpeg_options = {
     }
 
 def get_server(ctx):
-    return str(ctx.message.guild.id)
+    return str(ctx.guild.id)
 
 class decorators:
     def update_playlist(func):
@@ -124,7 +124,7 @@ def create_info_embed(self, ctx, number='0', song=None):
 async def fetch_songs(self, ctx, url, no_playlists=False):
     if not validators.url(url): # if url is invalid (implying for a search)
         song = await YouTube.fetch_from_search(self.youtube, query=url) # searches for the video and returns the url to it
-        await ctx.reply(f"found a video with the query '{url}' with the title '{song.title}'.", delete_after=10, mention_author=False)
+        await ctx.send(f"found a video with the query '{url}' with the title '{song.title}'.", delete_after=10, mention_author=False)
         return [song]
     r = urllib.request.urlopen(url)
     url = r.url
@@ -145,7 +145,8 @@ def play_song(self, ctx, songs=[], playnext=False):
         song = self.playlist[server][0][0]
         try:
             info = YouTube.get_info('https://www.youtube.com/watch?v=' + song.id)
-        except: info = YouTube.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
+        except:
+            info = YouTube.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
         duration = None
         if 'duration' in info:
             duration = info['duration'] + 10

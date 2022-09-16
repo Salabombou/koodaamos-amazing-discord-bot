@@ -3,7 +3,7 @@ from discord.ext import commands
 import urllib
 import validators
 from utility.common import decorators
-from utility.scraping import compress
+from utility.scraping import compress, pomf
 from utility.common.errors import UrlInvalid
 import httpx
 import discord
@@ -25,11 +25,12 @@ class download(commands.Cog):
             url, ext = await downl.from_url(url=resp.url)
             resp = await self.client.get(url)
             resp.raise_for_status()
-            file = resp.content
-            file = await compress.video(file, ctx)
-            file = io.BytesIO(file)
-            file = discord.File(fp=file, filename='unknown.' + ext)
-            await ctx.reply(file=file)
+            file = await compress.video(resp.content, ctx)
+            pomf_url = await pomf.upload(resp.content, ctx)
+            if file != None:
+                file = io.BytesIO(file)
+                file = discord.File(fp=file, filename='unknown.' + ext)
+            await ctx.reply(pomf_url, file=file)
         else: raise UrlInvalid()
 
 def setup(client, tokens):
