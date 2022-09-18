@@ -2,6 +2,9 @@ import asyncio
 import os
 import validators
 import httpx
+import io
+import discord
+from utility.scraping import compress, pomf
 
 client = httpx.AsyncClient()
 
@@ -23,3 +26,16 @@ async def delete_temps(*args):
         try:
             os.remove(temp)
         except: print('Failed to delete file ' + temp)
+
+async def prepare_file(ctx, file: bytes | str, ext) -> str | discord.File:
+    file = await get_bytes(file)
+    filesize = len(file)
+    if filesize < 75 * 1000 * 1000:
+        pomf_url = await pomf.upload(file)
+        return pomf_url, None
+    elif not filesize < ctx.guild.filesize_limit:
+        server_level = ctx.guild.premium_tier
+        file = await compress.video(file, server_level)
+    file = io.BytesIO(file)
+    file = discord.File(fp=file, filename='unknown.' + ext)
+    return '', file

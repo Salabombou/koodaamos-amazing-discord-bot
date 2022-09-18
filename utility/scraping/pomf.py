@@ -1,16 +1,10 @@
 import httpx
 from requests_toolbelt import MultipartEncoder
 from utility.common.errors import PomfUploadFail
-from utility.common.file_management import get_bytes
 
 client = httpx.AsyncClient(timeout=300)
 
-async def upload(file, ctx):
-    file = await get_bytes(file)
-    filesize = len(file)
-    filesize_limit = ctx.guild.filesize_limit
-    if not filesize < 75 * 1000 * 1000 or filesize < filesize_limit:
-        return ''
+async def upload(file: bytes) -> str:
     fields = {
         'files[]': ('video.mp4', file, 'video/mp4')
     }

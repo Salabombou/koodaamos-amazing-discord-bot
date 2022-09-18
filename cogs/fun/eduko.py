@@ -4,6 +4,7 @@ from discord.ext import commands
 import discord
 import httpx
 import bs4
+from utility.common.command import respond
 
 class eduko(commands.Cog):
     def __init__(self, bot):
@@ -96,7 +97,7 @@ class eduko(commands.Cog):
 
     @commands.slash_command()
     async def food(self, ctx):
-        await ctx.respond(embeds=self.embeds)
+        await respond(ctx, embeds=self.embeds)
 
 def setup(client, tokens):
     client.add_cog(eduko(client))

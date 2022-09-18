@@ -4,6 +4,7 @@ from utility.discord import target as discordutil
 from utility.scraping import compress, pomf
 from utility.common import decorators, file_management
 from utility.common.errors import CommandTimeout, FfmpegError
+from utility.common.command import respond
 import io
 import discord
 import functools
@@ -49,11 +50,7 @@ class earrape(commands.Cog):
         if err != '':
             asyncio.ensure_future(file_management.delete_temps(*remove_args))
             raise FfmpegError(err)
-        file = await compress.video(output_path, ctx)
-        pomf_url = await pomf.upload(output_path, ctx)
-        if file != None:
-            fp = io.BytesIO(file)
-            file = discord.File(fp=fp, filename='unknown.mp4')
+        pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
         asyncio.ensure_future(file_management.delete_temps(*remove_args))
         return file, pomf_url
 
@@ -62,7 +59,7 @@ class earrape(commands.Cog):
     @decorators.typing
     async def er(self, ctx):
         file, pomf_url = await self.create_output_video(ctx)
-        await ctx.reply(pomf_url, file=file, mention_author=False)
+        await respond(ctx, content=pomf_url, file=file, mention_author=False)
 
 def setup(client, tokens):
     client.add_cog(earrape(client, tokens))
