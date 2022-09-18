@@ -15,6 +15,8 @@ from cogs.fun.text import gpt3
 from cogs.voice_chat import music
 from cogs.tools import download
 
+from utility.common.command import respond
+
 def get_tokens():
     file = open(os.getcwd() + '/tokens.json', 'r')
     return json.loads(file.read())
@@ -37,7 +39,7 @@ async def on_command_error(ctx, error):
     embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
     embed.description = f'```{str(error)[:4090]}```'
     embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
-    await ctx.reply(embed=embed)
+    await respond(ctx, embed=embed)
 
 @bot.event
 async def on_application_command_error(ctx, error):
