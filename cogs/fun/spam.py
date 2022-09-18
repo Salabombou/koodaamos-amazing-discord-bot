@@ -12,10 +12,11 @@ class spam(commands.Cog):
             await asyncio.sleep(1)
             self.spamming[server] = True
         while self.spamming[server]:
-            await ctx.send(content, delete_after=0.5)
-            await asyncio.sleep(0.5)
+            await ctx.send(content, delete_after=1)
+            await asyncio.sleep(1)
 
     @commands.command(help='mention the users you would like to annoy')
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def spam(self, ctx):
         server = str(ctx.message.guild.id)
         if not server in self.spamming:
