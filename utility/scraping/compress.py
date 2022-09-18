@@ -32,15 +32,8 @@ async def wait_for_completion(host, token): # waits for the compression to be fi
 
 upload_limit_levels = ['8', '8', '50', '100']
 
-async def video(file : bytes | str, ctx) -> bytes | str: # compressing videos using the 8mb.video website so the video can be sent to discord channel
+async def video(file : bytes | str, server_level) -> bytes | str: # compressing videos using the 8mb.video website so the video can be sent to discord channel
     file = await get_bytes(file)
-    filesize_limit = ctx.guild.filesize_limit
-    filesize = len(file)
-    if filesize < filesize_limit:
-        return file # no need to compress
-    if filesize < 75 * 1000 * 1000:
-        return None
-    server_level = ctx.guild.premium_tier
     size = upload_limit_levels[server_level]
     host = await get_host()
     token = await get_token(host)

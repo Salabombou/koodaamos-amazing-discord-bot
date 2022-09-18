@@ -45,7 +45,7 @@ def get_info(url, video=False, max_duration=None):
         'no_warnings': True,
         'default_search': 'auto',
     }
-    if video: ydl_opts['format'] = 'mp4'
+    if video: ydl_opts['format'] = 'best'
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
         info['url'] = urllib.request.urlopen(info['url']).url
