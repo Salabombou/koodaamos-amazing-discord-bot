@@ -17,12 +17,11 @@ def create_width(target):
 def create_time(duration):
     return str(datetime.timedelta(seconds=duration if duration < 30 else 30))
 
-cwd = os.getcwd()
 def create_paths(ID, *args) -> tuple:
     timestamp = int(time.time())
     paths = []
     for arg in args:
-        paths.append(cwd + f'/files/{arg}{ID}_{timestamp}.temp')
+        paths.append(f'./files/{arg}{ID}_{timestamp}.temp')
     return tuple(paths)
 
 def create_command(command, *args):

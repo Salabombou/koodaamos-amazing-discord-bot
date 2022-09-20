@@ -3,7 +3,6 @@ from discord import HTTPException, Forbidden, NotFound, ApplicationCommandInvoke
 from utility.discord.help import help_command
 from discord.ext import commands
 import discord
-import asyncio
 import os
 import json
 
@@ -17,8 +16,9 @@ from cogs.tools import download
 
 from utility.common.command import respond
 from utility.common.file_management import TempRemover
+
 def get_tokens():
-    file = open(os.getcwd() + '/tokens.json', 'r')
+    file = open('./tokens.json', 'r')
     return json.loads(file.read())
 
 cogs = (dalle, gpt3, music, green, download, audio, nightcore, eduko, sauce, earrape)
@@ -44,10 +44,6 @@ async def on_command_error(ctx, error):
         return
     embed = create_error_embed(error)
     await respond(ctx, embed=embed)
-    for root, dirs, files in os.walk('./files', topdown=False):
-        for file in files:
-            if str(ctx.author.id) in file:
-                os.remove(f'{root}/{file}')
 
 @bot.event
 async def on_application_command_error(ctx, error):
@@ -69,38 +65,6 @@ async def on_error(event, ctx, error):
     if isinstance(error, Forbidden):
         return
     print(str(error))
-
-@bot.event
-async def on_voice_state_update(member, before, after):
-    if after.channel == None: return
-    vc = after.channel.guild.voice_client
-    if before.channel == None and member.id == bot.user.id:
-        time = 0
-        condition = True
-        while condition:
-            await asyncio.sleep(1)
-            time += 1
-            if vc.is_playing() and not vc.is_paused():
-                time = 0
-            condition = vc.is_connected()
-            if time >= 1800:
-                await vc.disconnect()
-                condition = False
-    elif member.id != bot.user.id and vc != None and bot.user in after.channel.members:
-        for member in after.channel.members:
-            if not member.bot:
-                vc.resume()
-                return
-        vc.pause()
-    elif vc in bot.voice_clients:
-        for voice_client in bot.voice_clients:
-            if voice_client.guild == vc.guild:
-                for member in voice_client.channel.members:
-                    if not member.bot:
-                        voice_client.resume()
-                        return
-                voice_client.pause()
-                return
 
 @bot.event
 async def on_ready():
