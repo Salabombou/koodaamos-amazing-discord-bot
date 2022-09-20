@@ -4,7 +4,7 @@ from requests_toolbelt import MultipartEncoder
 import validators
 import re
 import json
-from utility.common.file_management import get_bytes
+from utility.common import file_management
 client = httpx.AsyncClient(timeout=10)
 
 async def get_host(): # gets the best server that is online to be used to compress the video
@@ -33,7 +33,7 @@ async def wait_for_completion(host, token): # waits for the compression to be fi
 upload_limit_levels = ['8', '8', '50', '100']
 
 async def video(file : bytes | str, server_level) -> bytes | str: # compressing videos using the 8mb.video website so the video can be sent to discord channel
-    file = await get_bytes(file)
+    file = await file_management.get_bytes(file)
     size = upload_limit_levels[server_level]
     host = await get_host()
     token = await get_token(host)

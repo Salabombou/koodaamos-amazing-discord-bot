@@ -1,76 +1,71 @@
-import time
 from discord.ext import commands
 from utility.discord import target as discordutil
-from utility.scraping import compress, pomf
+from utility.ffmpeg import *
 from utility.common import decorators, file_management
 from utility.common.errors import CommandTimeout, FfmpegError
 from utility.common.command import respond
-import io
-import discord
 import functools
 import subprocess
-import os
 import httpx
-import math
 import asyncio
 
 class nightcore(commands.Cog):
     def __init__(self, bot, tokens):
         self.description = 'makes the audio of a video / audio nightcore'
         self.bot = bot
+        self.command_runner = CommandRunner(bot.loop)
         self.client = httpx.AsyncClient(timeout=10)
+        self.path_args = (
+            'nightcore/target/',
+            'nightcore/audio/',
+            'nightcore/output/'
+            )
         self.ffmpeg_command = ['ffmpeg',
-            '-i', '"{}"',
+            '-i', '"%s"',
             '-loglevel', 'error',
             '-t', '00:01:00',
             '-filter_complex', '"[0:a:0]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[out]"',
             '-map', '[out]',
             '-ac', '1',
-            '"{}"'
+            '-f', 'mp4',
+            '"%s"'
             ]
         self.merge_command = ['ffmpeg',
             '-f', 'lavfi',
             '-i', 'color=c=black:s=720x720:d=1',
-            '-i', '"{}"',
-            '-i', '"{}"',
+            '-i', '"%s"',
+            '-i', '"%s"',
             '-loglevel', 'error',
             '-t', '00:01:00',
-            '-vf', '"[1:v?]setpts=PTS/1.25,scale={}:720"',
+            '-vf', '"[1:v?]setpts=PTS/1.25"',
             '-map', '1:v?',
             '-map', '0:v',
             '-map', '2:a:0',
             '-c:a', 'copy',
             '-f', 'mp4',
-            '"{}"'
+            '"%s"'
             ]
     async def create_output_video(self, ctx):
         target = await discordutil.get_target(ctx, no_img=True)
-        width = math.ceil(((target.width / target.height) * 720) / 2) * 2
-        cwd = os.getcwd()
-        t_stamp = int(time.time())
-        target_path = cwd + f'/files/nightcore/target/{ctx.message.author.id}_{t_stamp}.mp4'
-        audio_path = cwd + f'/files/nightcore/audio/{ctx.message.author.id}_{t_stamp}.mp3'
-        output_path = cwd + f'/files/nightcore/output/{ctx.message.author.id}_{t_stamp}.mp3'
-        remove_args = (target_path, audio_path, output_path)
-        r = await self.client.get(target.proxy_url)
-        r.raise_for_status()
-        with open(target_path, 'wb') as file:
-            file.write(r.content)
-            file.close()
-        ffmpeg_cmd = ' '.join(self.ffmpeg_command).format(target_path, audio_path)
-        merge_cmd = ' '.join(self.merge_command).format(target_path, audio_path, width, output_path)
-        for cmd in [ffmpeg_cmd, merge_cmd]:
-            try:
-                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
-            except:
-                asyncio.ensure_future(file_management.delete_temps(*remove_args))
-                raise CommandTimeout()
-            err = pipe.stderr.decode('utf-8') 
-            if err != '':
-                asyncio.ensure_future(file_management.delete_temps(*remove_args))
-                raise FfmpegError(err)
+
+        paths = create_paths(ctx.author.id, *self.path_args)
+        (
+            target_path,
+            audio_path,
+            output_path,
+        ) = paths
+
+        inputs = [[target.proxy_url, target_path]]
+        await save_files(inputs)
+
+        cmds = []
+        cmds.append(create_command(self.ffmpeg_command, *(target_path, audio_path)))
+        cmds.append(create_command(self.merge_command, *(target_path, audio_path, output_path)))
+
+        for cmd in cmds:
+            await self.command_runner.run(cmd)
+
         pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
-        asyncio.ensure_future(file_management.delete_temps(*remove_args))
         return file, pomf_url
 
     @commands.command()

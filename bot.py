@@ -9,24 +9,30 @@ import json
 
 from cogs.ffmpeg.audio import audio, nightcore, earrape
 from cogs.ffmpeg.video import green
-from cogs.fun import eduko, spam
+from cogs.fun import eduko
 from cogs.fun.image import dalle, sauce
 from cogs.fun.text import gpt3
 from cogs.voice_chat import music
 from cogs.tools import download
 
 from utility.common.command import respond
-
+from utility.common.file_management import TempRemover
 def get_tokens():
     file = open(os.getcwd() + '/tokens.json', 'r')
     return json.loads(file.read())
 
-cogs = (dalle, gpt3, music, green, download, audio, nightcore, spam, eduko, sauce, earrape)
+cogs = (dalle, gpt3, music, green, download, audio, nightcore, eduko, sauce, earrape)
 bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help_command())
 tokens = get_tokens() # returns all the tokens
 
 for cog in cogs:
     cog.setup(bot, tokens)
+
+def create_error_embed(error):
+    embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
+    embed.description = f'```{str(error)[:4090]}```'
+    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
+    return embed
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -36,10 +42,12 @@ async def on_command_error(ctx, error):
         return
     if isinstance(error, CheckFailure):
         return
-    embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
-    embed.description = f'```{str(error)[:4090]}```'
-    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
+    embed = create_error_embed(error)
     await respond(ctx, embed=embed)
+    for root, dirs, files in os.walk('./files', topdown=False):
+        for file in files:
+            if str(ctx.author.id) in file:
+                os.remove(f'{root}/{file}')
 
 @bot.event
 async def on_application_command_error(ctx, error):
@@ -49,9 +57,7 @@ async def on_application_command_error(ctx, error):
         return
     if isinstance(error, CheckFailure):
         return
-    embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
-    embed.description = f'```{str(error)[:4090]}```'
-    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
+    embed = create_error_embed(error)
     await ctx.send(embed=embed)
     
 @bot.event
@@ -98,11 +104,9 @@ async def on_voice_state_update(member, before, after):
 
 @bot.event
 async def on_ready():
-    for root, dirs, files in os.walk('./files', topdown=False):
-        for file in files:
-            if file == '.gitignore': continue
-            os.remove(f'{root}/{file}')
     os.system('cls' if os.name == 'nt' else 'clear')
     print('ready')
+
+TempRemover().start()
 
 bot.run(tokens['discord'])
