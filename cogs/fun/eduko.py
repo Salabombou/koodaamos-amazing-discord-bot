@@ -56,14 +56,14 @@ class eduko(commands.Cog):
     def create_embeds(self):
         embeds = []
         weeks = self.splice_list(self.foods, 5)
-        for week in weeks[::-1]:
-            embed = discord.Embed(color=0xC9EDBE, fields=[], title='VIIKKO ' + self.week_nums[-1])
+        for week in weeks:
+            embed = discord.Embed(color=0xC9EDBE, fields=[], title='VIIKKO ' + self.week_nums[0])
             week_spliced = self.splice_list(week, 2)
             for week in week_spliced:
                 for food in week:
                     embed.add_field(name=food.header, value=food.the_actual_food, inline=False)
             embeds.append(embed)
-            del self.week_nums[-1]
+            del self.week_nums[0]
         return embeds
 
     def splice_list(self, arr, index):

@@ -28,6 +28,12 @@ tokens = get_tokens() # returns all the tokens
 for cog in cogs:
     cog.setup(bot, tokens)
 
+def create_error_embed(error):
+    embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
+    embed.description = f'```{str(error)[:4090]}```'
+    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
+    return embed
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, CommandInvokeError):
@@ -36,10 +42,12 @@ async def on_command_error(ctx, error):
         return
     if isinstance(error, CheckFailure):
         return
-    embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
-    embed.description = f'```{str(error)[:4090]}```'
-    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
+    embed = create_error_embed(error)
     await respond(ctx, embed=embed)
+    for root, dirs, files in os.walk('./files', topdown=False):
+        for file in files:
+            if str(ctx.author.id) in file:
+                os.remove(f'{root}/{file}')
 
 @bot.event
 async def on_application_command_error(ctx, error):
@@ -49,9 +57,7 @@ async def on_application_command_error(ctx, error):
         return
     if isinstance(error, CheckFailure):
         return
-    embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
-    embed.description = f'```{str(error)[:4090]}```'
-    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
+    embed = create_error_embed(error)
     await ctx.send(embed=embed)
     
 @bot.event
@@ -100,8 +106,9 @@ async def on_voice_state_update(member, before, after):
 async def on_ready():
     for root, dirs, files in os.walk('./files', topdown=False):
         for file in files:
-            if file == '.gitignore': continue
-            os.remove(f'{root}/{file}')
+            ext = os.path.splitext(file)[1][1:]
+            if ext == 'temp':
+                os.remove(f'{root}/{file}')
     os.system('cls' if os.name == 'nt' else 'clear')
     print('ready')
 

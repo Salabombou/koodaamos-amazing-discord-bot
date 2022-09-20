@@ -1,11 +1,9 @@
-import io
-import discord
 from discord.ext import commands
 import os
 import discord
 import httpx
 from utility.discord import target as discordutil
-from utility.scraping import YouTube, compress, pomf
+from utility.scraping import YouTube
 from utility.common import decorators, file_management
 from utility.common.errors import CommandTimeout, FfmpegError
 from utility.common.command import respond
@@ -16,66 +14,75 @@ import time
 import functools
 import math
 import asyncio
-
+from utility.ffmpeg import *
 class green(commands.Cog):
     def __init__(self, bot):
         self.description = 'Overlays a greenscreen video on top of an image / video'
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=10)
-        self.filter = '[2:v]scale={scale},fps=30,scale=-1:720,colorkey=0x{color}:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
+        self.filter = '[2:v]scale=%s,fps=30,scale=-1:720,colorkey=0x%s:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
+        self.path_args = (
+            'green/video/',
+            'green/target/',
+            'green/filtered/',
+            'green/audio/video/',
+            'green/audio/target/',
+            'green/audio/',
+            'green/output/'
+            )
         self.ffmpeg_command = ['ffmpeg',
             '-ss', '00:00:00',
-            '-to', '{time_to}',
+            '-to', '%s',
             '-f', 'lavfi',
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100',
             '-stream_loop', '-1',
             '-ss', '00:00:00',
-            '-to', '{time_to}',
-            '-i', '"{target}"',
+            '-to', '%s',
+            '-i', '"%s"',
             '-ss', '00:00:00',
             '-to', '00:00:30',
-            '-i', '"{video}"',
+            '-i', '"%s"',
             '-loglevel', 'error',
             '-t', '00:01:00',
-            '-filter_complex', self.filter.format(scale='"{width}"' + ':720', color='{color}'),
+            '-filter_complex', self.filter % ('%s:720', '%s'),   #.format(scale='"%s"' + ':720', color='{color}'),
             '-map', '[out]',
             '-map', '0:a',
             '-y',
             '-f', 'mp4',
-            '"{filtered}"',
+            '"%s"',
             '-map', '1:a?',
             '-vn',
             '-y',
-            '"{audio_target}"',
+            '"%s"',
             '-map', '2:a',
             '-vn',
             '-y',
-            '{audio_video}'
+            '%s'
             ]
         self.merge_audio_command = ['ffmpeg',
-            '-i', '"{}"',
-            '-i', '"{}"',
+            '-i', '"%s"',
+            '-i', '"%s"',
             '-loglevel', 'error',
             '-t', '00:01:00',
             '-filter_complex', '"[0][1]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
             '-map', '"[a]"',
             '-ac', '1',
             '-y',
-            '"{}"'
+            '"%s"'
             ]
         self.merge_command = ['ffmpeg',
             '-ss', '00:00:00',
             '-to', '00:00:30',
-            '-i', '"{}"',
+            '-i', '"%s"',
             '-ss', '00:00:00',
             '-to', '00:00:30',
-            '-i', '"{}"',
+            '-i', '"%s"',
             '-loglevel', 'error',
             '-t', '00:01:00',
             '-map', '0:v:0',
             '-map', '1:a:0',
             '-y',
-            '"{}"'
+            '"%s"'
             ]
 
     def set_color(self, color):
@@ -87,53 +94,36 @@ class green(commands.Cog):
 
     async def create_output_video(self, ctx, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
-        width = math.ceil((target.width / target.height) * 720 / 2) * 2
-        width = math.ceil(width / 2) * 2
+        width = create_width(target)
         video = YouTube.get_info(url=url, video=True, max_duration=300)
-        time_to = str(datetime.timedelta(seconds=video['duration'] if video['duration'] < 30 else 30))
 
-        cwd = os.getcwd()
-        t_stamp = int(time.time())
+        paths = create_paths(ctx.author.id, *self.path_args)
+        (
+            video_path,
+            target_path,
+            filtered_path,
+            audio_video_path,
+            audio_target_path,
+            audio_path,
+            output_path
+        ) = paths
 
-        video_path = cwd + f'/files/green/video/{ctx.message.author.id}_{t_stamp}.mp4'
-        target_path = cwd + f'/files/green/target/{ctx.message.author.id}_{t_stamp}.mp4'
-        filtered_path = cwd + f'/files/green/filtered/{ctx.message.author.id}_{t_stamp}.mp4'
+        inputs =  [
+            [video['url'], video_path],
+            [target.proxy_url, target_path]
+            ]
+        await save_files(inputs)
 
-        audio_video_path = cwd + f'/files/green/audio/video/{ctx.message.author.id}_{t_stamp}.wav'
-        audio_target_path = cwd + f'/files/green/audio/target/{ctx.message.author.id}_{t_stamp}.wav'
-        audio_path = cwd + f'/files/green/audio/{ctx.message.author.id}_{t_stamp}.wav'
-
-        output_path = cwd + f'/files/green/output/{ctx.message.author.id}_{t_stamp}.mp4'
-
-        remove_args = (video_path, target_path, filtered_path, audio_video_path, audio_target_path, audio_path, output_path)
-
-        # because it will fuck up / be slow otherwise
-        video_url = urllib.request.urlopen(video['url']).url # sometimes it redirects
-        for i in [[video_url, video_path],[target.proxy_url, target_path]]:
-            r = await self.client.get(i[0])
-            r.raise_for_status()
-            with open(i[1], 'wb') as file:
-                file.write(r.content)
-                file.close()
-
-        time_to = str(datetime.timedelta(seconds=video['duration']))
-        width = int((target.width / target.height) * 720)
+        time_to = create_time(video['duration'])
         color = self.set_color(color)
-        filter_cmd = ' '.join(self.ffmpeg_command).format(time_to=time_to, target=target_path, video=video_path, width=width, color=color, filtered=filtered_path, audio_target=audio_target_path, audio_video=audio_video_path)
-        merge_audio_cmd = ' '.join(self.merge_audio_command).format(audio_target_path, audio_video_path, audio_path)
-        merge_cmd = ' '.join(self.merge_command).format(filtered_path, audio_path, output_path)
-        for cmd in [filter_cmd, merge_audio_cmd, merge_cmd]:
-            try:
-                pipe = await ctx.bot.loop.run_in_executor(None, functools.partial(subprocess.run, cmd, stderr=subprocess.PIPE, timeout=60))
-            except:
-                asyncio.ensure_future(file_management.delete_temps(*remove_args))
-                raise CommandTimeout()
-            err = pipe.stderr.decode('utf-8') 
-            if err != '':
-                asyncio.ensure_future(file_management.delete_temps(*remove_args))
-                raise FfmpegError(err)
+        cmds = []
+        cmds.append(create_command(self.ffmpeg_command, *(time_to, time_to, target_path, video_path, width, color, filtered_path, audio_target_path, audio_video_path)))
+        cmds.append(create_command(self.merge_audio_command, *(audio_target_path, audio_video_path, audio_path)))
+        cmds.append(create_command(self.merge_command, *(filtered_path, audio_path, output_path)))
+        for cmd in cmds:
+            await run_command(cmd, ctx.bot.loop)
         pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
-        asyncio.ensure_future(file_management.delete_temps(*remove_args))
+        asyncio.ensure_future(file_management.delete_temps(*paths))
         return file, pomf_url
 
     @commands.command(help='url: a link to a YouTube video')

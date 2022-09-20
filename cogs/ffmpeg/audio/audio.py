@@ -1,7 +1,5 @@
 import asyncio
-import io
 import time
-import discord
 from discord.ext import commands
 import subprocess
 from utility.discord import target as discordutil
@@ -80,11 +78,11 @@ class audio(commands.Cog):
 
         remove_args = (target_path, audio_audio_path, target_audio_path, audio_path, output_path)
 
-        for i in [[target.proxy_url, target_path], [audio['url'], audio_audio_path]]:
-            r = await self.client.get(i[0])
-            r.raise_for_status()
-            with open(i[1], 'wb') as file:
-                file.write(r.content)
+        for input in [[target.proxy_url, target_path], [audio['url'], audio_audio_path]]:
+            resp = await self.client.get(input[0])
+            resp.raise_for_status()
+            with open(input[1], 'wb') as file:
+                file.write(resp.content)
                 file.close()
         target_audio_cmd = ' '.join(self.target_audio_command).format(target_path, target_audio_path)
         merge_audio_cmd = ' '.join(self.merge_audio_command).format(time_to, target_audio_path, audio_audio_path, audio_path)
