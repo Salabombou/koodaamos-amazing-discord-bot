@@ -19,6 +19,7 @@ class green(commands.Cog):
     def __init__(self, bot):
         self.description = 'Overlays a greenscreen video on top of an image / video'
         self.bot = bot
+        self.command_runner = CommandRunner(bot.loop)
         self.client = httpx.AsyncClient(timeout=10)
         self.filter = '[2:v]scale=%s,fps=30,scale=-1:720,colorkey=0x%s:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
         self.path_args = (
@@ -53,10 +54,12 @@ class green(commands.Cog):
             '-map', '1:a?',
             '-vn',
             '-y',
+            '-f', 'wav',
             '"%s"',
             '-map', '2:a',
             '-vn',
             '-y',
+            '-f', 'wav',
             '%s'
             ]
         self.merge_audio_command = ['ffmpeg',
@@ -68,6 +71,7 @@ class green(commands.Cog):
             '-map', '"[a]"',
             '-ac', '1',
             '-y',
+            '-f', 'wav',
             '"%s"'
             ]
         self.merge_command = ['ffmpeg',
@@ -82,6 +86,7 @@ class green(commands.Cog):
             '-map', '0:v:0',
             '-map', '1:a:0',
             '-y',
+            '-f', 'mp4',
             '"%s"'
             ]
 
@@ -94,7 +99,6 @@ class green(commands.Cog):
 
     async def create_output_video(self, ctx, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
-        width = create_width(target)
         video = YouTube.get_info(url=url, video=True, max_duration=300)
 
         paths = create_paths(ctx.author.id, *self.path_args)
@@ -114,16 +118,19 @@ class green(commands.Cog):
             ]
         await save_files(inputs)
 
+        width = create_width(target)
         time_to = create_time(video['duration'])
         color = self.set_color(color)
+
         cmds = []
         cmds.append(create_command(self.ffmpeg_command, *(time_to, time_to, target_path, video_path, width, color, filtered_path, audio_target_path, audio_video_path)))
         cmds.append(create_command(self.merge_audio_command, *(audio_target_path, audio_video_path, audio_path)))
         cmds.append(create_command(self.merge_command, *(filtered_path, audio_path, output_path)))
+
         for cmd in cmds:
-            await run_command(cmd, ctx.bot.loop)
+            await self.command_runner.run(cmd)
+
         pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
-        asyncio.ensure_future(file_management.delete_temps(*paths))
         return file, pomf_url
 
     @commands.command(help='url: a link to a YouTube video')

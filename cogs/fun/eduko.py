@@ -1,18 +1,20 @@
-import asyncio
 import math
+import threading
 from discord.ext import commands
 import discord
 import httpx
 import bs4
 from utility.common.command import respond
+import time
 
 class eduko(commands.Cog):
     def __init__(self, bot):
         self.description = 'Gets the Eduko diner menu for the week(s)'
-        self.client = httpx.AsyncClient()
+        self.client = httpx.Client()
         self.embeds = []
         self.bot = bot
-        asyncio.ensure_future(self.update_embeds())
+        self.updater = threading.Thread(target=self.update_food_embeds)
+        self.updater.start()
 
     class Food:
         def __init__(self, p):
@@ -84,16 +86,16 @@ class eduko(commands.Cog):
         return week_nums
 
 
-    async def update_embeds(self):
+    def update_food_embeds(self):
         while True:
-            resp = await self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
+            resp = self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
             resp.raise_for_status()
             self.soup = bs4.BeautifulSoup(resp.content, features='lxml')
             self.week_nums = self.get_week_nums()
             self.sections = self.section_filter()
             self.foods = self.get_food()
             self.embeds = self.create_embeds()
-            await asyncio.sleep(1000)
+            time.sleep(1000)
 
     @commands.slash_command()
     async def food(self, ctx):

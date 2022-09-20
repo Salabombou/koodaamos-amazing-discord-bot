@@ -3,11 +3,10 @@ import httpx
 import math
 import datetime
 import time
-import asyncio
 import functools
 import subprocess
 from utility.common.errors import CommandTimeout, FfmpegError
-from utility.common import file_management
+
 client = httpx.AsyncClient()
 
 def create_width(target):
@@ -21,10 +20,10 @@ def create_time(duration):
 cwd = os.getcwd()
 def create_paths(ID, *args) -> tuple:
     timestamp = int(time.time())
-    paths = ()
+    paths = []
     for arg in args:
-        paths += (cwd + f'/files/{arg}{ID}_{timestamp}.temp')
-    return paths
+        paths.append(cwd + f'/files/{arg}{ID}_{timestamp}.temp')
+    return tuple(paths)
 
 def create_command(command, *args):
     return ' '.join(command) % args
@@ -37,11 +36,14 @@ async def save_files(inputs) -> None:
             file.write(resp.content)
             file.close()
 
-async def run_command(command, loop) -> None:
-    try:
-        pipe = await loop.run_in_executor(None, functools.partial(subprocess.run, command, stderr=subprocess.PIPE, timeout=60))
-    except:
-        raise CommandTimeout()
-    err = pipe.stderr.decode('utf-8') 
-    if err != '':
-        raise FfmpegError(err)
+class CommandRunner:
+    def __init__(self, loop) -> None:
+        self.loop = loop
+    async def run(self, command) -> None:
+        try:
+            pipe = await self.loop.run_in_executor(None, functools.partial(subprocess.run, command, stderr=subprocess.PIPE, timeout=60))
+        except:
+            raise CommandTimeout()
+        err = pipe.stderr.decode('utf-8') 
+        if err != '':
+            raise FfmpegError(err)

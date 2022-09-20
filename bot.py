@@ -9,19 +9,19 @@ import json
 
 from cogs.ffmpeg.audio import audio, nightcore, earrape
 from cogs.ffmpeg.video import green
-from cogs.fun import eduko, spam
+from cogs.fun import eduko
 from cogs.fun.image import dalle, sauce
 from cogs.fun.text import gpt3
 from cogs.voice_chat import music
 from cogs.tools import download
 
 from utility.common.command import respond
-
+from utility.common.file_management import TempRemover
 def get_tokens():
     file = open(os.getcwd() + '/tokens.json', 'r')
     return json.loads(file.read())
 
-cogs = (dalle, gpt3, music, green, download, audio, nightcore, spam, eduko, sauce, earrape)
+cogs = (dalle, gpt3, music, green, download, audio, nightcore, eduko, sauce, earrape)
 bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help_command())
 tokens = get_tokens() # returns all the tokens
 
@@ -104,12 +104,9 @@ async def on_voice_state_update(member, before, after):
 
 @bot.event
 async def on_ready():
-    for root, dirs, files in os.walk('./files', topdown=False):
-        for file in files:
-            ext = os.path.splitext(file)[1][1:]
-            if ext == 'temp':
-                os.remove(f'{root}/{file}')
     os.system('cls' if os.name == 'nt' else 'clear')
     print('ready')
+
+TempRemover().start()
 
 bot.run(tokens['discord'])
