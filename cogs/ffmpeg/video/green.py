@@ -1,20 +1,11 @@
 from discord.ext import commands
-import os
-import discord
 import httpx
 from utility.discord import target as discordutil
 from utility.scraping import YouTube
 from utility.common import decorators, file_management
-from utility.common.errors import CommandTimeout, FfmpegError
 from utility.common.command import respond
-import subprocess
-import datetime
-import urllib.parse
-import time
-import functools
-import math
-import asyncio
 from utility.ffmpeg import *
+
 class green(commands.Cog):
     def __init__(self, bot):
         self.description = 'Overlays a greenscreen video on top of an image / video'
