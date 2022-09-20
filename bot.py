@@ -17,8 +17,9 @@ from cogs.tools import download
 
 from utility.common.command import respond
 from utility.common.file_management import TempRemover
+
 def get_tokens():
-    file = open(os.getcwd() + '/tokens.json', 'r')
+    file = open('./tokens.json', 'r')
     return json.loads(file.read())
 
 cogs = (dalle, gpt3, music, green, download, audio, nightcore, eduko, sauce, earrape)
@@ -44,10 +45,6 @@ async def on_command_error(ctx, error):
         return
     embed = create_error_embed(error)
     await respond(ctx, embed=embed)
-    for root, dirs, files in os.walk('./files', topdown=False):
-        for file in files:
-            if str(ctx.author.id) in file:
-                os.remove(f'{root}/{file}')
 
 @bot.event
 async def on_application_command_error(ctx, error):
