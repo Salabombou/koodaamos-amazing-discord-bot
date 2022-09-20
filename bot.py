@@ -3,7 +3,6 @@ from discord import HTTPException, Forbidden, NotFound, ApplicationCommandInvoke
 from utility.discord.help import help_command
 from discord.ext import commands
 import discord
-import asyncio
 import os
 import json
 
@@ -66,38 +65,6 @@ async def on_error(event, ctx, error):
     if isinstance(error, Forbidden):
         return
     print(str(error))
-
-@bot.event
-async def on_voice_state_update(member, before, after):
-    if after.channel == None: return
-    vc = after.channel.guild.voice_client
-    if before.channel == None and member.id == bot.user.id:
-        time = 0
-        condition = True
-        while condition:
-            await asyncio.sleep(1)
-            time += 1
-            if vc.is_playing() and not vc.is_paused():
-                time = 0
-            condition = vc.is_connected()
-            if time >= 1800:
-                await vc.disconnect()
-                condition = False
-    elif member.id != bot.user.id and vc != None and bot.user in after.channel.members:
-        for member in after.channel.members:
-            if not member.bot:
-                vc.resume()
-                return
-        vc.pause()
-    elif vc in bot.voice_clients:
-        for voice_client in bot.voice_clients:
-            if voice_client.guild == vc.guild:
-                for member in voice_client.channel.members:
-                    if not member.bot:
-                        voice_client.resume()
-                        return
-                voice_client.pause()
-                return
 
 @bot.event
 async def on_ready():
