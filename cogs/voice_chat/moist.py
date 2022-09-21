@@ -52,6 +52,3 @@ class moist(commands.Cog):
     @commands.command()
     async def leave(self, ctx):
         await ctx.voice_client.disconnect()
-
-def setup(client, tokens):
-    client.add_cog(moist(client, tokens))

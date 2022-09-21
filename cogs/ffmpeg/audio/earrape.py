@@ -21,6 +21,7 @@ class earrape(commands.Cog):
             '-loglevel', 'error',
             '-t', '00:01:00',
             '-af', 'acrusher=.1:1:64:0:log',
+            '-pix_fmt', 'yuv420p',
             '-f', 'mp4',
             '"%s"'
             ]
@@ -48,6 +49,3 @@ class earrape(commands.Cog):
     async def er(self, ctx):
         file, pomf_url = await self.create_output_video(ctx)
         await respond(ctx, content=pomf_url, file=file, mention_author=False)
-
-def setup(client, tokens):
-    client.add_cog(earrape(client, tokens))

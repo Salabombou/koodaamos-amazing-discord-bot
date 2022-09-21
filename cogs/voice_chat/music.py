@@ -134,6 +134,3 @@ class music(commands.Cog):
         if self.playlist[server][0] != []:
             self.playlist[server][0].insert(0, self.playlist[server][0][0])
             await voice_chat.stop(ctx)
-
-def setup(client, tokens):
-    client.add_cog(music(client, tokens))

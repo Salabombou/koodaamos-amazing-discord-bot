@@ -11,7 +11,7 @@ from requests_toolbelt import MultipartEncoder
 import bs4
 
 class sauce(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, tokens):
         self.bot = bot
         self.client = httpx.AsyncClient
         self.fields = [ 
@@ -53,6 +53,3 @@ class sauce(commands.Cog):
         embed = sauce_tools.create_embed(results[0], url, hidden=hidden)
         message = await ctx.reply(embed=embed, mention_author=False)
         await message.edit(view=sauce_view(results=results, url=url, hidden=hidden))
-
-def setup(client, tokens):
-    client.add_cog(sauce(client))

@@ -42,6 +42,7 @@ class nightcore(commands.Cog):
             '-map', '0:v',
             '-map', '2:a:0',
             '-c:a', 'copy',
+            '-pix_fmt', 'yuv420p',
             '-f', 'mp4',
             '"%s"'
             ]
@@ -74,6 +75,3 @@ class nightcore(commands.Cog):
     async def nc(self, ctx):
         file, pomf_url = await self.create_output_video(ctx)
         await respond(ctx, content=pomf_url, file=file, mention_author=False)
-
-def setup(client, tokens):
-    client.add_cog(nightcore(client, tokens))

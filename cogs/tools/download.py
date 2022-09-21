@@ -26,6 +26,3 @@ class download(commands.Cog):
             pomf_url, file = await file_management.prepare_file(ctx, file=resp.content, ext=ext)
             await respond(ctx, content=pomf_url, file=file)
         else: raise UrlInvalid()
-
-def setup(client, tokens):
-    client.add_cog(download(client, tokens))

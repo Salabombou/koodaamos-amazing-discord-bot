@@ -35,6 +35,3 @@ class tts(commands.Cog):
             wav = await self.CreateSpeech(text=arg)
         file = discord.File(fp=wav, filename="unknown.wav")
         await ctx.reply(file=file, mention_author=False)
-
-def setup(client, tokens):
-    client.add_cog(tts(client))

@@ -89,7 +89,7 @@ def fetch_from_video(youtube, videoId) -> list[Video]:
         return [Video(data=song)]
     else: raise VideoUnavailable()
 
-async def fetch_from_playlist(ctx, youtube, playlistId) -> list[Video]:
+async def fetch_from_playlist(loop, youtube, playlistId) -> list[Video]:
     request = youtube.playlistItems().list(
         part='snippet',
         playlistId=playlistId,
@@ -97,7 +97,7 @@ async def fetch_from_playlist(ctx, youtube, playlistId) -> list[Video]:
     )
     items = []
     while request != None:
-        r = await ctx.bot.loop.run_in_executor(None, request.execute)
+        r = await loop.run_in_executor(None, request.execute)
         items += r['items']
         request = youtube.playlistItems().list_next(request, r)
     songs = []
