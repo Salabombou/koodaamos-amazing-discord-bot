@@ -6,6 +6,7 @@ import json
 # imports all of the different event listeners
 from utility.discord.listeners import Listeners
 
+# imports the onwer commands only the bot owner can run
 from utility.discord.owner import owner_cog
 
 # imports all the used cogs
