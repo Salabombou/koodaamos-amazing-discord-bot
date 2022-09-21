@@ -30,10 +30,9 @@ with open('./tokens.json', 'r') as tokens_file:
     tokens = json.loads(tokens_file.read())  
 
 # cogs for the bot to use
-cogs = (dalle, gpt3, music, green, download, audio, nightcore, eduko, sauce, earrape) 
+cogs = (dalle, gpt3, music, green, download, audio, nightcore, eduko, sauce, earrape, owner_cog) 
 for cog in cogs:
     bot.add_cog(cog(bot, tokens))
-bot.add_cog(owner_cog(bot)) # adds the bot owner commands to the bot
 
 # listeners for the bot to use
 listener = Listeners(bot)
