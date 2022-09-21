@@ -1,76 +1,48 @@
-from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailure
-from discord import HTTPException, Forbidden, NotFound, ApplicationCommandInvokeError
-from utility.discord.help import help_command
+from utility.discord import help, check
 from discord.ext import commands
 import discord
-import os
 import json
 
-from cogs.ffmpeg.audio import audio, nightcore, earrape
-from cogs.ffmpeg.video import green
-from cogs.fun import eduko
-from cogs.fun.image import dalle, sauce
-from cogs.fun.text import gpt3
-from cogs.voice_chat import music
-from cogs.tools import download
+# imports all of the different event listeners
+from utility.discord.listeners import Listeners
 
-from utility.common.command import respond
+from utility.discord.owner import owner_cog
+
+# imports all the used cogs
+from cogs.ffmpeg.audio.audio import audio
+from cogs.ffmpeg.audio.earrape import earrape
+from cogs.ffmpeg.audio.nightcore import nightcore
+from cogs.ffmpeg.video.green import green
+from cogs.fun.eduko import eduko
+from cogs.fun.image.dalle import dalle
+from cogs.fun.image.sauce import sauce
+from cogs.fun.text.gpt3 import gpt3
+from cogs.voice_chat.music import music
+from cogs.tools.download import download
+
 from utility.common.file_management import TempRemover
 
-def get_tokens():
-    file = open('./tokens.json', 'r')
-    return json.loads(file.read())
+bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help.help_command())
 
-cogs = (dalle, gpt3, music, green, download, audio, nightcore, eduko, sauce, earrape)
-bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help_command())
-tokens = get_tokens() # returns all the tokens
+# gets the tokens
+with open('./tokens.json', 'r') as tokens_file:
+    tokens = json.loads(tokens_file.read())  
 
+# cogs for the bot to use
+cogs = (dalle, gpt3, music, green, download, audio, nightcore, eduko, sauce, earrape) 
 for cog in cogs:
-    cog.setup(bot, tokens)
+    bot.add_cog(cog(bot, tokens))
+bot.add_cog(owner_cog(bot)) # adds the bot owner commands to the bot
 
-def create_error_embed(error):
-    embed = discord.Embed(color=0xFF0000, fields=[], title='Something went wrong!')
-    embed.description = f'```{str(error)[:4090]}```'
-    embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
-    return embed
+# listeners for the bot to use
+listener = Listeners(bot)
+listeners = (listener.on_error, listener.on_application_command_error, listener.on_command_error, listener.on_ready)
+for func in listeners:
+    bot.add_listener(func=func)
 
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, CommandInvokeError):
-        error = error.original
-    if isinstance(error, CommandNotFound): # ignores the error if it just didnt find the command
-        return
-    if isinstance(error, CheckFailure):
-        return
-    embed = create_error_embed(error)
-    await respond(ctx, embed=embed)
+bot.add_check(func=check.command_checker(bot).check)
 
-@bot.event
-async def on_application_command_error(ctx, error):
-    if isinstance(error, ApplicationCommandInvokeError):
-        error = error.original
-    if isinstance(error, NotFound):
-        return
-    if isinstance(error, CheckFailure):
-        return
-    embed = create_error_embed(error)
-    await ctx.send(embed=embed)
-    
-@bot.event
-async def on_error(event, ctx, error):
-    if isinstance(error, CommandInvokeError):
-        error = error.original
-    if isinstance(error, HTTPException):
-        return
-    if isinstance(error, Forbidden):
-        return
-    print(str(error))
-
-@bot.event
-async def on_ready():
-    os.system('cls' if os.name == 'nt' else 'clear')
-    print('ready')
-
+# starts the temp remover that deletes temp files after they reach 5 mins in age
 TempRemover().start()
 
 bot.run(tokens['discord'])

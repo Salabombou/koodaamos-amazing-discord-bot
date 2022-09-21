@@ -7,7 +7,7 @@ from utility.common import decorators, file_management
 from utility.ffmpeg import *
 
 class audio(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, tokens):
         self.description = 'Adds audio to a image or a video'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
@@ -58,7 +58,7 @@ class audio(commands.Cog):
             '-t', '00:01:00',
             '-map', '0:v:0',
             '-map', '1:a:0',
-            '-y',
+            '-pix_fmt', 'yuv420p',
             '-f', 'mp4',
             '"%s"'
             ]
@@ -100,6 +100,3 @@ class audio(commands.Cog):
     async def audio(self, ctx, url="https://youtu.be/NOaSdO5H91M"):
         file, pomf_url = await self.create_output(ctx, url)
         await respond(ctx, content=pomf_url, file=file)
-
-def setup(client, tokens):
-    client.add_cog(audio(client))

@@ -8,7 +8,7 @@ import json
 import io
 
 class dalle(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, tokens):
         self.description = 'Creates an image collage from images produced by an AI with a prompt'
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=180)
@@ -61,6 +61,3 @@ class dalle(commands.Cog):
         image = await self.DallE_Collage(ctx.bot.loop, prompt)
         file = discord.File(fp=image, filename="unknown.png")
         await ctx.reply(embed=embed, file=file)
-        
-def setup(client, tokens):
-    client.add_cog(dalle(client))

@@ -8,7 +8,7 @@ from utility.common.command import respond
 import time
 
 class eduko(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, tokens):
         self.description = 'Gets the Eduko diner menu for the week(s)'
         self.client = httpx.Client()
         self.embeds = []
@@ -100,6 +100,3 @@ class eduko(commands.Cog):
     @commands.slash_command()
     async def food(self, ctx):
         await respond(ctx, embeds=self.embeds)
-
-def setup(client, tokens):
-    client.add_cog(eduko(client))

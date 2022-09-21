@@ -132,7 +132,7 @@ async def fetch_songs(self, ctx, url, no_playlists=False):
     if 'v' in query:
         return YouTube.fetch_from_video(self.youtube, videoId=query['v'][0])
     elif 'list' in query and not no_playlists:
-        songs = await YouTube.fetch_from_playlist(ctx, self.youtube, playlistId=query['list'][0])
+        songs = await YouTube.fetch_from_playlist(ctx.bot.loop, self.youtube, playlistId=query['list'][0])
         return songs
     raise UrlInvalid()
 
