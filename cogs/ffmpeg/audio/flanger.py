@@ -46,6 +46,6 @@ class flanger(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
-    async def fl(self, ctx, speed=10.0):
+    async def flan(self, ctx, speed=10.0):
         file, pomf_url = await self.create_output_video(ctx, speed)
         await respond(ctx, content=pomf_url, file=file, mention_author=False)
