@@ -6,6 +6,15 @@ from discord import CategoryChannel
 class owner_cog(commands.Cog):
     def __init__(self, bot, tokens) -> None:
         self.bot = bot
+        self.spamming = False
+
+    async def spammy(self, ctx, content):
+        await asyncio.sleep(1.5)
+        if content != '':
+            self.spamming = True
+        while self.spamming:
+            await ctx.send(content, delete_after=1)
+            await asyncio.sleep(1)
 
     async def owner_in_guild(self, guild) -> bool:
         for member in guild.members:
@@ -49,3 +58,12 @@ class owner_cog(commands.Cog):
                     break
         await ctx.message.delete()
 
+    @commands.command(help='mention the users you would like to annoy')
+    @commands.is_owner()
+    async def spam(self, ctx):
+        content = ''
+        for mention in ctx.message.mentions:
+            content += f'<@{mention.id}> '
+        self.spamming = not self.spamming
+        asyncio.ensure_future(self.spammy(ctx, content))
+        await ctx.message.delete()
