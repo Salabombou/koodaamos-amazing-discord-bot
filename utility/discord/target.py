@@ -1,4 +1,4 @@
-import discord
+import discord.embeds
 from utility.common.errors import TargetNotFound
 
 """
@@ -49,14 +49,14 @@ class target_fetcher:
         return None
 
 async def get_target(ctx, no_aud=False, no_vid=False, no_img=False):
-    history = await ctx.channel.history(limit=50).flatten()
+    history = await ctx.channel.history(limit=100).flatten()
     fetcher = target_fetcher(no_aud, no_vid, no_img)
     stickers = ctx.message.stickers
     attachments = ctx.message.attachments
     file = fetcher.get_file([], attachments, stickers) # if there are embeds or attachments in the command itself
     
-    for message in history[1:]: # first item in the list is likely the ctx
-        if file != None:
+    for message in history[1:]: # first item in the list is likely the command
+        if file != None: # if the target has been aquired
             break
         stickers = message.stickers
         attachments = message.attachments

@@ -13,6 +13,7 @@ from utility.discord.owner import owner_cog
 from cogs.ffmpeg.audio.audio import audio
 from cogs.ffmpeg.audio.earrape import earrape
 from cogs.ffmpeg.audio.nightcore import nightcore
+from cogs.ffmpeg.audio.flanger import flanger
 from cogs.ffmpeg.video.green import green
 from cogs.fun.eduko import eduko
 from cogs.fun.image.dalle import dalle
@@ -30,10 +31,9 @@ with open('./tokens.json', 'r') as tokens_file:
     tokens = json.loads(tokens_file.read())  
 
 # cogs for the bot to use
-cogs = (dalle, gpt3, music, green, download, audio, nightcore, eduko, sauce, earrape) 
+cogs = (dalle, gpt3, music, green, download, audio, nightcore, flanger, eduko, sauce, earrape, owner_cog) 
 for cog in cogs:
     bot.add_cog(cog(bot, tokens))
-bot.add_cog(owner_cog(bot)) # adds the bot owner commands to the bot
 
 # listeners for the bot to use
 listener = Listeners(bot)

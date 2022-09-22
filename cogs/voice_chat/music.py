@@ -1,5 +1,6 @@
 from discord.ext import commands
 import asyncio
+from utility.common.command import respond
 from utility.discord import voice_chat
 from utility.tools import music_tools
 from utility.common import decorators
@@ -41,11 +42,9 @@ class music(commands.Cog):
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
-    @decorators.add_reaction
-    @decorators.delete_after
     async def list(self, ctx):
         embed = music_tools.create_embed(ctx, self.playlist, 0)
-        message = await ctx.send(embed=embed)
+        message = await respond(embed=embed)
         ctx = await self.bot.get_context(message)
         await message.edit(view=music_view(music_self=self, ctx=ctx))
         
@@ -77,11 +76,11 @@ class music(commands.Cog):
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
-    async def skip(self, ctx, amount='1'):
+    async def skip(self, ctx, amount=1):
         server = music_tools.get_server(ctx)
         temp = self.looping[server]
         self.looping[server] = False
-        amount = abs(int(amount))
+        amount = abs(amount)
         del self.playlist[server][0][1:amount]
         music_tools.append_songs(ctx, self.playlist)
         await voice_chat.resume(ctx)
@@ -116,13 +115,11 @@ class music(commands.Cog):
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
-    @decorators.add_reaction
-    @decorators.delete_after
-    async def info(self, ctx, number='0'):
+    async def info(self, ctx, number=0):
         server = music_tools.get_server(ctx)
         if self.playlist[server][0] != []:
             embed = music_tools.create_info_embed(self, ctx, number=number)
-            await ctx.send(embed=embed, mention_author=False)
+            await respond(embed=embed, mention_author=False)
 
     @commands.command(help='replays the current song')
     @commands.check(voice_chat.command_check)

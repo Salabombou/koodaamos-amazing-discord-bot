@@ -4,7 +4,7 @@ import discord
 from discord import CategoryChannel
 
 class owner_cog(commands.Cog):
-    def __init__(self, bot) -> None:
+    def __init__(self, bot, tokens) -> None:
         self.bot = bot
 
     async def owner_in_guild(self, guild) -> bool:
