@@ -12,7 +12,6 @@ class flanger(commands.Cog):
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
         self.client = httpx.AsyncClient(timeout=10)
-        filter_complex = 'flanger=delay=30:depth=10:speed=%s:width=100:phase=0'
         self.path_args = (
             'flanger/target/',
             'flanger/output/'
@@ -21,7 +20,7 @@ class flanger(commands.Cog):
             '-i', '"%s"',
             '-loglevel', 'error',
             '-t', '00:01:00',
-            '-filter_complex', f'"{filter_complex}"',
+            '-filter_complex', '"flanger=speed=%s:width=100"',
             '-pix_fmt', 'yuv420p',
             '-f', 'mp4',
             '"%s"'
