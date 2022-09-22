@@ -15,7 +15,7 @@ def create_width(target):
     return width
 
 def create_time(duration):
-    return str(datetime.timedelta(seconds=duration if duration < 30 else 30))
+    return str(datetime.timedelta(seconds=duration))
 
 def create_paths(ID, *args) -> tuple:
     timestamp = int(time.time())

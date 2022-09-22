@@ -107,10 +107,10 @@ def create_options(ctx, playlist):
             )
     return options
 
-def create_info_embed(self, ctx, number='0', song=None):
+def create_info_embed(self, ctx, number=0, song=None):
     server = get_server(ctx)
     if song == None:
-        num = abs(int(number))
+        num = abs(number)
         if len(self.playlist[server][0]) - 1 < num :  
             raise SongNotFound()
         song = self.playlist[server][0][num]
