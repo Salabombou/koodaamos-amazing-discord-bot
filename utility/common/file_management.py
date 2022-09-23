@@ -33,11 +33,11 @@ async def prepare_file(ctx, file: bytes | str, ext) -> str | discord.File:
     file = await get_bytes(file)
     filesize = len(file)
     filesize_limit = ctx.guild.filesize_limit
+    server_level = ctx.guild.premium_tier
     if filesize < 75 * 1000 * 1000 and not filesize < filesize_limit:
         pomf_url = await pomf.upload(file)
         return pomf_url, None
     elif not filesize < filesize_limit:
-        server_level = ctx.guild.premium_tier
         file = await compress.video(file, server_level)
     file = io.BytesIO(file)
     file = discord.File(fp=file, filename='unknown.' + ext)

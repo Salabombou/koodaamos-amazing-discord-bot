@@ -94,6 +94,7 @@ class audio(commands.Cog):
         
     @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.guild_only()
     @decorators.typing
     async def audio(self, ctx, url="https://youtu.be/NOaSdO5H91M"):
         file, pomf_url = await self.create_output(ctx, url)

