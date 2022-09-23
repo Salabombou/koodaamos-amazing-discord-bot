@@ -71,6 +71,7 @@ class nightcore(commands.Cog):
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.guild_only()
     @decorators.typing
     async def nc(self, ctx):
         file, pomf_url = await self.create_output_video(ctx)

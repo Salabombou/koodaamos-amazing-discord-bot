@@ -4,8 +4,8 @@ class command_checker:
         self.bot = bot
 
     async def check(self, ctx):
+        if await self.bot.is_owner(ctx.author):
+            return True
         if ctx.author.bot:
-            return False
-        if isinstance(ctx.channel, DMChannel):
             return False
         return True

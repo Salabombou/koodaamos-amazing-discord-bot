@@ -16,6 +16,7 @@ class download(commands.Cog):
 
     @commands.command(help= 'url: a link to the downloadable content (YouTube, Reddit)')
     @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.guild_only()
     @decorators.typing
     async def dl(self, ctx, url):
         if validators.url(url):

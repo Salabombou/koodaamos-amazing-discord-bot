@@ -8,12 +8,11 @@ class owner_cog(commands.Cog):
         self.bot = bot
         self.spamming = False
 
-    async def spammy(self, ctx, content):
+    async def spammy(self, mention):
         await asyncio.sleep(1.5)
-        if content != '':
-            self.spamming = True
+        dm = await self.bot.create_dm(mention)
         while self.spamming:
-            await ctx.send(content, delete_after=1)
+            await dm.send('WAKE UP')
             await asyncio.sleep(1)
 
     async def owner_in_guild(self, guild) -> bool:
@@ -59,11 +58,11 @@ class owner_cog(commands.Cog):
         await ctx.message.delete()
 
     @commands.command(help='mention the users you would like to annoy')
-    @commands.is_owner()
     async def spam(self, ctx):
-        content = ''
-        for mention in ctx.message.mentions:
-            content += f'<@{mention.id}> '
-        self.spamming = not self.spamming
-        asyncio.ensure_future(self.spammy(ctx, content))
-        await ctx.message.delete()
+        if await self.bot.is_owner(ctx.author):
+            for mention in ctx.message.mentions:
+                self.spamming = True
+                asyncio.ensure_future(self.spammy(mention))
+                await ctx.message.delete()
+                return
+        self.spamming = False
