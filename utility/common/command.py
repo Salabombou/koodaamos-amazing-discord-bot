@@ -1,7 +1,7 @@
-async def respond(ctx, **kwargs):
+async def respond(ctx, *args, **kwargs):
     if not ctx.message:
-        return await ctx.respond(**kwargs)
+        return await ctx.respond(*args, **kwargs)
     try:
-        return await ctx.reply(**kwargs)
+        return await ctx.reply(*args, **kwargs)
     except:
-        return await ctx.send(**kwargs)
+        return await ctx.send(*args, **kwargs)
