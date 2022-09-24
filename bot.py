@@ -24,7 +24,7 @@ from cogs.tools.download import download
 
 from utility.common.file_management import TempRemover
 
-bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help.help_command())
+bot = commands.Bot(command_prefix='.', intents=discord.Intents.all(), help_command=help.help_command(), activity=discord.Activity(name='you', type=discord.ActivityType.watching))
 
 # gets the tokens
 with open('./tokens.json', 'r') as tokens_file:
