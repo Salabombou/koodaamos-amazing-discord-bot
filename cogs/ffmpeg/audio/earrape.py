@@ -12,35 +12,19 @@ class earrape(commands.Cog):
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
         self.client = httpx.AsyncClient(timeout=10)
-        self.path_args = (
-            'earrape/target/',
-            'earrape/output/'
-            )
-        self.ffmpeg_command = ['ffmpeg',
+
+        self.ffmpeg_params = [
             '-i', '"%s"',
-            '-loglevel', 'error',
-            '-t', '00:01:00',
             '-af', 'acrusher=.1:1:64:0:log',
-            '-pix_fmt', 'yuv420p',
-            '-f', 'mp4',
-            '"%s"'
             ]
+
     async def create_output_video(self, ctx):
         target = await discordutil.get_target(ctx, no_img=True)
 
-        paths = create_paths(ctx.author.id, *self.path_args)
-        (
-            target_path,
-            output_path
-        ) = paths
+        cmd = create_command(self.ffmpeg_params, target.proxy_url)
+        out = await self.command_runner.run(cmd, output='pipe:1')
 
-        inputs = [[target.proxy_url, target_path]]
-        await save_files(inputs)
-
-        cmd = create_command(self.ffmpeg_command, *(target_path, output_path))
-        await self.command_runner.run(cmd)
-
-        pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
+        pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
 
     @commands.command()

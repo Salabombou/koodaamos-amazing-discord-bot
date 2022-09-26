@@ -1,3 +1,4 @@
+from asyncio import AbstractEventLoop
 import os
 import httpx
 import math
@@ -24,8 +25,10 @@ def create_paths(ID, *args) -> tuple:
         paths.append(f'./files/{arg}{ID}_{timestamp}.temp')
     return tuple(paths)
 
-def create_command(command, *args):
-    return ' '.join(command) % args
+def create_command(command : list, *args):
+    command = ' '.join(command) % args
+    command = command.split(' ')
+    return command
 
 async def save_files(inputs) -> None:
     for input in inputs:
@@ -36,13 +39,34 @@ async def save_files(inputs) -> None:
             file.close()
 
 class CommandRunner:
-    def __init__(self, loop) -> None:
+    def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
-    async def run(self, command) -> None:
+
+    async def run(self, command : list, output: str = None, arbitrary_command=False) -> None:
+        if not arbitrary_command:
+            command = [
+               *command,
+                '-loglevel', 'error',
+                '-t', '00:01:00',
+                '-movflags', 'frag_keyframe+empty_moov',
+                '-pix_fmt', 'yuv420p',
+                '-f', 'mp4',
+                output
+            ]
+        command = 'ffmpeg ' + ' '.join(command)
         try:
-            pipe = await self.loop.run_in_executor(None, functools.partial(subprocess.run, command, stderr=subprocess.PIPE, timeout=60))
-        except:
+            pipe = await self.loop.run_in_executor(
+                None, functools.partial(
+                    subprocess.run, command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    timeout=60
+                    )
+                )
+        except Exception as e:
+            print(str(e))
             raise CommandTimeout()
         err = pipe.stderr.decode('utf-8') 
         if err != '':
             raise FfmpegError(err)
+        return pipe.stdout
