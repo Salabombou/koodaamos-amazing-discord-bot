@@ -20,7 +20,7 @@ class nightcore(commands.Cog):
             'nightcore/audio/',
             'nightcore/output/'
             )
-        self.ffmpeg_command = ['ffmpeg',
+        self.ffmpeg_command = [
             '-i', '"%s"',
             '-loglevel', 'error',
             '-t', '00:01:00',
@@ -30,7 +30,7 @@ class nightcore(commands.Cog):
             '-f', 'mp4',
             '"%s"'
             ]
-        self.merge_command = ['ffmpeg',
+        self.merge_command = [
             '-f', 'lavfi',
             '-i', 'color=c=black:s=720x720:d=1',
             '-i', '"%s"',
@@ -60,11 +60,11 @@ class nightcore(commands.Cog):
         await save_files(inputs)
 
         cmds = []
-        cmds.append(create_command(self.ffmpeg_command, *(target_path, audio_path)))
-        cmds.append(create_command(self.merge_command, *(target_path, audio_path, output_path)))
+        cmds.append(create_command(self.ffmpeg_command, target_path, audio_path))
+        cmds.append(create_command(self.merge_command, target_path, audio_path, output_path))
 
         for cmd in cmds:
-            await self.command_runner.run(cmd)
+            await self.command_runner.run(cmd, arbitrary_command=True)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
         return file, pomf_url

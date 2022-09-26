@@ -16,6 +16,7 @@ from cogs.ffmpeg.audio.earrape import earrape
 from cogs.ffmpeg.audio.nightcore import nightcore
 from cogs.ffmpeg.audio.flanger import flanger
 from cogs.ffmpeg.video.green import green
+from cogs.ffmpeg.video.ruin import ruin
 from cogs.fun.eduko import eduko
 from cogs.fun.image.dalle import dalle
 from cogs.fun.image.sauce import sauce
@@ -37,7 +38,7 @@ with open('./tokens.json', 'r') as tokens_file:
     tokens = json.loads(tokens_file.read())  
 
 # cogs for the bot to use
-cogs = (dalle, gpt3, music, green, download, audio, nightcore, flanger, eduko, sauce, earrape, owner_cog) 
+cogs = (dalle, gpt3, music, green, ruin, download, audio, nightcore, flanger, eduko, sauce, earrape, owner_cog) 
 for cog in cogs:
     bot.add_cog(cog(bot, tokens))
 

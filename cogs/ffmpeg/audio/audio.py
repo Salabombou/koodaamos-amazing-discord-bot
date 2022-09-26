@@ -19,7 +19,7 @@ class audio(commands.Cog):
             'audio/audio/',
             'audio/output/'
             )
-        self.target_audio_command = ['ffmpeg',
+        self.target_audio_command = [
             '-f', 'lavfi',
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
             '-i', '"%s"',
@@ -31,7 +31,7 @@ class audio(commands.Cog):
             '-f', 'wav',
             '"%s"'
         ]
-        self.merge_audio_command = ['ffmpeg',
+        self.merge_audio_command = [
             '-stream_loop', '-1',
             '-ss', '00:00:00',
             '-to', '%s',
@@ -46,7 +46,7 @@ class audio(commands.Cog):
             '-f', 'wav',
             '"%s"'
             ]
-        self.merge_command = ['ffmpeg',
+        self.merge_command = [
             '-stream_loop', '-1',
             '-ss', '00:00:00',
             '-to', '%s',
@@ -87,7 +87,7 @@ class audio(commands.Cog):
         cmds.append(create_command(self.merge_command, *(time_to, target_path, audio_path, output_path)))
 
         for cmd in cmds:
-            await self.command_runner.run(cmd)
+            await self.command_runner.run(cmd, arbitrary_command=True)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
         return file, pomf_url
