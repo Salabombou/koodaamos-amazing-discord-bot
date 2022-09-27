@@ -22,7 +22,7 @@ class green(commands.Cog):
             'green/audio/',         # audio_path
             'green/output/'         # output_path
             )
-        self.ffmpeg_command = ['ffmpeg',
+        self.ffmpeg_command = [
             '-ss', '00:00:00',
             '-to', '%s',
             '-f', 'lavfi',
@@ -53,7 +53,7 @@ class green(commands.Cog):
             '-f', 'wav',
             '%s'
             ]
-        self.merge_audio_command = ['ffmpeg',
+        self.merge_audio_command = [
             '-i', '"%s"',
             '-i', '"%s"',
             '-loglevel', 'error',
@@ -65,7 +65,7 @@ class green(commands.Cog):
             '-f', 'wav',
             '"%s"'
             ]
-        self.merge_command = ['ffmpeg',
+        self.merge_command = [
             '-ss', '00:00:00',
             '-to', '00:00:30',
             '-i', '"%s"',
@@ -119,7 +119,7 @@ class green(commands.Cog):
         cmds.append(create_command(self.merge_command, *(filtered_path, audio_path, output_path)))
 
         for cmd in cmds:
-            await self.command_runner.run(cmd)
+            await self.command_runner.run(cmd, arbitrary_command=True)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
         return file, pomf_url

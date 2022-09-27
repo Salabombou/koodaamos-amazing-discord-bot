@@ -1,6 +1,6 @@
 from utility.scraping import YouTube, Reddit
 from utility.common.errors import UnsupportedUrl
-import urllib
+import urllib.parse
 import os
 
 supported_sites = ['www.youtube.com', 'www.reddit.com']
