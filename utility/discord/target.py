@@ -31,7 +31,7 @@ class target_fetcher:
         for sticker in stickers:
             sticker.width = 320  # these attributes are missing from the StickerItem object
             sticker.height = 320
-            sticker.proxy_url = sticker.urlz
+            sticker.proxy_url = sticker.url
             return sticker
         for attachment in attachments:
             if attachment.content_type != None:
