@@ -53,6 +53,7 @@ class audio(commands.Cog):
             '-i', '"%s"',
             '-i', '"%s"',
             '-loglevel', 'error',
+            '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
             '-t', '00:01:00',
             '-map', '0:v:0',
             '-map', '1:a:0',

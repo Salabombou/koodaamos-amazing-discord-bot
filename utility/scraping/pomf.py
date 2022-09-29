@@ -4,9 +4,9 @@ from utility.common.errors import PomfUploadFail
 
 client = httpx.AsyncClient(timeout=300)
 
-async def upload(file: bytes) -> str:
+async def upload(file: bytes, ext: str) -> str:
     fields = {
-        'files[]': ('video.mp4', file, 'video/mp4')
+        'files[]': (f'file.{ext}', file, 'application/octet-stream')
     }
     data = MultipartEncoder(fields=fields)
     resp = await client.post(url='https://pomf.cat/upload.php', headers={'Content-Type': data.content_type}, data=data.to_string(), timeout=60)

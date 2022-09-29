@@ -32,7 +32,7 @@ async def wait_for_completion(host, token): # waits for the compression to be fi
 
 upload_limit_levels = ['8', '8', '50', '100']
 
-async def video(file : bytes | str, server_level) -> bytes | str: # compressing videos using the 8mb.video website so the video can be sent to discord channel
+async def video(file : bytes | str, server_level, ext) -> bytes | str: # compressing videos using the 8mb.video website so the video can be sent to discord channel
     file = await file_management.get_bytes(file)
     size = upload_limit_levels[server_level]
     host = await get_host()
@@ -42,7 +42,7 @@ async def video(file : bytes | str, server_level) -> bytes | str: # compressing 
         'size': size,
         'token': token,
         'submit': 'true',
-        'fileToUpload': ('video.mp4', file, 'video/mp4') # filename, file in bytes, filetype
+        'fileToUpload': (f'file.{ext}', file, 'application/octet-stream') # filename, file in bytes, filetype
     }
     data = MultipartEncoder(fields=fields)
     resp = await httpx.AsyncClient(timeout=300).post(url=host, headers={'Content-Type': data.content_type}, data=data.to_string(), timeout=60) # sends the video to be compressed to the server and begins the compression

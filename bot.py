@@ -27,24 +27,26 @@ from cogs.tools.download import download
 from utility.common.file_management import TempRemover
 
 bot = commands.Bot(
-    command_prefix='.',
-    intents=discord.Intents.all(),
-    help_command=help.help_command(),
-    activity=Activity(name='you', type=ActivityType.watching)
+        command_prefix='.',
+        intents=discord.Intents.all(),
+        help_command=help.help_command(),
+        activity=Activity(name='you', type=ActivityType.watching)
     )
 
 # gets the tokens
 with open('./tokens.json', 'r') as tokens_file:
-    tokens = json.loads(tokens_file.read())  
+    tokens = json.loads(tokens_file.read())
 
 # cogs for the bot to use
-cogs = (dalle, gpt3, music, green, ruin, download, audio, nightcore, flanger, eduko, sauce, earrape, owner_cog) 
+cogs = (dalle, gpt3, music, green, ruin, download, audio,
+        nightcore, flanger, eduko, sauce, earrape, owner_cog)
 for cog in cogs:
     bot.add_cog(cog(bot, tokens))
 
 # listeners for the bot to use
 listener = Listeners(bot)
-listeners = (listener.on_error, listener.on_application_command_error, listener.on_command_error, listener.on_ready)
+listeners = (listener.on_error, listener.on_application_command_error,
+             listener.on_command_error, listener.on_ready)
 for func in listeners:
     bot.add_listener(func=func)
 
