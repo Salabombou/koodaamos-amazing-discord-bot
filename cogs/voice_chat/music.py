@@ -47,7 +47,7 @@ class music(commands.Cog):
     @music_tools.decorators.update_playlist
     async def list(self, ctx):
         embed = music_tools.create_embed(ctx, self.playlist, 0)
-        message = await respond(embed=embed)
+        message = await respond(ctx, embed=embed)
         ctx = await self.bot.get_context(message)
         await message.edit(view=music_view(music_self=self, ctx=ctx))
         
@@ -129,7 +129,7 @@ class music(commands.Cog):
         server = music_tools.get_server(ctx)
         if self.playlist[server][0] != []:
             embed = music_tools.create_info_embed(self, ctx, number=number)
-            await respond(embed=embed, mention_author=False)
+            await respond(ctx, embed=embed, mention_author=False)
 
     @commands.command(help='replays the current song')
     @commands.guild_only()

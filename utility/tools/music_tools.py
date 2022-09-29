@@ -161,6 +161,7 @@ def next_song(self, ctx, message):
         asyncio.run_coroutine_threadsafe(message.delete(), self.bot.loop)
     except: pass # incase the message was already deleted or something so it wont fuck up the whole queue
     if self.playlist[server][0] != []:
-        if not self.looping[server]:
-            self.playlist[server][0].pop(0)
+        if self.looping[server]: # if looping is enabled (moves the current song to the end of the playlist)
+            self.playlist[server][1].append(self.playlist[server][0][0]) # adds the currently playing song to the end of the playlist
+        self.playlist[server][0].pop(0)
         play_song(self, ctx)
