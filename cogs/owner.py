@@ -12,7 +12,7 @@ def delete_before(func):
         return await func(*args, **kwargs)
     return wrapper
 
-class owner_cog(commands.Cog):
+class owner(commands.Cog):
     def __init__(self, bot, tokens) -> None:
         self.bot = bot
         self.spamming = False

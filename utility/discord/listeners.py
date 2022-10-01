@@ -1,6 +1,11 @@
+import asyncio
+import functools
+import threading
+import time
 from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailure
 from discord import HTTPException, Forbidden, NotFound, ApplicationCommandInvokeError
 import discord
+from discord import ActivityType
 from utility.common.command import respond
 import os
 
@@ -10,9 +15,17 @@ def create_error_embed(error):
     embed.set_footer(icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
     return embed
 
+def activity_updater(bot : discord.Bot):
+    while True:
+        for name in ['You', 'yOu', 'yoU', 'you']:
+            time.sleep(1.5)
+            asyncio.run(bot.change_presence(activity=discord.Activity(name=name, type=ActivityType.watching)))
+        time.sleep(15)
+
 class Listeners:
     def __init__(self, bot) -> None:
         self.bot = bot
+        self.x = threading.Thread(target=functools.partial(activity_updater, self.bot), name='activity_updater')
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, CommandInvokeError):
@@ -46,4 +59,5 @@ class Listeners:
 
     async def on_ready(self):
         os.system('cls' if os.name == 'nt' else 'clear')
+        self.x.start()
         print('ready')
