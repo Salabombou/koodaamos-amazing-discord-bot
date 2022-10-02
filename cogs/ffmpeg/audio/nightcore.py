@@ -10,7 +10,7 @@ import httpx
 import asyncio
 
 class nightcore(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.description = 'makes the audio of a video / audio nightcore'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
@@ -46,7 +46,7 @@ class nightcore(commands.Cog):
             '-f', 'mp4',
             '"%s"'
             ]
-    async def create_output_video(self, ctx):
+    async def create_output_video(self,  ctx : commands.context.Context):
         target = await discordutil.get_target(ctx, no_img=True)
 
         paths = create_paths(ctx.author.id, *self.path_args)

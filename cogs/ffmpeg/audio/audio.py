@@ -7,7 +7,7 @@ from utility.common import decorators, file_management
 from utility.ffmpeg import *
 
 class audio(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.description = 'Adds audio to a image or a video'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
@@ -61,7 +61,7 @@ class audio(commands.Cog):
             '-f', 'mp4',
             '"%s"'
             ]
-    async def create_output(self, ctx, url): 
+    async def create_output(self, ctx : commands.context.Context, url): 
         target = await discordutil.get_target(ctx, no_aud=True)
         audio = YouTube.get_info(url, video=False, max_duration=300)
 

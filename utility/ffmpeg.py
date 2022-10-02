@@ -7,10 +7,9 @@ import time
 import functools
 import subprocess
 from utility.common.errors import CommandTimeout, FfmpegError
-
 client = httpx.AsyncClient()
 
-def create_width(target):
+def create_width(target ):
     width = math.ceil((target.width / target.height) * 720 / 2) * 2
     width = math.ceil(width / 2) * 2
     return width

@@ -17,7 +17,7 @@ class eduko(commands.Cog):
         self.updater.start()
 
     class Food:
-        def __init__(self, p):
+        def __init__(self, p : bs4.BeautifulSoup):
             self.header = None
             self.the_actual_food = None
             spans = p.select('span')
@@ -29,7 +29,7 @@ class eduko(commands.Cog):
                 self.header = b.text
                 self.the_actual_food = self.get_food(p)
 
-        def get_food(self, p):
+        def get_food(self, p : bs4.BeautifulSoup):
             food = ''
             for content in p.contents:
                 if isinstance(content, str):
@@ -88,7 +88,9 @@ class eduko(commands.Cog):
 
     def update_food_embeds(self):
         while True:
-            resp = self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
+            try:
+                resp = self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
+            except: continue
             resp.raise_for_status()
             self.soup = bs4.BeautifulSoup(resp.content, features='lxml')
             self.week_nums = self.get_week_nums()

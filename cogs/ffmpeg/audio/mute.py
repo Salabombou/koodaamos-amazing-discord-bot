@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from utility.discord import target as discordutil
 from utility.ffmpeg import *
@@ -7,7 +8,7 @@ from utility.common.command import respond
 import httpx
 
 class mute(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.description = 'yes'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)

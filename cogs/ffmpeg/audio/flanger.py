@@ -7,7 +7,7 @@ from utility.common.command import respond
 import httpx
 
 class flanger(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.description = 'yes'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
@@ -17,7 +17,7 @@ class flanger(commands.Cog):
             '-filter_complex', '"flanger=speed=%s:width=100"',
             ]
             
-    async def create_output_video(self, ctx, speed):
+    async def create_output_video(self, ctx : commands.context.Context, speed):
         target = await discordutil.get_target(ctx, no_img=True)
 
         cmd = create_command(self.ffmpeg_params, target.proxy_url, speed)

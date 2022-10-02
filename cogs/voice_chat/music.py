@@ -9,7 +9,7 @@ import googleapiclient.discovery
 import numpy as np
 
 class music(commands.Cog):
-    def __init__(self, bot=None, tokens=None):
+    def __init__(self, bot : commands.Bot = None, tokens=None):
         self.description = 'Plays songs from a playlist to a discord voice channel'
         self.bot = bot
         self.youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=tokens["youtube_v3"])

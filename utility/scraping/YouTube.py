@@ -1,3 +1,4 @@
+from asyncio import AbstractEventLoop
 import json
 import yt_dlp
 import urllib
@@ -89,7 +90,7 @@ def fetch_from_video(youtube, videoId) -> list[Video]:
         return [Video(data=song)]
     else: raise VideoUnavailable()
 
-async def fetch_from_playlist(loop, youtube, playlistId) -> list[Video]:
+async def fetch_from_playlist(loop : AbstractEventLoop, youtube, playlistId) -> list[Video]:
     request = youtube.playlistItems().list(
         part='snippet',
         playlistId=playlistId,

@@ -7,7 +7,7 @@ from utility.common.command import respond
 import httpx
 
 class earrape(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.description = 'yes'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
@@ -18,7 +18,7 @@ class earrape(commands.Cog):
             '-af', 'acrusher=.1:1:64:0:log',
             ]
 
-    async def create_output_video(self, ctx):
+    async def create_output_video(self, ctx : commands.context.Context):
         target = await discordutil.get_target(ctx, no_img=True)
 
         cmd = create_command(self.ffmpeg_params, target.proxy_url)
