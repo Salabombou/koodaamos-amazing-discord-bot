@@ -17,7 +17,7 @@ bot = commands.Bot(
         command_prefix='.',
         intents=discord.Intents.all(),
         help_command=help.help_command(),
-        activity=Activity(name='Y o u', type=ActivityType.watching)
+        activity=Activity(name='you', type=ActivityType.watching)
     )
 
 # gets the tokens
