@@ -2,16 +2,14 @@ from discord.ext import commands
 from utility.discord import target as discordutil
 from utility.scraping import YouTube
 from utility.common.command import respond
-import httpx
 from utility.common import decorators, file_management
 from utility.ffmpeg import *
 
 class audio(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.description = 'Adds audio to a image or a video'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
-        self.client = httpx.AsyncClient(timeout=10)
         self.path_args = (
             'audio/target/',
             'audio/audio/audio/',
@@ -61,7 +59,7 @@ class audio(commands.Cog):
             '-f', 'mp4',
             '"%s"'
             ]
-    async def create_output(self, ctx, url): 
+    async def create_output(self, ctx : commands.Context, url): 
         target = await discordutil.get_target(ctx, no_aud=True)
         audio = YouTube.get_info(url, video=False, max_duration=300)
 
@@ -97,6 +95,6 @@ class audio(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.typing
-    async def audio(self, ctx, url="https://youtu.be/NOaSdO5H91M"):
+    async def audio(self, ctx : commands.Context, url="https://youtu.be/NOaSdO5H91M"):
         file, pomf_url = await self.create_output(ctx, url)
         await respond(ctx, content=pomf_url, file=file)

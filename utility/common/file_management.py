@@ -7,7 +7,7 @@ import discord
 from utility.scraping import compress, pomf
 import time
 import threading
-
+from discord.ext import commands
 client = httpx.AsyncClient()
 
 async def get_bytes(file): # returns the bytes of the file to be converted
@@ -29,7 +29,7 @@ async def delete_temps(*args):
             os.remove(temp)
         except: print('Failed to delete file ' + temp)
 
-async def prepare_file(ctx, file: bytes | str, ext) -> str | discord.File:
+async def prepare_file(ctx : commands.Context, file: bytes | str, ext) -> str | discord.File:
     file = await get_bytes(file)
     filesize = len(file)
     filesize_limit = ctx.guild.filesize_limit

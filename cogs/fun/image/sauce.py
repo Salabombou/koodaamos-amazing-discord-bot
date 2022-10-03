@@ -11,7 +11,7 @@ from requests_toolbelt import MultipartEncoder
 import bs4
 
 class sauce(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.bot = bot
         self.client = httpx.AsyncClient
         self.fields = [ 
@@ -45,7 +45,7 @@ class sauce(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
-    async def sauce(self, ctx, url=None):
+    async def sauce(self, ctx : commands.Context, url=None):
         if url == None:
             url = await discordutil.get_target(ctx, no_aud=True, no_vid=True)
             url = url.proxy_url

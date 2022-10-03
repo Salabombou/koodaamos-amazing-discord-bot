@@ -1,5 +1,6 @@
 from utility.scraping import YouTube
 from utility.common.errors import UrlInvalid, SongNotFound
+from discord.ext import commands
 import urllib
 from urllib.parse import parse_qs, urlparse
 import isodate
@@ -14,21 +15,19 @@ ffmpeg_options = {
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
     }
 
-def get_server(ctx):
+def get_server(ctx : commands.Context):
     return str(ctx.guild.id)
 
 class decorators:
     def update_playlist(func):
         @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
-            self = args[0]
-            ctx = args[1]
+        async def wrapper(self, ctx : commands.Context, *args, **kwargs):
             server = get_server(ctx)
             if not server in self.playlist:
                 self.playlist[server] = [[],[]]
             if server not in self.looping:
                 self.looping[server] = False
-            return await func(*args, **kwargs)
+            return await func(self, ctx, *args, **kwargs)
         return wrapper
 
 def append_songs(ctx, playlist, playnext=False, songs=[]): # appends songs to the playlist
@@ -160,6 +159,7 @@ def next_song(self, ctx, message):
     try:
         asyncio.run_coroutine_threadsafe(message.delete(), self.bot.loop)
     except: pass # incase the message was already deleted or something so it wont fuck up the whole queue
+    append_songs(ctx, self.playlist)
     if self.playlist[server][0] != []:
         if self.looping[server]: # if looping is enabled (moves the current song to the end of the playlist)
             self.playlist[server][1].append(self.playlist[server][0][0]) # adds the currently playing song to the end of the playlist

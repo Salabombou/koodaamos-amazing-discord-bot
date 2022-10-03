@@ -18,7 +18,7 @@ class download(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.typing
-    async def dl(self, ctx, url):
+    async def dl(self, ctx : commands.Context, url):
         if validators.url(url):
             resp = urllib.request.urlopen(url)
             url, ext = await downl.from_url(url=resp.url)

@@ -6,7 +6,7 @@ import httpx
 import json
     
 class moist(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.bot = bot
         self.token = tokens[2]
         self.client = httpx.AsyncClient(timeout=30)
@@ -31,7 +31,7 @@ class moist(commands.Cog):
     @commands.command()
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def moist(self, ctx, *, arg="Hi there!"):
+    async def moist(self, ctx : commands.Context, *, arg="Hi there!"):
         arg = arg.replace('\n', ' ')
         if ctx.message.author.voice == None:
             return
@@ -50,5 +50,5 @@ class moist(commands.Cog):
             pass
         
     @commands.command()
-    async def leave(self, ctx):
+    async def leave(self, ctx : commands.Context):
         await ctx.voice_client.disconnect()

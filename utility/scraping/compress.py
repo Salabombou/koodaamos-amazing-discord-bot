@@ -1,10 +1,10 @@
 import httpx
 import asyncio
 from requests_toolbelt import MultipartEncoder
-import validators
 import re
 import json
 from utility.common import file_management
+
 client = httpx.AsyncClient(timeout=10)
 
 async def get_host(): # gets the best server that is online to be used to compress the video

@@ -1,8 +1,8 @@
 import discord
 import utility.common.string
-
+from bs4 import BeautifulSoup
 class parsed_result:
-    def __init__(self, result, hidden):
+    def __init__(self, result : BeautifulSoup, hidden : bool):
         contents = result.select('div.resultcontent')[0]
         column = contents.select('div.resultcontentcolumn')[0]
         self.content = self.get_content(column)
@@ -40,7 +40,7 @@ class parsed_result:
             return description
         return utility.common.string.zero_width_space()
 
-def create_embed(result, url, hidden):
+def create_embed(result : BeautifulSoup, url : str, hidden : bool):
     result = parsed_result(result, hidden)
     embed = discord.Embed(title=result.title, fields=[], color=0xC9EDBE, description=result.content)
     embed.set_image(url=result.image)

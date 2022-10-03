@@ -1,3 +1,4 @@
+from asyncio import AbstractEventLoop
 from discord.ext import commands
 from utility.common import decorators
 from PIL import Image
@@ -8,12 +9,12 @@ import json
 import io
 
 class dalle(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.description = 'Creates an image collage from images produced by an AI with a prompt'
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=180)
 
-    async def DallE_Collage(self, loop, arg):
+    async def DallE_Collage(self, loop : AbstractEventLoop, arg):
         images = await self.CreateImages(prompt=arg)
         images = await loop.run_in_executor(None, self.ConvertImages, images)
         collage = await loop.run_in_executor(None, self.CreateCollage, images)
@@ -37,7 +38,7 @@ class dalle(commands.Cog):
             imgs.append(image)                    # appends the finished image to the imgs array
         return imgs
 
-    def CreateCollage(self, images):
+    def CreateCollage(self, images : list):
         collage = Image.new("RGBA", (768, 768))
         for y in range(0, 768, 256):
             for x in range(0, 768, 256):
@@ -45,7 +46,7 @@ class dalle(commands.Cog):
                 images.pop(0)
         return collage
 
-    def PillowImageToBytes(self, image):
+    def PillowImageToBytes(self, image : Image):
         buf = io.BytesIO()
         image.save(buf, format='PNG')
         buf.seek(0)
@@ -55,7 +56,7 @@ class dalle(commands.Cog):
     @commands.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
-    async def dalle(self, ctx, *, prompt="a cute kitten"):
+    async def dalle(self, ctx : commands.Context, *, prompt="a cute kitten"):
         embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
         embed.set_image(url="attachment://unknown.png")
         image = await self.DallE_Collage(ctx.bot.loop, prompt)

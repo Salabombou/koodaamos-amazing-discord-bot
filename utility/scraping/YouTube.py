@@ -1,3 +1,5 @@
+from asyncio import AbstractEventLoop
+from googleapiclient.discovery import Resource
 import json
 import yt_dlp
 import urllib
@@ -55,7 +57,7 @@ def get_info(url, video=False, max_duration=None):
         else: return info
         raise VideoTooLong(max_duration)
 
-async def fetch_from_search(youtube, query) -> Video: # youtube api searches are expensive so webscraping it is
+async def fetch_from_search(youtube : Resource, query) -> Video: # youtube api searches are expensive so webscraping it is
     urlsafe_quote = urllib.parse.quote(query)
     url = 'https://www.youtube.com/results?search_query=' + urlsafe_quote
     resp = await client.get(url)
@@ -75,7 +77,7 @@ async def fetch_from_search(youtube, query) -> Video: # youtube api searches are
     except:
         raise VideoSearchNotFound(query)
     
-def fetch_from_video(youtube, videoId) -> list[Video]:
+def fetch_from_video(youtube : Resource, videoId) -> list[Video]:
     request = youtube.videos().list(
         part='snippet',
         id=videoId
@@ -89,7 +91,7 @@ def fetch_from_video(youtube, videoId) -> list[Video]:
         return [Video(data=song)]
     else: raise VideoUnavailable()
 
-async def fetch_from_playlist(loop, youtube, playlistId) -> list[Video]:
+async def fetch_from_playlist(loop : AbstractEventLoop, youtube : Resource, playlistId) -> list[Video]:
     request = youtube.playlistItems().list(
         part='snippet',
         playlistId=playlistId,
@@ -106,7 +108,7 @@ async def fetch_from_playlist(loop, youtube, playlistId) -> list[Video]:
         songs.append(Video(data=song))
     return songs
 
-def fetch_channel_icon(youtube, channelId) -> str:
+def fetch_channel_icon(youtube : Resource, channelId) -> str:
     request = youtube.channels().list(
         part='snippet',
         id=channelId

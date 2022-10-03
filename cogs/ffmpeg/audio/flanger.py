@@ -4,20 +4,17 @@ from utility.ffmpeg import *
 from utility.common import decorators, file_management
 from utility.common.command import respond
 
-import httpx
-
 class flanger(commands.Cog):
-    def __init__(self, bot, tokens):
+    def __init__(self, bot : commands.Bot, tokens):
         self.description = 'yes'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
-        self.client = httpx.AsyncClient(timeout=10)
         self.ffmpeg_params = [
             '-i', '"%s"',
             '-filter_complex', '"flanger=speed=%s:width=100"',
             ]
             
-    async def create_output_video(self, ctx, speed):
+    async def create_output_video(self, ctx : commands.Context, speed):
         target = await discordutil.get_target(ctx, no_img=True)
 
         cmd = create_command(self.ffmpeg_params, target.proxy_url, speed)
@@ -30,6 +27,6 @@ class flanger(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.typing
-    async def flan(self, ctx, speed=10.0):
+    async def flan(self, ctx : commands.Context, speed=10.0):
         file, pomf_url = await self.create_output_video(ctx, speed)
         await respond(ctx, content=pomf_url, file=file, mention_author=False)

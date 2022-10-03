@@ -3,7 +3,7 @@ from discord.ext import commands
 
 class help_command(commands.HelpCommand):
 
-    def get_command_signature(self, command):
+    def get_command_signature(self, command : commands.Command):
         signature =  command.signature
         return '%s%s %s' % (self.context.clean_prefix, command.qualified_name, signature)
 
@@ -20,7 +20,7 @@ class help_command(commands.HelpCommand):
         channel = self.get_destination()
         await channel.send(embed=embed)
 
-    async def send_command_help(self, command):
+    async def send_command_help(self, command : commands.Command):
         embed = discord.Embed(title=self.get_command_signature(command) , color=0xC9EDBE)
         if command.help:
             embed.description = command.help
@@ -30,7 +30,7 @@ class help_command(commands.HelpCommand):
         channel = self.get_destination()
         await channel.send(embed=embed)
 
-    async def send_help_embed(self, title, description, commands): # a helper function to add commands to an embed
+    async def send_help_embed(self, title, description, commands : list[commands.Command]): # a helper function to add commands to an embed
         embed = discord.Embed(title=title, description=description or "No help found...")
 
         if filtered_commands := await self.filter_commands(commands):
@@ -40,10 +40,10 @@ class help_command(commands.HelpCommand):
 
         await self.get_destination().send(embed=embed)
 
-    async def send_group_help(self, group):
+    async def send_group_help(self, group : commands.Group):
         title = self.get_command_signature(group)
         await self.send_help_embed(title, group.help, group.commands)
 
-    async def send_cog_help(self, cog):
+    async def send_cog_help(self, cog : commands.Cog):
         title = cog.qualified_name or "No"
         await self.send_help_embed(f'{title.capitalize()}', cog.description, cog.get_commands())

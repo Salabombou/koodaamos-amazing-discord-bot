@@ -1,6 +1,7 @@
 from utility.scraping import YouTube, Reddit, TikTok, Spotify
 from utility.common.errors import UnsupportedUrl
 import urllib.parse
+import urllib.request
 import os
 
 supported_sites = ['www.youtube.com', 'www.reddit.com', 'www.tiktok.com', 'open.spotify.com']

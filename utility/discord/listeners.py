@@ -1,6 +1,7 @@
 from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailure
 from discord import HTTPException, Forbidden, NotFound, ApplicationCommandInvokeError
 import discord
+from discord.ext import commands
 from utility.common.command import respond
 import os
 
@@ -24,7 +25,7 @@ class Listeners:
         embed = create_error_embed(error)
         await respond(ctx, embed=embed)
 
-    async def on_application_command_error(self, ctx, error):
+    async def on_application_command_error(self, ctx : commands.Context, error):
         if isinstance(error, ApplicationCommandInvokeError):
             error = error.original # gets the original exception from ApplicationCommandInvokeError
         if isinstance(error, NotFound):

@@ -1,4 +1,5 @@
 from asyncio import AbstractEventLoop
+from discord import Attachment, Embed, StickerItem
 import os
 import httpx
 import math
@@ -10,7 +11,7 @@ from utility.common.errors import CommandTimeout, FfmpegError
 
 client = httpx.AsyncClient()
 
-def create_width(target):
+def create_width(target : Attachment | Embed | StickerItem):
     width = math.ceil((target.width / target.height) * 720 / 2) * 2
     width = math.ceil(width / 2) * 2
     return width
@@ -25,7 +26,7 @@ def create_paths(ID, *args) -> tuple:
         paths.append(f'./files/{arg}{ID}_{timestamp}.temp')
     return tuple(paths)
 
-def create_command(command : list, *args):
+def create_command(command : list[str], *args):
     command = ' '.join(command) % args
     command = command.split(' ')
     return command
