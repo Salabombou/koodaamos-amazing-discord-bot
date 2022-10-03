@@ -25,7 +25,7 @@ with open('./tokens.json', 'r') as tokens_file:
     tokens = json.loads(tokens_file.read())
 
 # cogs for the bot to use
-cogs = (dalle, gpt3, music, green, ruin, download, audio, mute, nightcore, flanger, eduko, sauce, earrape, owner)
+cogs = (dalle, gpt3, music, green, ruin, videofy, download, audio, mute, nightcore, flanger, eduko, sauce, earrape, owner)
 for cog in cogs:
     bot.add_cog(cog(bot, tokens))
 

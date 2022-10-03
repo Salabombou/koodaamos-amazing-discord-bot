@@ -33,19 +33,23 @@ class target_fetcher:
             sticker.width = 320 # these attributes are missing from the StickerItem object
             sticker.height = 320
             sticker.proxy_url = sticker.url
+            sticker.content_type = 'image'
             return sticker
         for attachment in attachments:
             if attachment.content_type != None:
-                content_type = attachment.content_type[0:5]
-                if self.allowed(content_type):
+                attachment.content_type = attachment.content_type[0:5]
+                if self.allowed(attachment.content_type):
                     return attachment
         for embed in embeds:
             if isinstance(embed, discord.embeds.Embed):
                 if isinstance(embed.video.proxy_url, str) and self.vid:
+                    embed.video.content_type = 'video'
                     return embed.video
                 if isinstance(embed.image.proxy_url, str) and self.img:
+                    embed.image.content_type = 'image'
                     return embed.image
                 if isinstance(embed.thumbnail.proxy_url, str) and self.img:
+                    embed.image.content_type = 'image'
                     return embed.thumbnail
         return None
 

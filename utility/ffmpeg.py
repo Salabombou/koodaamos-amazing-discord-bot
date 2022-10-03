@@ -43,22 +43,28 @@ class CommandRunner:
     def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
 
-    async def run(self, command : list, output: str = None, arbitrary_command=False) -> None:
+    async def run(self, command : list, output: str = None, arbitrary_command=False, stdin=None) -> None:
         if not arbitrary_command:
             command = [
+                'ffmpeg',
                *command,
                 '-loglevel', 'error',
                 '-t', '00:01:00',
                 '-movflags', 'frag_keyframe+empty_moov',
                 '-pix_fmt', 'yuv420p',
+                '-b:v', '200k',
+                '-b:a', '96k',
+                '-c:v', 'libx264',
+                '-c:a', 'aac',
                 '-f', 'mp4',
                 output
             ]
-        command = 'ffmpeg ' + ' '.join(command)
         try:
             pipe = await self.loop.run_in_executor(
                 None, functools.partial(
                     subprocess.run, command,
+                    input=stdin,
+                    bufsize=10**8,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     timeout=60
@@ -67,7 +73,7 @@ class CommandRunner:
         except Exception as e:
             print(str(e))
             raise CommandTimeout()
-        err = pipe.stderr.decode('utf-8') 
+        err = pipe.stderr.decode() 
         if err != '':
             raise FfmpegError(err)
         return pipe.stdout

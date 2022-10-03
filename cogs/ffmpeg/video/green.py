@@ -12,8 +12,6 @@ class green(commands.Cog):
         self.command_runner = CommandRunner(bot.loop) # class used to run ffmpeg commands
         self.filter = '[2:v]scale=%s,fps=30,scale=-1:720,colorkey=0x%s:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
         self.path_args = ( # paths for the temp files
-            'green/video/',         # video_path
-            'green/target/',        # target_path
             'green/filtered/',      # filtered_path
             'green/audio/video/',   # audio_video_path
             'green/audio/target/',  # audio_target_path
@@ -92,8 +90,6 @@ class green(commands.Cog):
 
         paths = create_paths(ctx.author.id, *self.path_args) # creates the ready paths
         (
-            video_path,
-            target_path,
             filtered_path,
             audio_video_path,
             audio_target_path,
@@ -101,18 +97,12 @@ class green(commands.Cog):
             output_path
         ) = paths
 
-        inputs =  [
-            [video['url'], video_path],
-            [target.proxy_url, target_path]
-            ]
-        await save_files(inputs)
-
         width = create_width(target) # creates a width that is divisible by two
         time_to = create_time(video['duration']) # creates the duration in format hh:mm:ss
         color = self.set_color(color) # creates the color
 
         cmds = []
-        cmds.append(create_command(self.ffmpeg_command, *(time_to, time_to, target_path, video_path, width, color, filtered_path, audio_target_path, audio_video_path)))
+        cmds.append(create_command(self.ffmpeg_command, *(time_to, time_to, target.proxy_url, video['url'], width, color, filtered_path, audio_target_path, audio_video_path)))
         cmds.append(create_command(self.merge_audio_command, *(audio_target_path, audio_video_path, audio_path)))
         cmds.append(create_command(self.merge_command, *(filtered_path, audio_path, output_path)))
 
