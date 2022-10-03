@@ -1,14 +1,15 @@
 import discord
-from discord import NotFound
+from discord import NotFound, Interaction
 from utility.discord import voice_chat
 from utility.tools import music_tools
+from discord.ext import commands
 import math
 import numpy as np
 import asyncio
 
 
 class music_view(discord.ui.View):
-    def __init__(self, music_self, ctx):
+    def __init__(self, music_self, ctx : commands.Context):
         super().__init__(timeout=None)
         self.ctx = ctx
         self.bot = music_self.bot
@@ -73,7 +74,7 @@ class music_view(discord.ui.View):
             self.index -= 1
         
     @discord.ui.select(placeholder='Choose page...', min_values=0, row=0)
-    async def select_callback(self, select, interaction):
+    async def select_callback(self, select : discord.ui.Select, interaction : Interaction):
         value = int(select.values[0])
         self.index = value
         self.update_embed()
@@ -81,41 +82,41 @@ class music_view(discord.ui.View):
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='FIRST PAGE' ,emoji='⏪', style=discord.ButtonStyle.red, row=1, disabled=True)
-    async def super_backward_callback(self, button, interaction):
+    async def super_backward_callback(self, button, interaction : Interaction):
         self.index = 0
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='PREVIOUS PAGE' ,emoji='◀️', style=discord.ButtonStyle.red, row=1, disabled=True)
-    async def backward_callback(self, button, interaction):
+    async def backward_callback(self, button, interaction : Interaction):
         self.index -= 1
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='REFRESH' ,emoji='🔄', style=discord.ButtonStyle.red, row=1)
-    async def refresh_callback(self, button, interaction):
+    async def refresh_callback(self, button, interaction : Interaction):
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
         
     @discord.ui.button(label='NEXT PAGE' ,emoji='▶️', style=discord.ButtonStyle.red, row=1)
-    async def forward_callback(self, button, interaction):
+    async def forward_callback(self, button, interaction : Interaction):
         self.index += 1
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='LAST PAGE' ,emoji='⏩', style=discord.ButtonStyle.red, row=1)
-    async def super_forward_callback(self, button, interaction):
+    async def super_forward_callback(self, button, interaction : Interaction):
         self.index = math.ceil(len(self.playlist[self.server][0]) / 50) - 1
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='SKIP' ,emoji='⏭️', style=discord.ButtonStyle.red, row=2)
-    async def skip_callback(self, button, interaction):
+    async def skip_callback(self, button, interaction : Interaction):
         temp = self.looping[self.server]
         self.looping[self.server] = False
         await voice_chat.resume(self.ctx)
@@ -127,7 +128,7 @@ class music_view(discord.ui.View):
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='SHUFFLE' ,emoji='🔀', style=discord.ButtonStyle.red, row=2)
-    async def shuffle_callback(self, button, interaction):
+    async def shuffle_callback(self, button, interaction : Interaction):
         if self.playlist[self.server][0] == []: return
         temp = self.playlist[self.server][0][0]
         self.playlist[self.server][0].pop(0)
@@ -139,12 +140,12 @@ class music_view(discord.ui.View):
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='LOOP' ,emoji='🔁', style=discord.ButtonStyle.red, row=2)
-    async def loop_callback(self, button, interaction):
+    async def loop_callback(self, button, interaction : Interaction):
         self.looping[self.server] = not self.looping[self.server]
         await interaction.response.edit_message(view=self)
 
     @discord.ui.button(label='PAUSE/RESUME' ,emoji='⏯️', style=discord.ButtonStyle.red, row=2)
-    async def pauseresume_callback(self, button, interaction):
+    async def pauseresume_callback(self, button, interaction : Interaction):
         if self.ctx.voice_client == None: return
         if not self.ctx.voice_client.is_paused():
             await voice_chat.pause(self.ctx)

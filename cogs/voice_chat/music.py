@@ -45,7 +45,7 @@ class music(commands.Cog):
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
-    async def list(self, ctx):
+    async def list(self, ctx : commands.Context):
         embed = music_tools.create_embed(ctx, self.playlist, 0)
         message = await respond(ctx, embed=embed)
         ctx = await self.bot.get_context(message)
@@ -56,7 +56,7 @@ class music(commands.Cog):
     @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
-    async def disconnect(self, ctx):
+    async def disconnect(self, ctx : commands.Context):
         server = music_tools.get_server(ctx)
         self.playlist[server] = [[],[]]
         await voice_chat.leave(ctx)
@@ -66,7 +66,7 @@ class music(commands.Cog):
     @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
-    async def resume(self, ctx):
+    async def resume(self, ctx : commands.Context):
         await voice_chat.resume(ctx)
 
     @commands.command(help='pauses the currently playing song')
@@ -74,7 +74,7 @@ class music(commands.Cog):
     @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
-    async def pause(self, ctx):
+    async def pause(self, ctx : commands.Context):
         await voice_chat.pause(ctx)
     
     @commands.command(help='skips the currently playing song')
@@ -101,7 +101,7 @@ class music(commands.Cog):
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
-    async def shuffle(self, ctx):
+    async def shuffle(self, ctx : commands.Context):
         server = music_tools.get_server(ctx)
         if self.playlist[server] == [[],[]]: return
         temp = self.playlist[server][0][0]
@@ -116,7 +116,7 @@ class music(commands.Cog):
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
-    async def loop(self, ctx):
+    async def loop(self, ctx : commands.Context):
         server = music_tools.get_server(ctx)
         self.looping[server] = not self.looping[server]
     
@@ -137,7 +137,7 @@ class music(commands.Cog):
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
-    async def replay(self, ctx):
+    async def replay(self, ctx : commands.Context):
         server = music_tools.get_server(ctx)
         if self.playlist[server][0] != []:
             self.playlist[server][0].insert(0, self.playlist[server][0][0])

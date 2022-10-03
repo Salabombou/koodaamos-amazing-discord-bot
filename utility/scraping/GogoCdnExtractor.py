@@ -40,7 +40,7 @@ def crypto_handler(data_value, iv, secret_key, encrypt=True):
         encrypted = thingy.encrypt(data_value, iv)
         return encrypted
 
-def substring_after(string, sub):
+def substring_after(string : str, sub : str):
     string = string.split(sub)[1:]
     string = sub.join(string)
     return string

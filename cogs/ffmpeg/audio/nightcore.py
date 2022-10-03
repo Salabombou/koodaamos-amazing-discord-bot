@@ -2,19 +2,13 @@ from discord.ext import commands
 from utility.discord import target as discordutil
 from utility.ffmpeg import *
 from utility.common import decorators, file_management
-from utility.common.errors import CommandTimeout, FfmpegError
 from utility.common.command import respond
-import functools
-import subprocess
-import httpx
-import asyncio
 
 class nightcore(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
         self.description = 'makes the audio of a video / audio nightcore'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
-        self.client = httpx.AsyncClient(timeout=10)
         self.path_args = (
             'nightcore/target/',
             'nightcore/audio/',
@@ -46,7 +40,7 @@ class nightcore(commands.Cog):
             '-f', 'mp4',
             '"%s"'
             ]
-    async def create_output_video(self,  ctx : commands.context.Context):
+    async def create_output_video(self,  ctx : commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
 
         paths = create_paths(ctx.author.id, *self.path_args)
@@ -73,6 +67,6 @@ class nightcore(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.typing
-    async def nc(self, ctx):
+    async def nc(self, ctx : commands.Context):
         file, pomf_url = await self.create_output_video(ctx)
         await respond(ctx, content=pomf_url, file=file, mention_author=False)

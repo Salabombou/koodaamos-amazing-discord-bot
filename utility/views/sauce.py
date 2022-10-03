@@ -1,4 +1,5 @@
 import discord
+from discord import Interaction
 from utility.tools import sauce_tools
 from discord.errors import NotFound
 
@@ -11,7 +12,7 @@ class sauce_view(discord.ui.View):
         self.index = 0
         self.update_index()
 
-    async def on_error(self, error, button, interaction):
+    async def on_error(self, error, button, interaction : Interaction):
         if isinstance(error, NotFound):
             return
         print(str(error))
@@ -20,14 +21,14 @@ class sauce_view(discord.ui.View):
         self.index = -1 if self.index + 1 > len(self.results) - 1 else self.index
 
     @discord.ui.button(label='◀', style=discord.ButtonStyle.gray)
-    async def backward_callback(self, button, interaction):
+    async def backward_callback(self, button, interaction : Interaction):
         self.index -= 1
         self.update_index()
         self.embed = sauce_tools.create_embed(self.results[self.index], self.url, self.hidden)
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='▶', style=discord.ButtonStyle.gray)
-    async def forward_callback(self, button, interaction):
+    async def forward_callback(self, button, interaction : Interaction):
         self.index += 1
         self.update_index()
         self.embed = sauce_tools.create_embed(self.results[self.index], self.url, self.hidden)

@@ -56,7 +56,7 @@ class dalle(commands.Cog):
     @commands.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
-    async def dalle(self, ctx : commands.context.Context, *, prompt="a cute kitten"):
+    async def dalle(self, ctx : commands.Context, *, prompt="a cute kitten"):
         embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
         embed.set_image(url="attachment://unknown.png")
         image = await self.DallE_Collage(ctx.bot.loop, prompt)

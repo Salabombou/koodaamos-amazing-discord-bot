@@ -7,7 +7,7 @@ import io
 
     
 class tts(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot : commands.Bot):
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=30)
 
@@ -28,7 +28,7 @@ class tts(commands.Cog):
     @commands.command(aliases=['15'])
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def tts(self, ctx, *, arg="Hi there!"):
+    async def tts(self, ctx : commands.Context, *, arg="Hi there!"):
         if ctx.message.author.bot:
             return 
         async with ctx.typing():

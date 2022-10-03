@@ -1,5 +1,4 @@
 from discord.ext import commands
-import httpx
 from utility.discord import target as discordutil
 from utility.scraping import YouTube
 from utility.common import decorators, file_management
@@ -11,7 +10,6 @@ class green(commands.Cog):
         self.description = 'Overlays a greenscreen video on top of an image / video'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop) # class used to run ffmpeg commands
-        self.client = httpx.AsyncClient(timeout=10)
         self.filter = '[2:v]scale=%s,fps=30,scale=-1:720,colorkey=0x%s:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
         self.path_args = ( # paths for the temp files
             'green/video/',         # video_path
@@ -88,7 +86,7 @@ class green(commands.Cog):
         except: color = '000ff00' # green if it fails to be converted to hexadecimal
         return color
 
-    async def create_output_video(self, ctx : commands.context.Context, url, color):
+    async def create_output_video(self, ctx : commands.Context, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True) # gets the target file
         video = YouTube.get_info(url=url, video=True, max_duration=300) # gets the info from the youtube video specified
 
@@ -128,6 +126,6 @@ class green(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.typing
-    async def green(self, ctx, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
+    async def green(self, ctx : commands.Context, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
         file, pomf_url = await self.create_output_video(ctx, url, color)
         await respond(ctx, content=pomf_url, file=file)

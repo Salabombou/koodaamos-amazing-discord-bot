@@ -1,16 +1,16 @@
 import httpx
-from discord.ext.commands.context import Context
-from discord import Embed, File
+from discord.ext import commands
+from discord import Embed, File, Webhook
 client = httpx.AsyncClient()
 
-async def fetch_avatar(ctx : Context):
+async def fetch_avatar(ctx : commands.Context) -> bytes:
     url = ctx.bot.user.avatar.url
     url = url.split('?')[0]
     resp = await client.get(url=url)
     resp.raise_for_status()
     return resp.content
 
-async def fetch_webhook(ctx : Context):
+async def fetch_webhook(ctx : commands.Context) -> Webhook:
     webhooks = await ctx.message.channel.webhooks()
     for webhook in webhooks:
         if webhook.user.id == 955557550735106098:

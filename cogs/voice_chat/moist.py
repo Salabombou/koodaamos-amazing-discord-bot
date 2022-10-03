@@ -31,7 +31,7 @@ class moist(commands.Cog):
     @commands.command()
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def moist(self, ctx : commands.context.Context, *, arg="Hi there!"):
+    async def moist(self, ctx : commands.Context, *, arg="Hi there!"):
         arg = arg.replace('\n', ' ')
         if ctx.message.author.voice == None:
             return
@@ -50,5 +50,5 @@ class moist(commands.Cog):
             pass
         
     @commands.command()
-    async def leave(self, ctx : commands.context.Context):
+    async def leave(self, ctx : commands.Context):
         await ctx.voice_client.disconnect()

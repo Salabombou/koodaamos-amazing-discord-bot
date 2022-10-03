@@ -1,6 +1,6 @@
 import discord.embeds
 from utility.common.errors import TargetNotFound
-from discord.ext.commands.context import Context
+from discord.ext import commands
 from discord import StickerItem, Embed, Attachment
 """
 THE ORDER FOR THE FILES
@@ -30,7 +30,7 @@ class target_fetcher:
 
     def get_file(self, embeds : list[Embed], attachments : list[Attachment], stickers : list[StickerItem]):
         for sticker in stickers:
-            sticker.width = 320  # these attributes are missing from the StickerItem object
+            sticker.width = 320 # these attributes are missing from the StickerItem object
             sticker.height = 320
             sticker.proxy_url = sticker.url
             return sticker
@@ -49,7 +49,7 @@ class target_fetcher:
                     return embed.thumbnail
         return None
 
-async def get_target(ctx : Context, no_aud=False, no_vid=False, no_img=False):
+async def get_target(ctx : commands.Context, no_aud=False, no_vid=False, no_img=False):
     history = await ctx.channel.history(limit=100).flatten()
     fetcher = target_fetcher(no_aud, no_vid, no_img)
     stickers = ctx.message.stickers
