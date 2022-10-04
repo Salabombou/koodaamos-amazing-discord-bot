@@ -5,6 +5,7 @@ import discord.embeds
 from utility.common.errors import TargetNotFound
 from discord.ext import commands
 from discord import StickerItem, Embed, Attachment
+from discord.embeds import EmbedProxy
 from utility.ffprobe import FfprobeFormat, Ffprober
 
 """
@@ -23,17 +24,33 @@ THE ORDER WHERE TO LOOK FOR FILES
 """
 
 class Target(FfprobeFormat):
-    def __init__(self, loop : AbstractEventLoop, target : Embed | Attachment | StickerItem) -> None:
-        result = asyncio.run_coroutine_threadsafe(Ffprober.get_format(target.proxy_url), loop)
-        result = result._result
-        super().__init__(result)
+    def __init__(self, loop : AbstractEventLoop, target : EmbedProxy | Attachment | StickerItem) -> None:
+        self.loop = loop
+        self.ffprober = Ffprober(loop)
         self.width = None
         self.height = None
-        self.proxy_url = target.proxy_url
+        self.proxy_url = None
         self.type = None
+        self.has_audio = None
 
-        if isinstance(target, Embed):
-            pass
+        if isinstance(target, EmbedProxy):
+            self.type = 'image'
+        if isinstance(target, Attachment):
+            self.type = target.content_type[:5]
+        if isinstance(target, StickerItem):
+            self.type = 'image'
+            self.width = 320
+            self.height = 320
+            self.proxy_url = target.url
+        elif target != None:
+            self.proxy_url = target.proxy_url
+            self.width = target.width
+            self.height = target.height
+
+    async def probe(self) -> None: # probes the target using ffprobe
+        result = await self.ffprober.get_format(self.proxy_url)
+        super().__init__(result)
+        self.has_audio = self.nb_streams > 1
 
 class target_fetcher:
     def __init__(self, no_aud=False, no_vid=False, no_img=False) -> None:
@@ -46,32 +63,24 @@ class target_fetcher:
             c == 'video' and self.vid) or (
             c == 'image' and self.img)
 
-    def get_file(self, embeds : list[Embed], attachments : list[Attachment], stickers : list[StickerItem]):
+    def get_file(self, embeds : list[Embed], attachments : list[Attachment], stickers : list[StickerItem]) -> Embed | Attachment | StickerItem:
         for sticker in stickers:
-            sticker.width = 320 # these attributes are missing from the StickerItem object
-            sticker.height = 320
-            sticker.proxy_url = sticker.url
-            sticker.content_type = 'image'
             return sticker
         for attachment in attachments:
             if attachment.content_type != None:
-                attachment.content_type = attachment.content_type[0:5]
-                if self.allowed(attachment.content_type):
+                if self.allowed(attachment.content_type[:5]):
                     return attachment
         for embed in embeds:
             if isinstance(embed, discord.embeds.Embed):
                 if isinstance(embed.video.proxy_url, str) and self.vid:
-                    embed.video.content_type = 'video'
                     return embed.video
                 if isinstance(embed.image.proxy_url, str) and self.img:
-                    embed.image.content_type = 'image'
                     return embed.image
                 if isinstance(embed.thumbnail.proxy_url, str) and self.img:
-                    embed.image.content_type = 'image'
                     return embed.thumbnail
         return None
 
-async def get_target(ctx : commands.Context, no_aud=False, no_vid=False, no_img=False):
+async def get_target(ctx : commands.Context, no_aud=False, no_vid=False, no_img=False) -> Target:
     history = await ctx.channel.history(limit=100).flatten()
     fetcher = target_fetcher(no_aud, no_vid, no_img)
     stickers = ctx.message.stickers
@@ -94,5 +103,5 @@ async def get_target(ctx : commands.Context, no_aud=False, no_vid=False, no_img=
         file = fetcher.get_file(embeds, attachments, stickers)
 
     if file != None:
-        return file
+        return Target(ctx.bot.loop, file)
     raise TargetNotFound()

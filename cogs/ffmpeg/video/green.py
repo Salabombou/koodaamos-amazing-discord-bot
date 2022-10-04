@@ -4,7 +4,6 @@ from utility.scraping import YouTube
 from utility.common import decorators, file_management
 from utility.common.command import respond
 from utility.ffmpeg import *
-from utility.ffprobe import Ffprober
 
 class green(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
@@ -13,11 +12,9 @@ class green(commands.Cog):
         self.command_runner = CommandRunner(bot.loop) # class used to run ffmpeg commands
         self.filter = '[2:v]scale=%s,fps=30,scale=-1:720,colorkey=0x%s:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
         self.green_args = [
-            '-stream_loop', '-1',
-            '-ss', '00:00:00',
-            '-to', '%s',
             '-f', 'lavfi',
-            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
+            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=%s',
+            '-r', '30',
             '-stream_loop', '-1',
             '-ss', '00:00:00',
             '-to', '%s',
@@ -37,14 +34,15 @@ class green(commands.Cog):
 
     async def create_output_video(self, ctx : commands.Context, url, color):
         target = await discordutil.get_target(ctx=ctx, no_aud=True, no_img=True) # gets the target file
-
+        await target.probe()
+        
         video = YouTube.get_info(url=url, video=True, max_duration=300) # gets the info from the youtube video specified
 
         width = create_width(target) # creates a width that is divisible by two
         time_to = create_time(video['duration']) # creates the duration in format hh:mm:ss
         color = self.set_color(color) # creates the color
 
-        cmd = create_command(self.green_args, time_to, time_to, target.proxy_url, video['url'], width, color )
+        cmd = create_command(self.green_args, video['duration'], time_to, target.proxy_url, video['url'], width, color, 1 if target.has_audio else 0)
         out = await self.command_runner.run(cmd)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')

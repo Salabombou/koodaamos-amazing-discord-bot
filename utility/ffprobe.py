@@ -16,7 +16,9 @@ class FfprobeFormat:
         self.bit_rate = result['bit_rate']
         self.probe_score = int(result['probe_score'])
 
-class Ffprober:    
+class Ffprober:
+    def __init__(self, loop : AbstractEventLoop) -> None:
+        self.loop = loop
     def output_parser(self, output) -> dict:
         output = output.replace('\r', '') # incase you are using windows
         output = output.split('\n')
@@ -28,14 +30,17 @@ class Ffprober:
         return result
 
 
-    def get_format(self, file) -> dict:
+    async def get_format(self, file) -> dict:
         command = f'ffprobe -show_format -pretty -loglevel error "{file}"'
         try:
-            pipe = subprocess.run(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=5
+            pipe = await self.loop.run_in_executor(
+                None, functools.partial(
+                    subprocess.run,
+                    command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    timeout=5
+                )
             )
         except Exception as e:
             raise CommandTimeout()
