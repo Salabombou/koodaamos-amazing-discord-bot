@@ -43,10 +43,12 @@ class CommandRunner:
     def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
 
-    async def run(self, command : list, output: str = None, arbitrary_command=False, stdin=None) -> None:
+    async def run(self, command : list, output: str = 'pipe:1', arbitrary_command=False, stdin=None) -> None:
+        command = [
+            'ffmpeg', *command
+            ]
         if not arbitrary_command:
             command = [
-                'ffmpeg',
                *command,
                 '-loglevel', 'error',
                 '-t', '00:01:00',
@@ -60,6 +62,8 @@ class CommandRunner:
                 output
             ]
         try:
+            if stdin == None:
+                command = ' '.join(command)
             pipe = await self.loop.run_in_executor(
                 None, functools.partial(
                     subprocess.run, command,

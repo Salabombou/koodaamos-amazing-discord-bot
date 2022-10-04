@@ -18,7 +18,7 @@ class audio(commands.Cog):
             '-to', '%s',
             '-i', '"%s"',
             '-i', '"%s"',
-            '-filter_complex', '"[%s:a:0][2:a:0]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a];[1:v]pad=ceil(iw/2)*2:ceil(ih/2)*2[v]"',
+            '-filter_complex', '"[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a];[1:v]pad=ceil(iw/2)*2:ceil(ih/2)*2[v]"',
             '-map', '[a]',
             '-map', '[v]'
         ]

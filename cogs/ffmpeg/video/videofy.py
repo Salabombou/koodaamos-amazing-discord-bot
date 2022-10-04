@@ -1,11 +1,9 @@
 import io
 from discord.ext import commands
 from utility.discord import target as discordutil
-from utility.scraping import YouTube
 from utility.common.command import respond
 from utility.common import decorators, file_management
 from utility.ffmpeg import *
-from PIL import Image
 
 class videofy(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
@@ -13,32 +11,28 @@ class videofy(commands.Cog):
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
         self.img2vid_args = [
+            '-loop', '1',
+            '-ss', '00:00:00',
+            '-to', '00:00:01',
+            '-i', '"%s"',
             '-f', 'lavfi',
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
-            '-f', 'image2pipe',
-            #'-pixel_format', 'argb',
-            #'-video_size', '%sx%s',
-            '-framerate', '1',
-            '-i', '-',
-            #'-vf', '"pad=ceil(iw/2)*2:ceil(ih/2)*2"',
-            '-map', '0:a',
-            '-map', '1:v'
+            '-loglevel', 'error',
+            '-shortest',
+            '-movflags', 'frag_keyframe+empty_moov',
+            '-pix_fmt', 'yuv420p',
+            '-f', 'mp4',
+            'pipe:1'
         ]
-    
-    async def pngfy(self, url):
-        raw_img = await file_management.get_bytes(url)
-        buf = io.BytesIO(raw_img)
-        img = Image.open(buf)
-        img.save(buf, format='PNG')
-        buf.seek(0)
-        return buf.getvalue()
+        self.aud2vid_args = [
+            
+        ]
 
     async def create_output(self, ctx : commands.Context): 
         target = await discordutil.get_target(ctx, no_vid=True, no_aud=True)
-
-        stdin = await self.pngfy(target.proxy_url)
-        cmd = self.img2vid_args
-        out = await self.command_runner.run(cmd, output='pipe:1', stdin=stdin)
+        
+        cmd = create_command(self.img2vid_args, target.proxy_url)
+        out = await self.command_runner.run(cmd, arbitrary_command=True)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

@@ -53,6 +53,12 @@ class FfmpegError(Exception):
     def __str__(self) -> str:
         return self.message
 
+class FfprobeError(Exception):
+    def __init__(self, error) -> None:
+        self.message = error
+    def __str__(self) -> str:
+        return self.message
+
 class VideoSearchNotFound(Exception):
     def __init__(self, query) -> None:
         self.message = f'No videos were found with the query "{query}"'

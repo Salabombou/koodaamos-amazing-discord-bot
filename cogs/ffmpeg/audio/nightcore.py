@@ -9,58 +9,21 @@ class nightcore(commands.Cog):
         self.description = 'makes the audio of a video / audio nightcore'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
-        self.path_args = (
-            'nightcore/target/',
-            'nightcore/audio/',
-            'nightcore/output/'
-            )
-        self.ffmpeg_command = [
+        self.nightcore_args = [
             '-i', '"%s"',
-            '-loglevel', 'error',
-            '-t', '00:01:00',
-            '-filter_complex', '"[0:a:0]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[out]"',
-            '-map', '[out]',
+            '-filter_complex', '"[0:a]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[a];[0:v]setpts=PTS/1.25[v]"',
+            '-map', '[a]',
+            '-map', '[v]',
             '-ac', '1',
-            '-f', 'mp4',
-            '"%s"'
             ]
-        self.merge_command = [
-            '-f', 'lavfi',
-            '-i', 'color=c=black:s=720x720:d=1',
-            '-i', '"%s"',
-            '-i', '"%s"',
-            '-loglevel', 'error',
-            '-t', '00:01:00',
-            '-vf', '"[1:v?]setpts=PTS/1.25"',
-            '-map', '1:v?',
-            '-map', '0:v',
-            '-map', '2:a:0',
-            '-c:a', 'copy',
-            '-pix_fmt', 'yuv420p',
-            '-f', 'mp4',
-            '"%s"'
-            ]
+            
     async def create_output_video(self,  ctx : commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
 
-        paths = create_paths(ctx.author.id, *self.path_args)
-        (
-            target_path,
-            audio_path,
-            output_path,
-        ) = paths
+        cmd = create_command(self.nightcore_args, target.proxy_url)
+        out = await self.command_runner.run(cmd)
 
-        inputs = [[target.proxy_url, target_path]]
-        await save_files(inputs)
-
-        cmds = []
-        cmds.append(create_command(self.ffmpeg_command, target_path, audio_path))
-        cmds.append(create_command(self.merge_command, target_path, audio_path, output_path))
-
-        for cmd in cmds:
-            await self.command_runner.run(cmd, arbitrary_command=True)
-
-        pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
+        pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
 
     @commands.command()

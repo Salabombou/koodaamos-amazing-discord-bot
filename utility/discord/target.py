@@ -1,7 +1,12 @@
+from asyncio import AbstractEventLoop
+import asyncio
+import functools
 import discord.embeds
 from utility.common.errors import TargetNotFound
 from discord.ext import commands
 from discord import StickerItem, Embed, Attachment
+from utility.ffprobe import FfprobeFormat, Ffprober
+
 """
 THE ORDER FOR THE FILES
     Sticker
@@ -16,6 +21,19 @@ THE ORDER WHERE TO LOOK FOR FILES
     From the command message itself
     From the channel history
 """
+
+class Target(FfprobeFormat):
+    def __init__(self, loop : AbstractEventLoop, target : Embed | Attachment | StickerItem) -> None:
+        result = asyncio.run_coroutine_threadsafe(Ffprober.get_format(target.proxy_url), loop)
+        result = result._result
+        super().__init__(result)
+        self.width = None
+        self.height = None
+        self.proxy_url = target.proxy_url
+        self.type = None
+
+        if isinstance(target, Embed):
+            pass
 
 class target_fetcher:
     def __init__(self, no_aud=False, no_vid=False, no_img=False) -> None:
