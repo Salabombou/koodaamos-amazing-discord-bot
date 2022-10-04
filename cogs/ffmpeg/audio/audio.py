@@ -10,85 +10,29 @@ class audio(commands.Cog):
         self.description = 'Adds audio to a image or a video'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
-        self.path_args = (
-            'audio/target/',
-            'audio/audio/audio/',
-            'audio/audio/target/',
-            'audio/audio/',
-            'audio/output/'
-            )
-        self.target_audio_command = [
+        self.audio_args = [
             '-f', 'lavfi',
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
+            '-stream_loop', '-1',
+            '-ss', '00:00:00',
+            '-to', '%s',
             '-i', '"%s"',
-            '-loglevel', 'error',
-            '-t', '00:01:00',
-            '-map', '1:a?',
-            '-vn',
-            '-y',
-            '-f', 'wav',
-            '"%s"'
+            '-i', '"%s"',
+            '-filter_complex', '"[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a];[1:v]pad=ceil(iw/2)*2:ceil(ih/2)*2[v]"',
+            '-map', '[a]',
+            '-map', '[v]'
         ]
-        self.merge_audio_command = [
-            '-stream_loop', '-1',
-            '-ss', '00:00:00',
-            '-to', '%s',
-            '-i', '"%s"',
-            '-i', '"%s"',
-            '-loglevel', 'error',
-            '-t', '00:01:00',
-            '-filter_complex', '"[0][1]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
-            '-map', '"[a]"',
-            '-ac', '1',
-            '-y',
-            '-f', 'wav',
-            '"%s"'
-            ]
-        self.merge_command = [
-            '-stream_loop', '-1',
-            '-ss', '00:00:00',
-            '-to', '%s',
-            '-i', '"%s"',
-            '-i', '"%s"',
-            '-loglevel', 'error',
-            '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
-            '-t', '00:01:00',
-            '-map', '0:v:0',
-            '-map', '1:a:0',
-            '-pix_fmt', 'yuv420p',
-            '-f', 'mp4',
-            '"%s"'
-            ]
+    
     async def create_output(self, ctx : commands.Context, url): 
-        target = await discordutil.get_target(ctx, no_aud=True)
+        target = await discordutil.get_target(ctx, no_aud=True, no_img=True)
         audio = YouTube.get_info(url, video=False, max_duration=300)
-
-        paths = create_paths(ctx.author.id, *self.path_args)
-        (
-            target_path,
-            audio_audio_path,
-            target_audio_path,
-            audio_path,
-            output_path,
-        ) = paths
-
-        inputs = [
-            [target.proxy_url, target_path],
-            [audio['url'], audio_audio_path]
-            ]
-        await save_files(inputs)
-
         time_to = create_time(audio['duration'])
 
-        cmds = []
-        cmds.append(create_command(self.target_audio_command, *(target_path, target_audio_path)))
-        cmds.append(create_command(self.merge_audio_command, *(time_to, target_audio_path, audio_audio_path, audio_path)))
-        cmds.append(create_command(self.merge_command, *(time_to, target_path, audio_path, output_path)))
 
-        for cmd in cmds:
-            await self.command_runner.run(cmd, arbitrary_command=True)
+        cmd = create_command(self.audio_args, time_to, target.proxy_url, audio['url'], 0 if target.content_type == 'image' else 1)
+        out = await self.command_runner.run(cmd, output='pipe:1')
 
-        pomf_url, file = await file_management.prepare_file(ctx, file=output_path, ext='mp4')
+        pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
         
     @commands.command(help='url: a link to a YouTube video')

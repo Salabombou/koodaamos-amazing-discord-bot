@@ -10,7 +10,7 @@ class mute(commands.Cog):
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
 
-        self.ffmpeg_params = [
+        self.mute_args = [
             '-i', '"%s"',
             '-af', 'volume=0'
             ]
@@ -18,7 +18,7 @@ class mute(commands.Cog):
     async def create_output_video(self, ctx : commands.Context) :
         target = await discordutil.get_target(ctx, no_img=True)
 
-        cmd = create_command(self.ffmpeg_params, target.proxy_url)
+        cmd = create_command(self.mute_args, target.proxy_url)
         out = await self.command_runner.run(cmd, output='pipe:1')
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')

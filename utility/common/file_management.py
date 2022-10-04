@@ -42,21 +42,3 @@ async def prepare_file(ctx : commands.Context, file: bytes | str, ext) -> str | 
     file = io.BytesIO(file)
     file = discord.File(fp=file, filename='unknown.' + ext)
     return '', file
-
-class TempRemover:
-    def __init__(self) -> None:
-        self.deleter = threading.Thread(target=self.delete_temps)
-    def delete_temps(self):
-        while True:
-            current_time = time.time()
-            for root, dirs, files in os.walk('./files', topdown=False):
-                for file in files:
-                    ext = os.path.splitext(file)[1][1:]
-                    if ext == 'temp':
-                        t_stamp = int(file.split('_')[1][:-5])
-                        if current_time - t_stamp > 300:
-                            os.remove(f'{root}/{file}')
-            time.sleep(10)
-    
-    def start(self):
-        self.deleter.start()

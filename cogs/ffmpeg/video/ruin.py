@@ -11,20 +11,26 @@ class ruin(commands.Cog):
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
 
-        self.ffmpeg_params = [
+        self.ruin_args= [
             '-i', '"%s"',
             '-loglevel', 'error',
             '-t', '00:01:00',
             '-b:a', '10k',
             '-b:v', '10k',
             '-filter:v', 'fps=5',
+            '-loglevel', 'error',
+            '-t', '00:01:00',
+            '-movflags', 'frag_keyframe+empty_moov',
+            '-pix_fmt', 'yuv420p',
+            '-f', 'mp4',
+            'pipe:1'
             ]
 
     async def create_output_video(self, ctx : commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
 
-        cmd = create_command(self.ffmpeg_params, target.proxy_url)
-        out = await self.command_runner.run(cmd, output='pipe:1')
+        cmd = create_command(self.ruin_args, target.proxy_url)
+        out = await self.command_runner.run(cmd, arbitrary_command=True)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

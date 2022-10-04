@@ -9,7 +9,7 @@ class flanger(commands.Cog):
         self.description = 'yes'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
-        self.ffmpeg_params = [
+        self.flanger_args = [
             '-i', '"%s"',
             '-filter_complex', '"flanger=speed=%s:width=100"',
             ]
@@ -17,7 +17,7 @@ class flanger(commands.Cog):
     async def create_output_video(self, ctx : commands.Context, speed):
         target = await discordutil.get_target(ctx, no_img=True)
 
-        cmd = create_command(self.ffmpeg_params, target.proxy_url, speed)
+        cmd = create_command(self.flanger_args, target.proxy_url, speed)
         out = await self.command_runner.run(cmd, output='pipe:1')
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
