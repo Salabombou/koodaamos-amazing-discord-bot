@@ -46,40 +46,41 @@ class CommandRunner:
     def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
 
-    async def run(self, command : list, output: str = 'pipe:1', arbitrary_command=False, stdin=None) -> None:
+    async def run(self, command : list, t=60, output: str = 'pipe:1', arbitrary_command=False, stdin=None) -> None:
         command = [
-            'ffmpeg', *command
+            'ffmpeg', *command,
+            '-t', str(t)
             ]
         if not arbitrary_command:
             command = [
                *command,
                 '-loglevel', 'error', # logs only errors
-                '-t', '00:01:00', # maximum duration
                 '-movflags', 'frag_keyframe+empty_moov', # 100% fragmented
                 '-pix_fmt', 'yuv420p', # pixel format
-                '-b:v', '200k', # video bitrate
-                '-b:a', '96k', # audio bitrate
+                '-b:v', '256k', # video bitrate
+                '-b:a', '128k', # audio bitrate
                 '-c:v', 'libx264', # video codec
+                '-x264-params', 'lossless=1', # lossless quality
+                '-movflags', 'frag_keyframe+empty_moov+faststart',
                 '-c:a', 'aac', # audio codec
+                '-crf', '27',
+                '-preset', 'veryfast',
                 '-ac', '1', # mono sound
                 '-f', 'mp4', # mp4 format
-                output
             ]
+        command.append(output)
         try:
-            if stdin == None:
-                command = ' '.join(command)
+            command = ' '.join(command)
             pipe = await self.loop.run_in_executor(
                 None, functools.partial(
                     subprocess.run, command,
                     input=stdin,
-                    bufsize=10**8,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    timeout=60
+                    timeout=180
                     )
                 )
-        except Exception as e:
-            print(str(e))
+        except:
             raise CommandTimeout()
         err = pipe.stderr.decode() 
         if pipe.stdout == b'':
@@ -87,43 +88,39 @@ class CommandRunner:
         return pipe.stdout
 
 class Videofier:
-    def __init__(self, ctx : commands.Context):
-        self.ctx = ctx
+    def __init__(self, loop : AbstractEventLoop):
         self.description = 'Adds audio to a image or a video'
-        self.command_runner = CommandRunner(ctx.bot.loop)
+        self.command_runner = CommandRunner(loop)
         self.img2vid_args = [
-            '-framerate', '30',
+            '-framerate', '5',
             '-i', '"%s"',
             '-t', '%s',
-            '-vf', 'loop=-1:1',
-            '-loglevel', 'error',
-            '-pix_fmt', 'yuv420p',
-            '-c:v', 'libx264',
-            '-movflags', 'frag_keyframe+empty_moov+faststart',
-            '-f', 'mp4',
-            'pipe:1'
+            '-vf', 'loop=-1:1'
         ]
         self.aud2vid_args = [
             '-f', 'lavfi',
             '-i', 'color=c=black:s=1280x720:r=5',
-            '-i' '"%s"',
+            '-i', '"%s"',
             '-t', '%s'
-            '-loglevel', 'error',
-            '-pix_fmt', 'yuv420p',
-            '-c:v', 'libx264',
-            '-c:a', 'aac',
-            '-movflags', 'frag_keyframe+empty_moov+faststart',
-            '-f', 'mp4',
-            'pipe:1'
+        ]
+        self.vid2vid_args = [
+            '-i', '"%s"',
+            '-t', '%s'            
         ]
     async def videofy(self, target : target.Target) -> bytes: 
         cmd = ''
+        if target.type == 'video':
+            cmd = self.vid2vid_args
         if target.type == 'image':
             cmd = self.img2vid_args
         elif target.type == 'audio':
             cmd = self.aud2vid_args
 
-        cmd = create_command(cmd, target.proxy_url, target.duration)
-        out = await self.command_runner.run(cmd, arbitrary_command=True)
+        cmd = create_command(
+            cmd,
+            target.proxy_url,
+            target.duration if target.type == 'audio' else 1
+            )
+        out = await self.command_runner.run(cmd)
 
         return out

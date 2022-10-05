@@ -10,17 +10,24 @@ class nightcore(commands.Cog):
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
         self.nightcore_args = [
+            '-f', 'lavfi',
+            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=%s',
             '-i', '"%s"',
-            '-filter_complex', '"[0:a]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[a];[0:v]setpts=PTS/1.25[v]"',
+            '-filter_complex', '"[%s:a]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[a];[1:v]setpts=PTS/1.25[v]"',
             '-map', '[a]',
             '-map', '[v]',
-            '-ac', '1',
             ]
             
     async def create_output_video(self,  ctx : commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
+        await target.probe()
 
-        cmd = create_command(self.nightcore_args, target.proxy_url)
+        cmd = create_command(
+            self.nightcore_args,
+            target.duration,
+            target.proxy_url,
+            1 if target.has_audio else 0
+            )
         out = await self.command_runner.run(cmd)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')

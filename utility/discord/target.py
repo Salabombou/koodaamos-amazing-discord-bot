@@ -1,6 +1,4 @@
 from asyncio import AbstractEventLoop
-import asyncio
-import functools
 import discord.embeds
 from utility.common.errors import TargetNotFound
 from discord.ext import commands

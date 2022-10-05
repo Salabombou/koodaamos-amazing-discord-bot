@@ -19,11 +19,10 @@ class ruin(commands.Cog):
             '-b:v', '10k',
             '-filter:v', 'fps=5',
             '-loglevel', 'error',
-            '-t', '00:01:00',
+            '-t', '60',
             '-movflags', 'frag_keyframe+empty_moov',
             '-pix_fmt', 'yuv420p',
             '-f', 'mp4',
-            'pipe:1'
             ]
 
     async def create_output_video(self, ctx : commands.Context):
