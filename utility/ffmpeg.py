@@ -46,7 +46,7 @@ class CommandRunner:
     def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
 
-    async def run(self, command : list, t=60, output: str = 'pipe:1', arbitrary_command=False, stdin=None) -> None:
+    async def run(self, command : list, t : float = 60.0, output: str = 'pipe:1', arbitrary_command=False, stdin=None) -> None:
         command = [
             'ffmpeg', *command,
             '-t', str(t)
@@ -94,18 +94,15 @@ class Videofier:
         self.img2vid_args = [
             '-framerate', '5',
             '-i', '"%s"',
-            '-t', '%s',
             '-vf', 'loop=-1:1'
         ]
         self.aud2vid_args = [
+            '-i', '"%s"',
             '-f', 'lavfi',
             '-i', 'color=c=black:s=1280x720:r=5',
-            '-i', '"%s"',
-            '-t', '%s'
         ]
         self.vid2vid_args = [
-            '-i', '"%s"',
-            '-t', '%s'            
+            '-i', '"%s"',  
         ]
     async def videofy(self, target : target.Target) -> bytes: 
         cmd = ''
@@ -116,11 +113,7 @@ class Videofier:
         elif target.type == 'audio':
             cmd = self.aud2vid_args
 
-        cmd = create_command(
-            cmd,
-            target.proxy_url,
-            target.duration if target.type == 'audio' else 1
-            )
-        out = await self.command_runner.run(cmd)
+        cmd = create_command(cmd, target.proxy_url)
+        out = await self.command_runner.run(cmd, t=target.duration_s)
 
         return out

@@ -12,9 +12,9 @@ class nightcore(commands.Cog):
         self.videofier = Videofier(bot.loop)
         self.nightcore_args = [
             '-i', '-',
-            '-filter_complex', '"[0:a]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[a];[0:v]setpts=PTS/1.25[v]"',
-            '-map', '[a]',
+            '-filter_complex', '"[0:a]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[a];[0:v]setpts=0.75*PTS[v]"',
             '-map', '[v]',
+            '-map', '[a]',
             ]
             
     async def create_output_video(self,  ctx : commands.Context):
@@ -23,7 +23,7 @@ class nightcore(commands.Cog):
 
         stdin = await self.videofier.videofy(target)
         cmd = self.nightcore_args
-        out = await self.command_runner.run(cmd, stdin=stdin, t=target.duration_s)
+        out = await self.command_runner.run(cmd, stdin=stdin)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
