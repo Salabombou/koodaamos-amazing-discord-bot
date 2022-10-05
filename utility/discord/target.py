@@ -5,6 +5,7 @@ from discord.ext import commands
 from discord import StickerItem, Embed, Attachment
 from discord.embeds import EmbedProxy
 from utility.ffprobe import FfprobeFormat, Ffprober
+from utility.common import convert
 
 """
 THE ORDER FOR THE FILES
@@ -30,6 +31,7 @@ class Target(FfprobeFormat):
         self.proxy_url = None
         self.type = None
         self.has_audio = None
+        self.duration_s = None
 
         if isinstance(target, EmbedProxy):
             self.type = 'image'
@@ -49,6 +51,7 @@ class Target(FfprobeFormat):
         result = await self.ffprober.get_format(self.proxy_url)
         super().__init__(result)
         self.has_audio = self.nb_streams > 1
+        self.duration_s = convert.timedelta.to_seconds(self.duration)
 
 class target_fetcher:
     def __init__(self, no_aud=False, no_vid=False, no_img=False) -> None:

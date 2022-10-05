@@ -9,17 +9,18 @@ class earrape(commands.Cog):
         self.description = 'yes'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
-
+        self.videofier = Videofier(bot.loop)
         self.earrape_args = [
-            '-i', '"%s"',
+            '-i', '-',
             '-af', 'acrusher=.1:1:64:0:log',
             ]
 
     async def create_output_video(self, ctx : commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
 
-        cmd = create_command(self.earrape_args, target.proxy_url)
-        out = await self.command_runner.run(cmd)
+        stdin = await self.videofier.videofy(target)
+        cmd = self.earrape_args
+        out = await self.command_runner.run(cmd, stdin=stdin)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
