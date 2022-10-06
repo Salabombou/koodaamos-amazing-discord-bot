@@ -12,7 +12,7 @@ class flanger(commands.Cog):
         self.videofier = Videofier(bot.loop)
         self.flanger_args = [
             '-i', '-',
-            '-af', '"flanger=speed=%s:width=100"',
+            '-af', '"flanger=speed=%s:width=100"'
             ]
             
     async def create_output_video(self, ctx : commands.Context, speed):

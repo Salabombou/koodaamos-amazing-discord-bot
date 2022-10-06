@@ -21,6 +21,7 @@ class audio(commands.Cog):
             '-i', '"%s"',
             '-filter_complex', '"[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
             '-map', '[a]',
+            '-map', '1:v'
         ]
     
     async def create_output(self, ctx : commands.Context, url): 
@@ -33,7 +34,8 @@ class audio(commands.Cog):
             self.audio_args,
             time_to,
             audio['url'],
-            1 if target.has_audio else 0
+            1 if target.has_audio else 0,
+            create_width(target)
             )
         
         stdin = await self.videofier.videofy(target)
