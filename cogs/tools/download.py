@@ -10,11 +10,11 @@ from utility.scraping import download as downl
 
 class download(commands.Cog):
     def __init__(self, bot, tokens):
-        self.description = 'Downloads a video / image / audio from multiple sources'
+        self.description = 'Downloads an video, image or audio from multiple sources'
         self.bot = bot
         self.client = httpx.AsyncClient(timeout=10)
 
-    @commands.command(help= 'url: a link to the downloadable content (YouTube, Reddit)')
+    @commands.command(help= 'url: a link to the downloadable content (YouTube, Reddit, Tiktok, Spotify)')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.typing

@@ -1,2 +1,1 @@
-def zero_width_space():
-    return '​'
+zero_width_space = '​'

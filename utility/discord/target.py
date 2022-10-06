@@ -1,12 +1,11 @@
 from asyncio import AbstractEventLoop
-import asyncio
-import functools
 import discord.embeds
 from utility.common.errors import TargetNotFound
 from discord.ext import commands
 from discord import StickerItem, Embed, Attachment
 from discord.embeds import EmbedProxy
 from utility.ffprobe import FfprobeFormat, Ffprober
+from utility.common import convert
 
 """
 THE ORDER FOR THE FILES
@@ -24,7 +23,7 @@ THE ORDER WHERE TO LOOK FOR FILES
 """
 
 class Target(FfprobeFormat):
-    def __init__(self, loop : AbstractEventLoop, target : EmbedProxy | Attachment | StickerItem) -> None:
+    def __init__(self, loop : AbstractEventLoop, target : Embed | Attachment | StickerItem) -> None:
         self.loop = loop
         self.ffprober = Ffprober(loop)
         self.width = None
@@ -32,9 +31,11 @@ class Target(FfprobeFormat):
         self.proxy_url = None
         self.type = None
         self.has_audio = None
+        self.duration_s = None
 
-        if isinstance(target, EmbedProxy):
-            self.type = 'image'
+        if isinstance(target, Embed):
+            self.type = target.type
+            target = self.get_embed_proxy(target)
         if isinstance(target, Attachment):
             self.type = target.content_type[:5]
         if isinstance(target, StickerItem):
@@ -46,11 +47,19 @@ class Target(FfprobeFormat):
             self.proxy_url = target.proxy_url
             self.width = target.width
             self.height = target.height
-
+    @staticmethod
+    def get_embed_proxy(target : Embed):
+        if isinstance(target.video.proxy_url, str):
+            return target.video
+        if isinstance(target.image.proxy_url, str):
+            return target.image
+        if isinstance(target.thumbnail.proxy_url, str):
+            return target.thumbnail
     async def probe(self) -> None: # probes the target using ffprobe
         result = await self.ffprober.get_format(self.proxy_url)
-        super().__init__(result)
+        super().__init__(**result)
         self.has_audio = self.nb_streams > 1
+        self.duration_s = convert.timedelta.to_seconds(self.duration) if self.duration != None else 1
 
 class target_fetcher:
     def __init__(self, no_aud=False, no_vid=False, no_img=False) -> None:
@@ -71,13 +80,13 @@ class target_fetcher:
                 if self.allowed(attachment.content_type[:5]):
                     return attachment
         for embed in embeds:
-            if isinstance(embed, discord.embeds.Embed):
+            if isinstance(embed, Embed):
                 if isinstance(embed.video.proxy_url, str) and self.vid:
-                    return embed.video
+                    return embed
                 if isinstance(embed.image.proxy_url, str) and self.img:
-                    return embed.image
+                    return embed
                 if isinstance(embed.thumbnail.proxy_url, str) and self.img:
-                    return embed.thumbnail
+                    return embed
         return None
 
 async def get_target(ctx : commands.Context, no_aud=False, no_vid=False, no_img=False) -> Target:

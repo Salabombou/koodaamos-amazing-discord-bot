@@ -99,6 +99,6 @@ class eduko(commands.Cog):
             self.embeds = self.create_embeds()
             time.sleep(1000)
 
-    @commands.slash_command()
+    @commands.command()
     async def food(self, ctx):
         await respond(ctx, embeds=self.embeds)

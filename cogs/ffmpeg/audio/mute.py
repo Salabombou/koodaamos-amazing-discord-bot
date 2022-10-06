@@ -6,20 +6,21 @@ from utility.common.command import respond
 
 class mute(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
-        self.description = 'yes'
+        self.description = 'Mutes the audio of a video'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
-
+        self.videofier = Videofier(bot.loop)
         self.mute_args = [
-            '-i', '"%s"',
+            '-i', '-',
             '-af', 'volume=0'
             ]
 
-    async def create_output_video(self, ctx : commands.Context) :
-        target = await discordutil.get_target(ctx, no_img=True)
-
-        cmd = create_command(self.mute_args, target.proxy_url)
-        out = await self.command_runner.run(cmd, output='pipe:1')
+    async def create_output_video(self, ctx : commands.Context):
+        target = await discordutil.get_target(ctx, no_img=True, no_aud=True)
+        await target.probe()
+        stdin = await self.videofier.videofy(target)
+        cmd = self.mute_args
+        out = await self.command_runner.run(cmd, stdin=stdin)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

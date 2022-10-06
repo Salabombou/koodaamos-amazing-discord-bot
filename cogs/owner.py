@@ -3,17 +3,22 @@ from discord.ext import commands
 import discord
 from discord import CategoryChannel
 import functools
+import json
+from discord.ext import commands
 
 def delete_before(func):
     @functools.wraps(func)
-    async def wrapper(*args, **kwargs):
-        ctx = args[1]
-        await ctx.message.delete()
-        return await func(*args, **kwargs)
+    async def wrapper(self, ctx : commands.Context,*args, **kwargs):
+        try:
+            await ctx.message.delete()
+        except:
+            await ctx.send('Done.', delete_after=1)
+        return await func(self, ctx, *args, **kwargs)
     return wrapper
 
 class owner(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens) -> None:
+        self.description = 'Bot owner only commands to manage the bot'
         self.bot = bot
         self.spamming = False
 
@@ -70,7 +75,21 @@ class owner(commands.Cog):
                     await dm.send(invite.url)
                     break
 
-    @commands.command(help='mention the users you would like to annoy')
+    @commands.command()
+    @commands.is_owner()
+    @delete_before
+    async def naughty(self, ctx : commands.Context, ID : int):
+        with open('./naughty_list.json', 'r') as file:
+            naughty_list = list(json.loads(file.read()))
+        if ID in naughty_list:
+            naughty_list.remove(ID)
+        else:
+            naughty_list.append(ID)
+        dumps = json.dumps(naughty_list, indent=4)
+        with open('./naughty_list.json', 'w') as file:
+            file.write(dumps)
+
+    @commands.command(help='run this command incase you are a victim of being spammed')
     @delete_before
     async def spam(self, ctx : commands.Context):
         if await self.bot.is_owner(ctx.author):

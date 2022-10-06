@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-
+import utility.common.string
 class help_command(commands.HelpCommand):
 
     def get_command_signature(self, command : commands.Command):
@@ -36,7 +36,7 @@ class help_command(commands.HelpCommand):
         if filtered_commands := await self.filter_commands(commands):
             for command in filtered_commands:
                 signature = self.get_command_signature(command)
-                embed.add_field(name=signature, value=command.help or "No help found...")
+                embed.add_field(name=signature, value=command.help or utility.common.string.zero_width_space)
 
         await self.get_destination().send(embed=embed)
 
