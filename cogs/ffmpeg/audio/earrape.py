@@ -6,7 +6,7 @@ from utility.common.command import respond
 
 class earrape(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
-        self.description = 'yes'
+        self.description = 'Makes the audio earrape'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
         self.videofier = Videofier(bot.loop)
@@ -17,7 +17,7 @@ class earrape(commands.Cog):
 
     async def create_output_video(self, ctx : commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
-
+        await target.probe()
         stdin = await self.videofier.videofy(target)
         cmd = self.earrape_args
         out = await self.command_runner.run(cmd, stdin=stdin)

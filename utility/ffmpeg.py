@@ -1,6 +1,5 @@
 from asyncio import AbstractEventLoop
 from discord import Attachment, Embed, StickerItem
-import os
 import httpx
 import math
 import datetime
@@ -8,8 +7,6 @@ import time
 import functools
 import subprocess
 from utility.common.errors import CommandTimeout, FfmpegError
-from utility.common import file_management
-from discord.ext import commands
 from utility.discord import target
 
 client = httpx.AsyncClient()
@@ -63,7 +60,7 @@ class CommandRunner:
                 '-x264-params', 'lossless=1', # lossless quality
                 '-movflags', 'frag_keyframe+empty_moov+faststart',
                 '-c:a', 'aac', # audio codec
-                '-crf', '27',
+                '-crf', '28',
                 '-preset', 'veryfast',
                 '-ac', '1', # mono sound
                 '-f', 'mp4', # mp4 format
@@ -89,31 +86,44 @@ class CommandRunner:
 
 class Videofier:
     def __init__(self, loop : AbstractEventLoop):
-        self.description = 'Adds audio to a image or a video'
         self.command_runner = CommandRunner(loop)
         self.img2vid_args = [
-            '-framerate', '5',
-            '-i', '"%s"',
-            '-vf', 'loop=-1:1'
+            '-analyzeduration', '100M',
+            '-probesize', '100M',
+            '-r', '5',
+            '-i', '%s',
+            '-loop', '-1:1',
+            '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
         ]
         self.aud2vid_args = [
-            '-i', '"%s"',
+            '-analyzeduration', '100M',
+            '-probesize', '100M',
+            '-i', '%s',
             '-f', 'lavfi',
-            '-i', 'color=c=black:s=1280x720:r=5',
+            '-i', 'color=c=black:s=1280x720:r=5'
         ]
         self.vid2vid_args = [
-            '-i', '"%s"',  
+            '-analyzeduration', '100M',
+            '-probesize', '100M',
+            '-i', '%s',
+            '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
         ]
     async def videofy(self, target : target.Target) -> bytes: 
         cmd = ''
-        if target.type == 'video':
+        if target.type == 'video' or 'gifv':
             cmd = self.vid2vid_args
         if target.type == 'image':
             cmd = self.img2vid_args
         elif target.type == 'audio':
             cmd = self.aud2vid_args
+        else:
+            cmd = self.vid2vid_args
 
         cmd = create_command(cmd, target.proxy_url)
         out = await self.command_runner.run(cmd, t=target.duration_s)
+
+        # second run to fix any playback issues
+        cmd = create_command(self.vid2vid_args, '-')
+        out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
 
         return out

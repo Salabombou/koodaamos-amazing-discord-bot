@@ -7,7 +7,7 @@ from utility.ffmpeg import *
 
 class green(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
-        self.description = 'Overlays a greenscreen video on top of an image / video'
+        self.description = 'Overlays a greenscreen video on top of an image or a video'
         self.bot = bot
         self.videofier = Videofier(bot.loop)
         self.command_runner = CommandRunner(bot.loop) # class used to run ffmpeg commands
@@ -33,7 +33,7 @@ class green(commands.Cog):
         return color
 
     async def create_output_video(self, ctx : commands.Context, url, color):
-        target = await discordutil.get_target(ctx=ctx) # gets the target file
+        target = await discordutil.get_target(ctx=ctx, no_aud=True) # gets the target file
         await target.probe()
         
         video = YouTube.get_info(url=url, video=True, max_duration=300) # gets the info from the youtube video specified

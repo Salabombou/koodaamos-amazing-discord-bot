@@ -6,7 +6,7 @@ from utility.common.command import respond
 
 class nightcore(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
-        self.description = 'makes the audio of a video / audio nightcore'
+        self.description = 'makes the audio nightcore'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
         self.videofier = Videofier(bot.loop)
@@ -16,7 +16,7 @@ class nightcore(commands.Cog):
             '-map', '[v]',
             '-map', '[a]',
             ]
-            
+
     async def create_output_video(self,  ctx : commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
         await target.probe()

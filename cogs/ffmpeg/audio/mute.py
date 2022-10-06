@@ -6,7 +6,7 @@ from utility.common.command import respond
 
 class mute(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
-        self.description = 'yes'
+        self.description = 'Mutes the audio of a video'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
         self.videofier = Videofier(bot.loop)
@@ -16,8 +16,8 @@ class mute(commands.Cog):
             ]
 
     async def create_output_video(self, ctx : commands.Context):
-        target = await discordutil.get_target(ctx, no_img=True)
-
+        target = await discordutil.get_target(ctx, no_img=True, no_aud=True)
+        await target.probe()
         stdin = await self.videofier.videofy(target)
         cmd = self.mute_args
         out = await self.command_runner.run(cmd, stdin=stdin)

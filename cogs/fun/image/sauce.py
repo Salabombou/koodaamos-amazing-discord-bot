@@ -1,7 +1,6 @@
 from utility.discord import target as discordutil
 from utility.tools import sauce_tools
 from utility.views.sauce import sauce_view
-from utility.common import proxy
 from utility.common import decorators
 from utility.common.errors import SauceNotFound
 
@@ -12,8 +11,9 @@ import bs4
 
 class sauce(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
+        self.description = 'Finds the sauce from an image'
         self.bot = bot
-        self.client = httpx.AsyncClient
+        self.client = httpx.AsyncClient()
         self.fields = [ 
             ['url', '']
         ]
@@ -21,14 +21,13 @@ class sauce(commands.Cog):
         for i in range(0, 44 + 1):
             if not i in rejected_dbs:
                 self.fields.append(['dbs[]', str(i)])
-                
+
     async def get_sauce(self, url):
         try:
             fields = self.fields
             fields[0][1] = url
             data = MultipartEncoder(fields=fields)
-            selected_proxy = proxy.get_proxy()
-            resp = await self.client(proxies=selected_proxy).post(url='https://saucenao.com/search.php', data=data.to_string(), headers={'Content-Type': data.content_type})
+            resp = await self.client.post(url='https://saucenao.com/search.php', data=data.to_string(), headers={'Content-Type': data.content_type})
             resp.raise_for_status()
             soup = bs4.BeautifulSoup(resp.content, features='lxml')
             hidden = soup.select('div #result-hidden-notification') != []
@@ -42,7 +41,7 @@ class sauce(commands.Cog):
         except:
             raise SauceNotFound()
 
-    @commands.command()
+    @commands.command(help='url: optionally specify the url to the image')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
     async def sauce(self, ctx : commands.Context, url=None):

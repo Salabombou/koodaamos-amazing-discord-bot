@@ -19,13 +19,13 @@ class audio(commands.Cog):
             '-to', '%s',
             '-i', '-',
             '-i', '"%s"',
-            '-filter_complex', '"[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a];[1:v]pad=ceil(iw/2)*2:ceil(ih/2)*2[v]"',
+            '-filter_complex', '"[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
             '-map', '[a]',
-            '-map', '[v]'
         ]
     
     async def create_output(self, ctx : commands.Context, url): 
         target = await discordutil.get_target(ctx)
+        await target.probe()
         audio = YouTube.get_info(url, video=False, max_duration=300)
         time_to = create_time(audio['duration'])
 

@@ -4,7 +4,9 @@ import functools
 from utility.common.errors import CommandTimeout, FfprobeError
 
 class FfprobeFormat:
-    def __init__(self, result : dict) -> None:
+    def __init__(self, **result) -> None:
+        for key, value in result.items():
+            result[key] = None  if value == 'N/A' else value
         self.filename = result['filename']
         self.nb_streams = int(result['nb_streams'])
         self.nb_programs = int(result['nb_programs'])

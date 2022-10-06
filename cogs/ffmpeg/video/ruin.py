@@ -7,7 +7,7 @@ import httpx
 
 class ruin(commands.Cog):
     def __init__(self, bot : commands.Bot, tokens):
-        self.description = 'yes'
+        self.description = 'Ruins the quality of an image, video or audio'
         self.bot = bot
         self.command_runner = CommandRunner(bot.loop)
 
@@ -26,7 +26,7 @@ class ruin(commands.Cog):
             ]
 
     async def create_output_video(self, ctx : commands.Context):
-        target = await discordutil.get_target(ctx, no_img=True)
+        target = await discordutil.get_target(ctx)
 
         cmd = create_command(self.ruin_args, target.proxy_url)
         out = await self.command_runner.run(cmd, arbitrary_command=True)

@@ -38,7 +38,7 @@ class parsed_result:
         description = description[:-1]
         if description != '':
             return description
-        return utility.common.string.zero_width_space()
+        return utility.common.string.zero_width_space
 
 def create_embed(result : BeautifulSoup, url : str, hidden : bool):
     result = parsed_result(result, hidden)
