@@ -35,7 +35,6 @@ class audio(commands.Cog):
             time_to,
             audio['url'],
             1 if target.has_audio else 0,
-            create_width(target)
             )
         
         stdin = await self.videofier.videofy(target)

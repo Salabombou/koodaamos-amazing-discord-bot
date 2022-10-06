@@ -8,6 +8,7 @@ import validators
 from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable
 import httpx
 import re
+
 client = httpx.AsyncClient()
 
 class Video: # for the video info
