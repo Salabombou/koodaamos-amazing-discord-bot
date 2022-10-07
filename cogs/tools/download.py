@@ -1,4 +1,5 @@
 from discord.ext import commands
+import urllib
 import urllib.request
 import validators
 from utility.common import decorators, file_management
@@ -7,12 +8,12 @@ from utility.common.command import respond
 import httpx
 
 from utility.scraping import download as downl
+from utility.cog.command import command_cog
 
-class download(commands.Cog):
-    def __init__(self, bot, tokens):
+class download(commands.Cog, command_cog):
+    def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Downloads an video, image or audio from multiple sources'
-        self.bot = bot
-        self.client = httpx.AsyncClient(timeout=10)
 
     @commands.command(help= 'url: a link to the downloadable content (YouTube, Reddit, Tiktok, Spotify)')
     @commands.cooldown(1, 30, commands.BucketType.user)

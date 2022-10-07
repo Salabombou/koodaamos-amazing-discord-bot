@@ -1,3 +1,4 @@
+import bs4
 import discord
 import utility.common.string
 from bs4 import BeautifulSoup
@@ -20,8 +21,8 @@ class parsed_result:
         elif hidden:
             self.image = self.image['data-src']
 
-    def get_content(self, column):
-        def get_string(content):
+    def get_content(self, column : bs4.BeautifulSoup ):
+        def get_string(content : bs4.BeautifulSoup):
             if content.name == 'strong':
                 return content.text.strip() + ' '
             elif content.name == 'a':
@@ -40,8 +41,8 @@ class parsed_result:
             return description
         return utility.common.string.zero_width_space
 
-def create_embed(result : BeautifulSoup, url : str, hidden : bool):
-    result = parsed_result(result, hidden)
+def create_embed(res : bs4.BeautifulSoup, url : str, hidden : bool):
+    result = parsed_result(res, hidden)
     embed = discord.Embed(title=result.title, fields=[], color=0xC9EDBE, description=result.content)
     embed.set_image(url=result.image)
     embed.set_footer(icon_url=url, text='Similarity: ' + result.similarity)

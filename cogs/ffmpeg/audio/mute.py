@@ -3,13 +3,12 @@ from utility.discord import target as discordutil
 from utility.ffmpeg import *
 from utility.common import decorators, file_management
 from utility.common.command import respond
+from utility.cog.command import ffmpeg_cog
 
-class mute(commands.Cog):
+class mute(commands.Cog, ffmpeg_cog):
     def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Mutes the audio of a video'
-        self.bot = bot
-        self.command_runner = CommandRunner(bot.loop)
-        self.videofier = Videofier(bot.loop)
         self.mute_args = [
             '-i', '-',
             '-af', 'volume=0'

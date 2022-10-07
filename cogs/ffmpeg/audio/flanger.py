@@ -3,18 +3,17 @@ from utility.discord import target as discordutil
 from utility.ffmpeg import *
 from utility.common import decorators, file_management
 from utility.common.command import respond
+from utility.cog.command import ffmpeg_cog
 
-class flanger(commands.Cog):
-    def __init__(self, bot : commands.Bot, tokens):
+class flanger(commands.Cog, ffmpeg_cog):
+    def init(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds a vibrato effect to audio'
-        self.bot = bot
-        self.command_runner = CommandRunner(bot.loop)
-        self.videofier = Videofier(bot.loop)
         self.flanger_args = [
             '-i', '-',
             '-af', '"flanger=speed=%s:width=100"'
             ]
-            
+
     async def create_output_video(self, ctx : commands.Context, speed):
         target = await discordutil.get_target(ctx, no_img=True)
         await target.probe()

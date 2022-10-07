@@ -6,6 +6,7 @@ from discord import CategoryChannel
 import functools
 import json
 from discord.ext import commands
+from utility.cog.command import command_cog
 
 def delete_before(func):
     @functools.wraps(func)
@@ -17,10 +18,10 @@ def delete_before(func):
         return await func(self, ctx, *args, **kwargs)
     return wrapper
 
-class owner(commands.Cog):
-    def __init__(self, bot : commands.Bot, tokens) -> None:
+class owner(commands.Cog, command_cog):
+    def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Bot owner only commands to manage the bot'
-        self.bot = bot
         self.spamming = False
 
     async def spammy(self, mention):

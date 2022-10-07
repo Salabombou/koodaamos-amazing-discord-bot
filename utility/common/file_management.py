@@ -5,8 +5,6 @@ import httpx
 import io
 import discord
 from utility.scraping import compress, pomf
-import time
-import threading
 from discord.ext import commands
 client = httpx.AsyncClient()
 

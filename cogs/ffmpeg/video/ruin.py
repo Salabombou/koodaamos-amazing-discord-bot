@@ -3,16 +3,14 @@ from utility.discord import target as discordutil
 from utility.ffmpeg import *
 from utility.common import decorators, file_management
 from utility.common.command import respond
-import httpx
+from utility.cog.command import ffmpeg_cog
 
-class ruin(commands.Cog):
+class ruin(commands.Cog, ffmpeg_cog):
     def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Ruins the quality of an image, video or audio'
-        self.bot = bot
-        self.command_runner = CommandRunner(bot.loop)
-
         self.ruin_args= [
-            '-i', '"%s"',
+            '-i', '-',
             '-loglevel', 'error',
             '-t', '00:01:00',
             '-b:a', '10k',
@@ -27,9 +25,11 @@ class ruin(commands.Cog):
 
     async def create_output_video(self, ctx : commands.Context):
         target = await discordutil.get_target(ctx)
+        await target.probe()
 
-        cmd = create_command(self.ruin_args, target.proxy_url)
-        out = await self.command_runner.run(cmd, arbitrary_command=True)
+        stdin = await self.videofier(target)
+        cmd = self.ruin_args
+        out = await self.command_runner.run(cmd, arbitrary_command=True, stdin=stdin)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

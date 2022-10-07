@@ -135,7 +135,7 @@ async def fetch_songs(self, ctx, url, no_playlists=False):
         return songs
     raise UrlInvalid()
 
-def play_song(self, ctx, songs=[], playnext=False):
+def play_song(self, ctx : commands.Context, songs=[], playnext=False):
     if ctx.voice_client == None:
         return
     server = get_server(ctx)
@@ -154,7 +154,7 @@ def play_song(self, ctx, songs=[], playnext=False):
         message = asyncio.run_coroutine_threadsafe(ctx.send('Now playing:', embed=embed, delete_after=duration), self.bot.loop)
         ctx.voice_client.play(discord.PCMVolumeTransformer(source, volume=0.5), after=lambda e: next_song(self, ctx, message._result))
 
-def next_song(self, ctx, message):
+def next_song(self, ctx : commands.Context, message : discord.Message):
     server = get_server(ctx)
     try:
         asyncio.run_coroutine_threadsafe(message.delete(), self.bot.loop)

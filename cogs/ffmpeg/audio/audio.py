@@ -4,24 +4,23 @@ from utility.scraping import YouTube
 from utility.common.command import respond
 from utility.common import decorators, file_management
 from utility.ffmpeg import *
+from utility.cog.command import ffmpeg_cog
 
-class audio(commands.Cog):
+class audio(commands.Cog, ffmpeg_cog):
     def __init__(self, bot : commands.Bot, tokens):
-        self.videofier = Videofier(bot.loop)
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds audio to a image or a video'
-        self.bot = bot
-        self.command_runner = CommandRunner(bot.loop)
         self.audio_args = [
             '-f', 'lavfi',
-            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=1',
+            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=%s',
             '-stream_loop', '-1',
             '-ss', '00:00:00',
             '-to', '%s',
             '-i', '-',
             '-i', '"%s"',
             '-filter_complex', '"[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
+            '-map', '1:v',
             '-map', '[a]',
-            '-map', '1:v'
         ]
     
     async def create_output(self, ctx : commands.Context, url): 
@@ -32,10 +31,10 @@ class audio(commands.Cog):
 
         cmd = create_command(
             self.audio_args,
+            audio['duration'],
             time_to,
             audio['url'],
             1 if target.has_audio else 0,
-            create_width(target)
             )
         
         stdin = await self.videofier.videofy(target)
