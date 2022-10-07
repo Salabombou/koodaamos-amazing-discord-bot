@@ -4,10 +4,12 @@ import json
 import yt_dlp
 import urllib
 import urllib.parse
+import urllib.request
 import validators
 from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable
 import httpx
 import re
+
 client = httpx.AsyncClient()
 
 class Video: # for the video info
@@ -65,7 +67,7 @@ async def fetch_from_search(youtube : Resource, query) -> Video: # youtube api s
     content = resp.content.decode('utf-8')
     try:
         ytInitialData = re.findall('var ytInitialData = .*};', content) # gets the variable that contains the search results
-        ytInitialData = ytInitialData[0][20:] # removes the variable declaration itself
+        ytInitialData : str = ytInitialData[0][20:] # removes the variable declaration itself
         ytInitialData = ytInitialData.split('};')[0] + '}' # trims the end of any gunk that would otherwise run the conversion
         ytInitialData = json.loads(ytInitialData) # str => dict
         results = ytInitialData['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'] # the videos

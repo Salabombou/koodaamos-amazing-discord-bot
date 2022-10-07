@@ -2,7 +2,8 @@ import asyncio
 import functools
 from discord.ext import commands
 from discord.commands.context import ApplicationContext
-def get_server(ctx):
+
+def get_server(ctx : commands.Context):
     return str(ctx.guild.id)
 
 # shows the bot typing when running a command

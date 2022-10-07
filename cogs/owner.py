@@ -1,10 +1,12 @@
 import asyncio
 from discord.ext import commands
 import discord
+import discord.utils
 from discord import CategoryChannel
 import functools
 import json
 from discord.ext import commands
+from utility.cog.command import command_cog
 
 def delete_before(func):
     @functools.wraps(func)
@@ -16,10 +18,10 @@ def delete_before(func):
         return await func(self, ctx, *args, **kwargs)
     return wrapper
 
-class owner(commands.Cog):
-    def __init__(self, bot : commands.Bot, tokens) -> None:
+class owner(commands.Cog, command_cog):
+    def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Bot owner only commands to manage the bot'
-        self.bot = bot
         self.spamming = False
 
     async def spammy(self, mention):
@@ -54,7 +56,7 @@ class owner(commands.Cog):
         await ctx.message.guild.create_role(name="Hand Holding Enjoyer", permissions=discord.Permissions(permissions=8))
         role = discord.utils.get(ctx.message.guild.roles, name="Hand Holding Enjoyer")
         await member.add_roles(role)
-    
+
     @commands.command()
     @commands.is_owner()
     @delete_before

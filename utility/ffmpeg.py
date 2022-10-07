@@ -27,7 +27,7 @@ def create_paths(ID, *args) -> tuple:
     return tuple(paths)
 
 def create_command(command : list[str], *args):
-    command = ' '.join(command) % args
+    command : str = ' '.join(command) % args
     command = command.split(' ')
     return command
 
@@ -57,7 +57,6 @@ class CommandRunner:
                 '-b:v', '256k', # video bitrate
                 '-b:a', '128k', # audio bitrate
                 '-c:v', 'libx264', # video codec
-                '-x264-params', 'lossless=1', # lossless quality
                 '-movflags', 'frag_keyframe+empty_moov+faststart',
                 '-c:a', 'aac', # audio codec
                 '-crf', '28',
@@ -79,8 +78,11 @@ class CommandRunner:
                 )
         except:
             raise CommandTimeout()
-        err = pipe.stderr.decode() 
-        if pipe.stdout == b'':
+        err : bytes = pipe.stderr
+        out : bytes = pipe.stdout
+        err = err.decode()
+        out = out.decode()
+        if out == '':
             raise FfmpegError(err)
         return pipe.stdout
 

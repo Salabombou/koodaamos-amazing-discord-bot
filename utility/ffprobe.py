@@ -44,10 +44,12 @@ class Ffprober:
                     timeout=5
                 )
             )
-        except Exception as e:
+        except:
             raise CommandTimeout()
-        err = pipe.stderr.decode() 
-        if err != '':
+        err : bytes = pipe.stderr
+        out : bytes = pipe.stdout
+        err = err.decode()
+        out = out.decode()
+        if out == '':
             raise FfprobeError(err)
-        output = pipe.stdout.decode()
-        return self.output_parser(output)
+        return self.output_parser(out)

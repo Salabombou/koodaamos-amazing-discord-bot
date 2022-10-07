@@ -1,15 +1,13 @@
 
 from discord.ext import commands
 import discord
-import httpx
 import json
 import io
+from utility.cog.command import command_cog
 
-    
-class tts(commands.Cog):
-    def __init__(self, bot : commands.Bot):
-        self.bot = bot
-        self.client = httpx.AsyncClient(timeout=30)
+class tts(commands.Cog, command_cog):
+    def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
 
     async def CreateSpeech(self, text):
         payload = {
@@ -25,6 +23,7 @@ class tts(commands.Cog):
         buf = io.BytesIO(speech.content)
         buf.seek(0)
         return buf
+        
     @commands.command(aliases=['15'])
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)

@@ -2,14 +2,12 @@
 from discord.ext import commands
 import discord
 import asyncio
-import httpx
 import json
-    
-class moist(commands.Cog):
+from utility.cog.command import command_cog
+
+class eduko(commands.Cog, command_cog):
     def __init__(self, bot : commands.Bot, tokens):
-        self.bot = bot
-        self.token = tokens[2]
-        self.client = httpx.AsyncClient(timeout=30)
+        super().__init__(bot=bot, tokens=tokens)
 
     async def CreateSpeech(self, text, token):
         payload = {

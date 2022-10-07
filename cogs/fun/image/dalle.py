@@ -4,15 +4,14 @@ from utility.common import decorators
 from PIL import Image
 import discord
 import base64
-import httpx
 import json
 import io
+from utility.cog.command import command_cog
 
-class dalle(commands.Cog):
+class dalle(commands.Cog, command_cog):
     def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Creates an image collage from images produced by an AI with a prompt'
-        self.bot = bot
-        self.client = httpx.AsyncClient(timeout=180)
 
     async def DallE_Collage(self, loop : AbstractEventLoop, arg):
         images = await self.CreateImages(prompt=arg)

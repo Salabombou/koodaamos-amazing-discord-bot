@@ -4,13 +4,12 @@ from utility.scraping import YouTube
 from utility.common import decorators, file_management
 from utility.common.command import respond
 from utility.ffmpeg import *
+from utility.cog.command import ffmpeg_cog
 
-class green(commands.Cog):
+class green(commands.Cog, ffmpeg_cog):
     def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Overlays a greenscreen video on top of an image or a video'
-        self.bot = bot
-        self.videofier = Videofier(bot.loop)
-        self.command_runner = CommandRunner(bot.loop) # class used to run ffmpeg commands
         self.filter = '[2:v]scale=%s,fps=30,scale=-1:720,colorkey=0x%s:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
         self.green_args = [
             '-f', 'lavfi',

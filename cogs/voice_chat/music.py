@@ -7,11 +7,12 @@ from utility.common import decorators
 from utility.views.music import music_view
 import googleapiclient.discovery
 import numpy as np
+from utility.cog.command import command_cog
 
-class music(commands.Cog):
-    def __init__(self, bot : commands.Bot = None, tokens=None):
+class music(commands.Cog, command_cog):
+    def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Plays songs from a playlist to a discord voice channel'
-        self.bot = bot
         self.youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=tokens["youtube_v3"])
         self.playlist = {}
         self.looping = {}

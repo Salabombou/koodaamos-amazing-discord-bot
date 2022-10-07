@@ -4,7 +4,8 @@ from discord import Embed, File, Webhook
 client = httpx.AsyncClient()
 
 async def fetch_avatar(ctx : commands.Context) -> bytes:
-    url = ctx.bot.user.avatar.url
+    bot : commands.Bot = ctx.bot
+    url = bot.user.avatar.url
     url = url.split('?')[0]
     resp = await client.get(url=url)
     resp.raise_for_status()

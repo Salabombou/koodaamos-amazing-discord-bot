@@ -6,13 +6,14 @@ import httpx
 import bs4
 from utility.common.command import respond
 import time
+from utility.cog.command import command_cog
 
-class eduko(commands.Cog):
-    def __init__(self, bot, tokens):
-        self.description = 'Gets the Eduko diner menu for the week(s)'
+class eduko(commands.Cog, command_cog):
+    def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.client = httpx.Client()
+        self.description = 'Gets the Eduko diner menu for the week(s)'
         self.embeds = []
-        self.bot = bot
         self.updater = threading.Thread(target=self.update_food_embeds)
         self.updater.start()
 

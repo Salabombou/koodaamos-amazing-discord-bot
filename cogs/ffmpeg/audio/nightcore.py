@@ -3,13 +3,12 @@ from utility.discord import target as discordutil
 from utility.ffmpeg import *
 from utility.common import decorators, file_management
 from utility.common.command import respond
+from utility.cog.command import ffmpeg_cog
 
-class nightcore(commands.Cog):
+class nightcore(commands.Cog, ffmpeg_cog):
     def __init__(self, bot : commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'makes the audio nightcore'
-        self.bot = bot
-        self.command_runner = CommandRunner(bot.loop)
-        self.videofier = Videofier(bot.loop)
         self.nightcore_args = [
             '-i', '-',
             '-filter_complex', '"[0:a]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[a];[0:v]setpts=0.75*PTS[v]"',
