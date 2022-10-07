@@ -1,7 +1,6 @@
 from asyncio import AbstractEventLoop
 from discord import Attachment, Embed, StickerItem
 import httpx
-import math
 import datetime
 import time
 import functools
@@ -11,10 +10,11 @@ from utility.discord import target
 
 client = httpx.AsyncClient()
 
+aspect_ratio = float(16/9)
+
 
 def create_width(target: Attachment | Embed | StickerItem):
-    width = math.ceil((target.width / target.height) * 720 / 2) * 2
-    width = math.ceil(width / 2) * 2
+    width = round(target.height * aspect_ratio)
     return width
 
 
@@ -87,10 +87,9 @@ class CommandRunner:
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()
-        out = out.decode()
         if out == '':
             raise FfmpegError(err)
-        return pipe.stdout
+        return out
 
 
 class Videofier:
@@ -99,6 +98,8 @@ class Videofier:
         self.img2vid_args = [
             '-analyzeduration', '100M',
             '-probesize', '100M',
+            '-f', 'lavfi',
+            '-i', 'color=c=black:s=%sx%s:r=5',
             '-r', '5',
             '-i', '%s',
             '-loop', '-1:1',
@@ -107,15 +108,18 @@ class Videofier:
         self.aud2vid_args = [
             '-analyzeduration', '100M',
             '-probesize', '100M',
-            '-i', '%s',
             '-f', 'lavfi',
-            '-i', 'color=c=black:s=1280x720:r=5'
+            '-i', 'color=c=black:s=%sx%s:r=5',
+            '-i', '%s',
         ]
         self.vid2vid_args = [
             '-analyzeduration', '100M',
             '-probesize', '100M',
+            '-f', 'lavfi',
+            '-i', 'color=c=black:s=%sx%s:r=5',
             '-i', '%s',
-            '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
+            '-filter-complex', '"[1]split[m][a];[a]geq=\'if(gt(lum(X,Y),16),255,0)\',hue=s=0[al];[m][al]alphamerge[ovr]"',
+            '-map', '[ovr]'
         ]
 
     async def videofy(self, target: target.Target) -> bytes:
@@ -128,12 +132,18 @@ class Videofier:
             cmd = self.aud2vid_args
         else:
             cmd = self.vid2vid_args
+        if target.height == None:
+            target.height = 720
 
-        cmd = create_command(cmd, target.proxy_url)
+        width = create_width(target)
+        cmd = create_command(cmd, width, target.height, target.proxy_url)
         out = await self.command_runner.run(cmd, t=target.duration_s)
 
         # second run to fix any playback issues
-        cmd = create_command(self.vid2vid_args, '-')
+        cmd = create_command(self.vid2vid_args, width, target.height, '-')
         out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
+
+        with open('debug.mp4', 'wb') as file:
+            file.write(out)
 
         return out
