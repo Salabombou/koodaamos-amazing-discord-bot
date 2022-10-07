@@ -5,16 +5,17 @@ from utility.common import decorators, file_management
 from utility.common.command import respond
 from utility.cog.command import ffmpeg_cog
 
+
 class earrape(commands.Cog, ffmpeg_cog):
-    def __init__(self, bot : commands.Bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Makes the audio earrape'
         self.earrape_args = [
             '-i', '-',
             '-af', 'acrusher=.1:1:64:0:log',
-            ]
+        ]
 
-    async def create_output_video(self, ctx : commands.Context):
+    async def create_output_video(self, ctx: commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
         await target.probe()
         stdin = await self.videofier.videofy(target)
@@ -28,6 +29,6 @@ class earrape(commands.Cog, ffmpeg_cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.typing
-    async def er(self, ctx : commands.Context):
+    async def er(self, ctx: commands.Context):
         file, pomf_url = await self.create_output_video(ctx)
         await respond(ctx, content=pomf_url, file=file, mention_author=False)

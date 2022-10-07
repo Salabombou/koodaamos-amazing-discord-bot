@@ -4,6 +4,7 @@ from utility.common.errors import PomfUploadFail
 
 client = httpx.AsyncClient(timeout=300)
 
+
 async def upload(file: bytes, ext: str) -> str:
     fields = {
         'files[]': (f'file.{ext}', file, 'application/octet-stream')

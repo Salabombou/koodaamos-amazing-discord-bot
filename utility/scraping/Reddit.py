@@ -4,6 +4,7 @@ import urllib.parse
 
 client = httpx.AsyncClient(timeout=10)
 
+
 async def get_raw_url(url):
     url = urllib.parse.quote(url)
     redditsave_url = 'https://redditsave.com/info?url=' + url

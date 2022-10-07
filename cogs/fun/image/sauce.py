@@ -8,14 +8,16 @@ from discord.ext import commands
 from requests_toolbelt import MultipartEncoder
 import bs4
 
+
 class sauce(commands.Cog, command_cog):
-    def __init__(self, bot : commands.Bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Finds the sauce from an image'
-        self.fields = [ 
+        self.fields = [
             ['url', '']
         ]
-        rejected_dbs = [1,4,6,7.13,14,17,29,34,40,42] # everything furry
+        rejected_dbs = [1, 4, 6, 7.13, 14, 17,
+                        29, 34, 40, 42]  # everything furry
         for i in range(0, 44 + 1):
             if not i in rejected_dbs:
                 self.fields.append(['dbs[]', str(i)])
@@ -29,7 +31,8 @@ class sauce(commands.Cog, command_cog):
             resp.raise_for_status()
             soup = bs4.BeautifulSoup(resp.content, features='lxml')
             hidden = soup.select('div #result-hidden-notification') != []
-            results = soup.select('div.result') + soup.select('div.result.hidden')
+            results = soup.select('div.result') + \
+                soup.select('div.result.hidden')
             for result in results:
                 if 'onclick' in result.attrs:
                     results.remove(result)
@@ -42,7 +45,7 @@ class sauce(commands.Cog, command_cog):
     @commands.command(help='url: optionally specify the url to the image')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.typing
-    async def sauce(self, ctx : commands.Context, url=None):
+    async def sauce(self, ctx: commands.Context, url=None):
         if url == None:
             url = await discordutil.get_target(ctx, no_aud=True, no_vid=True)
             url = url.proxy_url
