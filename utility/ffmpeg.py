@@ -35,7 +35,6 @@ def create_command(command: list[str], *args):
     command = command.split(' ')
     return command
 
-
 async def save_files(inputs) -> None:
     for input in inputs:
         resp = await client.get(input[0])
@@ -87,10 +86,9 @@ class CommandRunner:
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()
-        out = out.decode()
-        if out == '':
+        if err != '' and out == b'':
             raise FfmpegError(err)
-        return pipe.stdout
+        return out
 
 
 class Videofier:
