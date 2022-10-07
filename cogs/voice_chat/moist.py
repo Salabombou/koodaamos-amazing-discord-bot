@@ -5,8 +5,9 @@ import asyncio
 import json
 from utility.cog.command import command_cog
 
+
 class eduko(commands.Cog, command_cog):
-    def __init__(self, bot : commands.Bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
 
     async def CreateSpeech(self, text, token):
@@ -14,8 +15,8 @@ class eduko(commands.Cog, command_cog):
             "speech": text + '.~',
             "voice": "cr1tikal",
             "pace": 1
-            }
-        r = await self.client.post(data=json.dumps(payload), headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}" }, url='https://api.uberduck.ai/speak')
+        }
+        r = await self.client.post(data=json.dumps(payload), headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"}, url='https://api.uberduck.ai/speak')
         r.raise_for_status()
         uuid = r.json()['uuid']
         url = f'https://uberduck-audio-outputs.s3-us-west-2.amazonaws.com/{uuid}/audio.wav'
@@ -29,7 +30,7 @@ class eduko(commands.Cog, command_cog):
     @commands.command()
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def moist(self, ctx : commands.Context, *, arg="Hi there!"):
+    async def moist(self, ctx: commands.Context, *, arg="Hi there!"):
         arg = arg.replace('\n', ' ')
         if ctx.message.author.voice == None:
             return
@@ -46,7 +47,7 @@ class eduko(commands.Cog, command_cog):
             await player.play(wav)
         except:
             pass
-        
+
     @commands.command()
-    async def leave(self, ctx : commands.Context):
+    async def leave(self, ctx: commands.Context):
         await ctx.voice_client.disconnect()

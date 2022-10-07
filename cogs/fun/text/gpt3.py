@@ -1,9 +1,11 @@
+from asyncio import AbstractEventLoop
 from discord.ext import commands
 import discord
 import openai
 import functools
 from utility.common import decorators
-    
+
+
 class gpt3(commands.Cog):
     def __init__(self, bot, tokens):
         self.description = 'Outputs a response from a chat bot ai from the specified prompt'
@@ -20,8 +22,8 @@ class gpt3(commands.Cog):
             top_p=1.0,
             frequency_penalty=0.0,
             presence_penalty=0.0
-            )
-        text = response['choices'][0]['text']
+        )
+        text: str = response['choices'][0]['text']
         text = text.replace('\n\n', '\n')
         return text
 
@@ -29,12 +31,10 @@ class gpt3(commands.Cog):
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
     @decorators.typing
-    async def gpt3(self, ctx, *, prompt='make up a 4chan greentext post'):
-        embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)   
-        loop = ctx.bot.loop
+    async def gpt3(self, ctx: commands.Context, *, prompt='make up a 4chan greentext post'):
+        embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
+        bot = ctx.bot
+        loop: AbstractEventLoop = bot.loop
         text = await loop.run_in_executor(None, functools.partial(self.create_text, prompt=prompt))
         embed.description = f'```{text[:4090]}```'
         await ctx.reply(embed=embed, mention_author=False)
-
-def setup(client, tokens):
-    client.add_cog(gpt3(client, tokens))

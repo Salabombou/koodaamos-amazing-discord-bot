@@ -3,10 +3,11 @@ import subprocess
 import functools
 from utility.common.errors import CommandTimeout, FfprobeError
 
+
 class FfprobeFormat:
     def __init__(self, **result) -> None:
         for key, value in result.items():
-            result[key] = None  if value == 'N/A' else value
+            result[key] = None if value == 'N/A' else value
         self.filename = result['filename']
         self.nb_streams = int(result['nb_streams'])
         self.nb_programs = int(result['nb_programs'])
@@ -18,11 +19,13 @@ class FfprobeFormat:
         self.bit_rate = result['bit_rate']
         self.probe_score = int(result['probe_score'])
 
+
 class Ffprober:
-    def __init__(self, loop : AbstractEventLoop) -> None:
+    def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
+
     def output_parser(self, output) -> dict:
-        output = output.replace('\r', '') # incase you are using windows
+        output = output.replace('\r', '')  # incase you are using windows
         output = output.split('\n')
         result = {}
         for line in output:
@@ -30,7 +33,6 @@ class Ffprober:
                 line = line.split('=')
                 result[line[0]] = '='.join(line[1:])
         return result
-
 
     async def get_format(self, file) -> dict:
         command = f'ffprobe -show_format -pretty -loglevel error "{file}"'
@@ -46,8 +48,8 @@ class Ffprober:
             )
         except:
             raise CommandTimeout()
-        err : bytes = pipe.stderr
-        out : bytes = pipe.stdout
+        err: bytes = pipe.stderr
+        out: bytes = pipe.stdout
         err = err.decode()
         out = out.decode()
         if out == '':

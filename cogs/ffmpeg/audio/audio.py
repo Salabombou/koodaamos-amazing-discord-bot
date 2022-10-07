@@ -6,8 +6,9 @@ from utility.common import decorators, file_management
 from utility.ffmpeg import *
 from utility.cog.command import ffmpeg_cog
 
+
 class audio(commands.Cog, ffmpeg_cog):
-    def __init__(self, bot : commands.Bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds audio to a image or a video'
         self.audio_args = [
@@ -22,8 +23,8 @@ class audio(commands.Cog, ffmpeg_cog):
             '-map', '1:v',
             '-map', '[a]',
         ]
-    
-    async def create_output(self, ctx : commands.Context, url): 
+
+    async def create_output(self, ctx: commands.Context, url):
         target = await discordutil.get_target(ctx)
         await target.probe()
         audio = YouTube.get_info(url, video=False, max_duration=300)
@@ -35,18 +36,18 @@ class audio(commands.Cog, ffmpeg_cog):
             time_to,
             audio['url'],
             1 if target.has_audio else 0,
-            )
-        
+        )
+
         stdin = await self.videofier.videofy(target)
         out = await self.command_runner.run(cmd, stdin=stdin)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
-        
+
     @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.typing
-    async def audio(self, ctx : commands.Context, url="https://youtu.be/NOaSdO5H91M"):
+    async def audio(self, ctx: commands.Context, url="https://youtu.be/NOaSdO5H91M"):
         file, pomf_url = await self.create_output(ctx, url)
         await respond(ctx, content=pomf_url, file=file)

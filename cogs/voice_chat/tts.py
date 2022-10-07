@@ -5,8 +5,9 @@ import json
 import io
 from utility.cog.command import command_cog
 
+
 class tts(commands.Cog, command_cog):
-    def __init__(self, bot : commands.Bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
 
     async def CreateSpeech(self, text):
@@ -23,13 +24,13 @@ class tts(commands.Cog, command_cog):
         buf = io.BytesIO(speech.content)
         buf.seek(0)
         return buf
-        
+
     @commands.command(aliases=['15'])
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def tts(self, ctx : commands.Context, *, arg="Hi there!"):
+    async def tts(self, ctx: commands.Context, *, arg="Hi there!"):
         if ctx.message.author.bot:
-            return 
+            return
         async with ctx.typing():
             wav = await self.CreateSpeech(text=arg)
         file = discord.File(fp=wav, filename="unknown.wav")

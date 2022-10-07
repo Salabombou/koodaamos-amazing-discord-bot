@@ -9,11 +9,13 @@ import googleapiclient.discovery
 import numpy as np
 from utility.cog.command import command_cog
 
+
 class music(commands.Cog, command_cog):
-    def __init__(self, bot : commands.Bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Plays songs from a playlist to a discord voice channel'
-        self.youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=tokens["youtube_v3"])
+        self.youtube = googleapiclient.discovery.build(
+            'youtube', 'v3', developerKey=tokens["youtube_v3"])
         self.playlist = {}
         self.looping = {}
 
@@ -28,7 +30,7 @@ class music(commands.Cog, command_cog):
         await voice_chat.join(ctx)
         songs = await music_tools.fetch_songs(self, ctx, arg)
         music_tools.play_song(self, ctx, songs)
-    
+
     @commands.command(help='url: YouTube url to a song / playlist')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
@@ -46,20 +48,20 @@ class music(commands.Cog, command_cog):
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @music_tools.decorators.update_playlist
-    async def list(self, ctx : commands.Context):
+    async def list(self, ctx: commands.Context):
         embed = music_tools.create_embed(ctx, self.playlist, 0)
         message = await respond(ctx, embed=embed)
         ctx = await self.bot.get_context(message)
         await message.edit(view=music_view(music_self=self, ctx=ctx))
-        
+
     @commands.command(help='disconnects from the voice channel')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
-    async def disconnect(self, ctx : commands.Context):
+    async def disconnect(self, ctx: commands.Context):
         server = music_tools.get_server(ctx)
-        self.playlist[server] = [[],[]]
+        self.playlist[server] = [[], []]
         await voice_chat.leave(ctx)
 
     @commands.command(help='resumes the currently playing song')
@@ -67,7 +69,7 @@ class music(commands.Cog, command_cog):
     @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
-    async def resume(self, ctx : commands.Context):
+    async def resume(self, ctx: commands.Context):
         await voice_chat.resume(ctx)
 
     @commands.command(help='pauses the currently playing song')
@@ -75,9 +77,9 @@ class music(commands.Cog, command_cog):
     @commands.check(voice_chat.command_check)
     @decorators.add_reaction
     @decorators.delete_after
-    async def pause(self, ctx : commands.Context):
+    async def pause(self, ctx: commands.Context):
         await voice_chat.pause(ctx)
-    
+
     @commands.command(help='skips the currently playing song')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
@@ -92,19 +94,20 @@ class music(commands.Cog, command_cog):
         del self.playlist[server][0][1:amount]
         music_tools.append_songs(ctx, self.playlist)
         await voice_chat.resume(ctx)
-        await voice_chat.stop(ctx) # skips one song
-        await asyncio.sleep(0.5) #why? # just incase
+        await voice_chat.stop(ctx)  # skips one song
+        await asyncio.sleep(0.5)  # why? # just incase
         self.looping[server] = temp
-    
+
     @commands.command(help='shuffles the playlist')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
-    async def shuffle(self, ctx : commands.Context):
+    async def shuffle(self, ctx: commands.Context):
         server = music_tools.get_server(ctx)
-        if self.playlist[server] == [[],[]]: return
+        if self.playlist[server] == [[], []]:
+            return
         temp = self.playlist[server][0][0]
         self.playlist[server][0].pop(0)
         np.random.shuffle(self.playlist[server][0])
@@ -117,10 +120,10 @@ class music(commands.Cog, command_cog):
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
-    async def loop(self, ctx : commands.Context):
+    async def loop(self, ctx: commands.Context):
         server = music_tools.get_server(ctx)
         self.looping[server] = not self.looping[server]
-    
+
     @commands.command(help='number: number of the song in the playlist')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
@@ -138,7 +141,7 @@ class music(commands.Cog, command_cog):
     @music_tools.decorators.update_playlist
     @decorators.add_reaction
     @decorators.delete_after
-    async def replay(self, ctx : commands.Context):
+    async def replay(self, ctx: commands.Context):
         server = music_tools.get_server(ctx)
         if self.playlist[server][0] != []:
             self.playlist[server][0].insert(0, self.playlist[server][0][0])

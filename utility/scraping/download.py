@@ -4,7 +4,9 @@ import urllib.parse
 import urllib.request
 import os
 
-supported_sites = ['www.youtube.com', 'www.reddit.com', 'www.tiktok.com', 'open.spotify.com']
+supported_sites = ['www.youtube.com', 'www.reddit.com',
+                   'www.tiktok.com', 'open.spotify.com']
+
 
 async def fetch_url(url, host):
     if host == 'www.youtube.com':
@@ -24,7 +26,8 @@ async def fetch_url(url, host):
         path = urllib.parse.urlparse(url).path
         ext = os.path.splitext(path)[1]
         return url, 'mp3'
-     
+
+
 async def from_url(url):
     resp = urllib.request.urlopen(url)
     parsed = urllib.parse.urlparse(resp.url)
