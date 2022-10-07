@@ -35,7 +35,6 @@ def create_command(command: list[str], *args):
     command = command.split(' ')
     return command
 
-
 async def save_files(inputs) -> None:
     for input in inputs:
         resp = await client.get(input[0])
@@ -87,7 +86,11 @@ class CommandRunner:
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()
+<<<<<<< HEAD
         if err != '':
+=======
+        if err != '' and out == b'':
+>>>>>>> 60bfa5ef3481817d297b0935a8310d283beb691e
             raise FfmpegError(err)
         return out
 
