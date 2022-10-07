@@ -87,7 +87,7 @@ class CommandRunner:
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()
-        if out == '':
+        if err != '':
             raise FfmpegError(err)
         return out
 
