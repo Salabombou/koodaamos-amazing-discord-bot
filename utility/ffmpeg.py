@@ -56,9 +56,9 @@ class CommandRunner:
             command = [
                 *command,
                 '-loglevel', 'error',  # logs only errors
-                '-movflags', 'frag_keyframe+empty_moov',  # 100% fragmented
+                #'-movflags', 'frag_keyframe+empty_moov',  # 100% fragmented
                 '-pix_fmt', 'yuv420p',  # pixel format
-                '-b:v', '256k',  # video bitrate
+                '-b:v', '512k',  # video bitrate
                 '-b:a', '128k',  # audio bitrate
                 '-c:v', 'libx264',  # video codec
                 '-movflags', 'frag_keyframe+empty_moov+faststart',
@@ -77,16 +77,19 @@ class CommandRunner:
                     input=stdin,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    timeout=60
+                    bufsize=10**8,
+                    timeout=180
                 )
             )
         except:
+            print('ffmpeg')
             raise CommandTimeout()
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()
-        if err != '' and out == b'':
+        if err != '':
             raise FfmpegError(err)
+
         return out
 
 
@@ -94,34 +97,25 @@ class Videofier:
     def __init__(self, loop: AbstractEventLoop):
         self.command_runner = CommandRunner(loop)
         self.img2vid_args = [
-            '-f', 'lavfi',
-            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
             '-r', '30',
             '-i', '{input}',
             '-loop', '-1:1',
-            '-vf', 'scale={width}:{height}',
-            '-map', '1:v',
+            '-filter_complex', '[0:v]scale={width}:{height}[out]',
+            '-map', '[out]',
             '-map', '0:a',
-            '-map', '1:a?'
         ]
         self.aud2vid_args = [
-            '-f', 'lavfi',
-            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
             '-f', 'lavfi',
             '-i', 'color=c=black:s={width}x{height}:r=5',
             '-i', '{input}',
             '-map', '1:v',
-            '-map', '0:a',
-            '-map', '1:a?'
+            '-map', '1:a'
         ]
         self.vid2vid_args = [
-            '-f', 'lavfi',
-            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
             '-i', '{input}',
-            '-filter_complex', '[1:v]scale={width}:{height},framerate=30[out]',
+            '-filter_complex', '[0:v]scale={width}:{height},framerate=30[out]',
             '-map', '[out]',
-            '-map', '0:a',
-            '-map', '1:a?'
+            '-map', '0:a'
         ]
         self.overlay_args = [
             '-f', 'lavfi',
@@ -148,8 +142,7 @@ class Videofier:
 
         cmd = create_command(
             cmd,
-            duration=target.duration_s,
-            input=target.proxy_url,
+            input='-',
             width=target.width_safe,
             height=target.height_safe
         )
@@ -157,21 +150,24 @@ class Videofier:
         return cmd
 
     async def videofy(self, target: target.Target) -> bytes:
+        out = await self.command_runner.run(
+            [
+                '-f', 'lavfi',
+                '-i', f'anullsrc=channel_layout=stereo:sample_rate=44100:d={target.duration_s}',
+                '-i', target.proxy_url,
+                '-map', '1:v',
+                '-map', f'{1 if target.has_audio else 0}:a'
+            ]
+        )
+
         cmd = self.get_cmd(target)
-        out = await self.command_runner.run(cmd, t=target.duration_s)
+        out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
         
         width, height = create_size(target)
 
         # second run to fix any playback issues
         cmd = create_command(self.overlay_args, width=width, height=height, duration=target.duration_s)
         out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
-
-        out = await self.command_runner.run(
-            [
-                '-i', '-'
-            ],
-            stdin=out
-        )
 
         with open ('debug.mp4', 'wb') as file:
             file.write(out)

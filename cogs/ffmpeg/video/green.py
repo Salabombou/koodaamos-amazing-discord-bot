@@ -14,13 +14,12 @@ class green(commands.Cog, ffmpeg_cog):
         self.filter = '[1:v]scale=%s:%s,fps=30,colorkey=0x%s:0.4:0[ckout];[0:v]fps=30[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2[out]'
         self.green_args = [
             '-stream_loop', '-1',
-            '-ss', '00:00:00',
-            '-to', '%s',
             '-i', '-',
             '-i', '"%s"',
             '-filter_complex', self.filter % ('%s', '%s', '%s') + ';[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]',
             '-map', '[out]',
             '-map', '[a]',
+            '-shortest'
         ]
 
     def set_color(self, color: str):  # sets the color for ffmpeg to filter
@@ -41,25 +40,18 @@ class green(commands.Cog, ffmpeg_cog):
         video = YouTube.get_info(url=url, video=True, max_duration=300)
 
         # creates the duration in format hh:mm:ss
-        time_to = create_time(video['duration'])
         color = self.set_color(color)  # creates the color
         width, height = create_size(target)
         stdin = await self.videofier.videofy(target)
+
         cmd = create_command(
             self.green_args,
-            time_to,
             video['url'],
             width,
             height,
             color
         )
         out = await self.command_runner.run(cmd, stdin=stdin, t=video['duration'])
-        out = await self.command_runner.run(
-            [
-                '-i', '-'
-            ],
-            stdin=out
-        )
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

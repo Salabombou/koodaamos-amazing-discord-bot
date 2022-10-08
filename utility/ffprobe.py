@@ -43,10 +43,11 @@ class Ffprober:
                     command,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    timeout=5
+                    timeout=10
                 )
             )
         except:
+            print('ffprobe')
             raise CommandTimeout()
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout

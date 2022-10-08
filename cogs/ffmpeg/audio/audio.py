@@ -13,26 +13,23 @@ class audio(commands.Cog, ffmpeg_cog):
         self.description = 'Adds audio to a image or a video'
         self.audio_args = [
             '-stream_loop', '-1',
-            '-ss', '00:00:00',
-            '-to', '%s',
             '-i', '-',
             '-i', '"%s"',
             '-filter_complex', '"[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
             '-map', '[a]',
             '-map', '0:v',
+            '-shortest'
         ]
 
     async def create_output(self, ctx: commands.Context, url):
         target = await discordutil.get_target(ctx)
         await target.probe()
+
         audio = YouTube.get_info(url, video=False, max_duration=300)
-        time_to = create_time(audio['duration'])
 
         cmd = create_command(
             self.audio_args,
-            time_to,
             audio['url'],
-            #1 if target.has_audio else 0,
         )
 
         stdin = await self.videofier.videofy(target)
