@@ -46,7 +46,10 @@ class CommandRunner:
 
     async def run(self, command: list, t: float = 60.0, output: str = 'pipe:1', arbitrary_command=False, stdin=None) -> None:
         command = [
-            'ffmpeg', *command,
+            'ffmpeg',
+            '-analyzeduration', '100M',
+            '-probesize', '100M',
+            *command,
             '-t', str(t)
         ]
         if not arbitrary_command:
@@ -91,29 +94,42 @@ class Videofier:
     def __init__(self, loop: AbstractEventLoop):
         self.command_runner = CommandRunner(loop)
         self.img2vid_args = [
-            '-analyzeduration', '100M',
-            '-probesize', '100M',
-            '-r', '5',
+            '-f', 'lavfi',
+            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
+            '-r', '30',
             '-i', '{input}',
             '-loop', '-1:1',
             '-vf', 'scale={width}:{height}',
+            '-map', '1:v',
+            '-map', '0:a',
+            '-map', '1:a?'
         ]
         self.aud2vid_args = [
-            '-analyzeduration', '100M',
-            '-probesize', '100M',
+            '-f', 'lavfi',
+            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
             '-f', 'lavfi',
             '-i', 'color=c=black:s={width}x{height}:r=5',
             '-i', '{input}',
+            '-map', '1:v',
+            '-map', '0:a',
+            '-map', '1:a?'
         ]
         self.vid2vid_args = [
-            '-analyzeduration', '100M',
-            '-probesize', '100M',
             '-f', 'lavfi',
-            '-i', 'color=c=0x36393e:s={width}x{height}:r=30',
+            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
             '-i', '{input}',
-            '-filter_complex', '"[0:v][1:v]overlay=(W-w)/2:(H-h)/2:enable=\'between(t,0,20)\'[v];[v]scale=ceil(iw/2)*2:ceil(ih/2)*2[out]"',
+            '-filter_complex', '[1:v]scale={width}:{height},framerate=30[out]',
             '-map', '[out]',
+            '-map', '0:a',
             '-map', '1:a?'
+        ]
+        self.overlay_args = [
+            '-f', 'lavfi',
+            '-i', 'color=c=0x36393e:s={width}x{height}:r=30:d={duration}',
+            '-i', '-',
+            '-filter_complex', '"[0:v][1:v]overlay=(W-w)/2:(H-h)/2:enable=\'between(t,0,20)\'[out]"',
+            '-map', '[out]',
+            '-map', '1:a'
         ]
 
     def get_cmd(self, target: target.Target):
@@ -130,7 +146,13 @@ class Videofier:
         elif target.type == 'audio':
             cmd = self.aud2vid_args
 
-        cmd = create_command(cmd, input=target.proxy_url, width=target.width_safe, height=target.height_safe)
+        cmd = create_command(
+            cmd,
+            duration=target.duration_s,
+            input=target.proxy_url,
+            width=target.width_safe,
+            height=target.height_safe
+        )
 
         return cmd
 
@@ -141,10 +163,16 @@ class Videofier:
         width, height = create_size(target)
 
         # second run to fix any playback issues
-        cmd = create_command(self.vid2vid_args, input='-', width=width, height=height)
+        cmd = create_command(self.overlay_args, width=width, height=height, duration=target.duration_s)
         out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
 
-        with open('debug.mp4', 'wb') as file:
-            file.write(out)
+        out = await self.command_runner.run(
+            [
+                '-i', '-'
+            ],
+            stdin=out
+        )
 
+        with open ('debug.mp4', 'wb') as file:
+            file.write(out)
         return out

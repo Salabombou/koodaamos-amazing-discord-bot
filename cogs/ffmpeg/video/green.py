@@ -11,16 +11,14 @@ class green(commands.Cog, ffmpeg_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Overlays a greenscreen video on top of an image or a video'
-        self.filter = '[2:v]scale=%s:%s,fps=30,colorkey=0x%s:0.4:0[ckout];[1:v]fps=30[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2[out]'
+        self.filter = '[1:v]scale=%s:%s,fps=30,colorkey=0x%s:0.4:0[ckout];[0:v]fps=30[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2[out]'
         self.green_args = [
-            '-f', 'lavfi',
-            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=%s',
             '-stream_loop', '-1',
             '-ss', '00:00:00',
             '-to', '%s',
             '-i', '-',
             '-i', '"%s"',
-            '-filter_complex', self.filter % ('%s', '%s', '%s') + ';[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]',
+            '-filter_complex', self.filter % ('%s', '%s', '%s') + ';[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]',
             '-map', '[out]',
             '-map', '[a]',
         ]
@@ -49,15 +47,19 @@ class green(commands.Cog, ffmpeg_cog):
         stdin = await self.videofier.videofy(target)
         cmd = create_command(
             self.green_args,
-            video['duration'],
             time_to,
             video['url'],
             width,
             height,
-            color,
-            1 if target.has_audio else 0
+            color
         )
         out = await self.command_runner.run(cmd, stdin=stdin, t=video['duration'])
+        out = await self.command_runner.run(
+            [
+                '-i', '-'
+            ],
+            stdin=out
+        )
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
