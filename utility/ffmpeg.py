@@ -74,7 +74,7 @@ class CommandRunner:
                     input=stdin,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    timeout=180
+                    timeout=60
                 )
             )
         except:
