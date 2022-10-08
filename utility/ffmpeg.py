@@ -1,8 +1,6 @@
 from asyncio import AbstractEventLoop
-from discord import Attachment, Embed, StickerItem
 import httpx
 import datetime
-import time
 import functools
 import subprocess
 from utility.common.errors import CommandTimeout, FfmpegError
@@ -10,38 +8,36 @@ from utility.discord import target
 
 client = httpx.AsyncClient()
 
-aspect_ratio = float(16/9)
+ideal_aspect_ratio = 16 / 9
 
 
-def create_width(target: Attachment | Embed | StickerItem):
-    width = round(target.height * aspect_ratio)
-    return width
+def create_size(target: target.Target):
+    width = target.width_safe
+    height = target.height_safe
+
+    if width == None or height == None:
+        width = 1280
+        height = 720
+
+    aspect_ratio = width / height
+
+    if aspect_ratio > ideal_aspect_ratio:
+        height = round(width / ideal_aspect_ratio)
+    elif aspect_ratio < ideal_aspect_ratio:
+        width = round(height * ideal_aspect_ratio)
+
+    return width, height
 
 
 def create_time(duration):
     return str(datetime.timedelta(seconds=duration))
 
 
-def create_paths(ID, *args) -> tuple:
-    timestamp = int(time.time())
-    paths = []
-    for arg in args:
-        paths.append(f'./files/{arg}{ID}_{timestamp}.temp')
-    return tuple(paths)
-
-
-def create_command(command: list[str], *args):
+def create_command(command: list[str], *args, **kwargs):
     command: str = ' '.join(command) % args
+    command = command.format(**kwargs)
     command = command.split(' ')
     return command
-
-async def save_files(inputs) -> None:
-    for input in inputs:
-        resp = await client.get(input[0])
-        resp.raise_for_status()
-        with open(input[1], 'wb') as file:
-            file.write(resp.content)
-            file.close()
 
 
 class CommandRunner:
@@ -97,49 +93,55 @@ class Videofier:
         self.img2vid_args = [
             '-analyzeduration', '100M',
             '-probesize', '100M',
-            '-f', 'lavfi',
-            '-i', 'color=c=black:s=%sx%s:r=5',
             '-r', '5',
-            '-i', '%s',
+            '-i', '{input}',
             '-loop', '-1:1',
-            '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
+            '-vf', 'scale={width}:{height}',
         ]
         self.aud2vid_args = [
             '-analyzeduration', '100M',
             '-probesize', '100M',
             '-f', 'lavfi',
-            '-i', 'color=c=black:s=%sx%s:r=5',
-            '-i', '%s',
+            '-i', 'color=c=black:s={width}x{height}:r=5',
+            '-i', '{input}',
         ]
         self.vid2vid_args = [
             '-analyzeduration', '100M',
             '-probesize', '100M',
             '-f', 'lavfi',
-            '-i', 'color=c=black:s=%sx%s:r=5',
-            '-i', '%s',
-            '-filter-complex', '"[1]split[m][a];[a]geq=\'if(gt(lum(X,Y),16),255,0)\',hue=s=0[al];[m][al]alphamerge[ovr]"',
-            '-map', '[ovr]'
+            '-i', 'color=c=0x36393e:s={width}x{height}:r=30',
+            '-i', '{input}',
+            '-filter_complex', '"[0:v][1:v]overlay=(W-w)/2:(H-h)/2:enable=\'between(t,0,20)\'[v];[v]scale=ceil(iw/2)*2:ceil(ih/2)*2[out]"',
+            '-map', '[out]',
+            '-map', '1:a?'
         ]
 
-    async def videofy(self, target: target.Target) -> bytes:
+    def get_cmd(self, target: target.Target):
         cmd = ''
-        if target.type == 'video' or 'gifv':
-            cmd = self.vid2vid_args
-        if target.type == 'image':
+
+        if target.width_safe == None or target.height_safe == None:
+            target.width_safe = 1280
+            target.height_safe = 720
+
+        if target.type == 'image' or target.type == 'rich':
             cmd = self.img2vid_args
+        elif target.type == 'video' or target.type == 'gifv':
+            cmd = self.vid2vid_args
         elif target.type == 'audio':
             cmd = self.aud2vid_args
-        else:
-            cmd = self.vid2vid_args
-        if target.height == None:
-            target.height = 720
 
-        width = create_width(target)
-        cmd = create_command(cmd, width, target.height, target.proxy_url)
+        cmd = create_command(cmd, input=target.proxy_url, width=target.width_safe, height=target.height_safe)
+
+        return cmd
+
+    async def videofy(self, target: target.Target) -> bytes:
+        cmd = self.get_cmd(target)
         out = await self.command_runner.run(cmd, t=target.duration_s)
+        
+        width, height = create_size(target)
 
         # second run to fix any playback issues
-        cmd = create_command(self.vid2vid_args, width, target.height, '-')
+        cmd = create_command(self.vid2vid_args, input='-', width=width, height=height)
         out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
 
         with open('debug.mp4', 'wb') as file:

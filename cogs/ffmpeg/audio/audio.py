@@ -20,8 +20,8 @@ class audio(commands.Cog, ffmpeg_cog):
             '-i', '-',
             '-i', '"%s"',
             '-filter_complex', '"[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
-            '-map', '1:v',
             '-map', '[a]',
+            '-map', '1:v',
         ]
 
     async def create_output(self, ctx: commands.Context, url):
