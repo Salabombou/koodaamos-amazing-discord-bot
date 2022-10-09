@@ -5,6 +5,7 @@ import functools
 import subprocess
 from utility.common.errors import CommandTimeout, FfmpegError
 from utility.discord import target
+import concurrent.futures
 
 client = httpx.AsyncClient()
 
@@ -71,22 +72,24 @@ class CommandRunner:
         command.append(output)
         try:
             command = ' '.join(command)
-            pipe = await self.loop.run_in_executor(
-                None, functools.partial(
-                    subprocess.run, command,
-                    input=stdin,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    bufsize=10**8,
-                    timeout=180
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                pipe = await self.loop.run_in_executor(
+                    pool, functools.partial(
+                        subprocess.run, command,
+                        input=stdin,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        bufsize=10**8,
+                        timeout=180
+                    )
                 )
-            )
         except:
             print('ffmpeg')
             raise CommandTimeout()
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()
+        print(err)
         if err != '':
             raise FfmpegError(err)
 
@@ -169,6 +172,4 @@ class Videofier:
         cmd = create_command(self.overlay_args, width=width, height=height, duration=target.duration_s)
         out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
 
-        with open ('debug.mp4', 'wb') as file:
-            file.write(out)
         return out

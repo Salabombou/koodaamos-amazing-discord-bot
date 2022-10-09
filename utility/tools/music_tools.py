@@ -164,25 +164,34 @@ def play_song(self, ctx: commands.Context, songs=[], playnext=False):
         song = self.playlist[server][0][0]
         try:
             info = YouTube.get_info(
-                'https://www.youtube.com/watch?v=' + song.id)
+                'https://www.youtube.com/watch?v=' + song.id
+            )
         except:
             info = YouTube.get_info(
-                'https://www.youtube.com/watch?v=J3lXjYWPoys')
+                'https://www.youtube.com/watch?v=J3lXjYWPoys'
+            )
         duration = None
         if 'duration' in info:
             duration = info['duration'] + 10
         source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
         embed = create_info_embed(self, ctx)
-        message = asyncio.run_coroutine_threadsafe(
-            ctx.send('Now playing:', embed=embed, delete_after=duration), self.bot.loop)
-        ctx.voice_client.play(discord.PCMVolumeTransformer(
-            source, volume=0.5), after=lambda e: next_song(self, ctx, message._result))
+        message = asyncio.run(ctx.send('Now playing:', embed=embed, delete_after=duration))
+        ctx.voice_client.play(
+            discord.PCMVolumeTransformer(
+                source,
+                volume=0.75
+            ),
+            after=lambda e: next_song(self, ctx, message)
+        )
 
 
 def next_song(self, ctx: commands.Context, message: discord.Message):
     server = get_server(ctx)
     try:
-        asyncio.run_coroutine_threadsafe(message.delete(), self.bot.loop)
+        asyncio.run_coroutine_threadsafe(
+            message.delete(),
+            self.bot.loop
+        )
     except:
         pass  # incase the message was already deleted or something so it wont fuck up the whole queue
     append_songs(ctx, self.playlist)
@@ -192,4 +201,8 @@ def next_song(self, ctx: commands.Context, message: discord.Message):
             # adds the currently playing song to the end of the playlist
             self.playlist[server][1].append(self.playlist[server][0][0])
         self.playlist[server][0].pop(0)
-        play_song(self, ctx)
+        asyncio.run_coroutine_threadsafe(
+            play_song(self, ctx),
+            self.bot.loop
+        )
+        
