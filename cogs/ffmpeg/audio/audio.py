@@ -12,13 +12,12 @@ class audio(commands.Cog, ffmpeg_cog):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds audio to a image or a video'
         self.audio_args = [
-            '-stream_loop', '-1',
             '-i', '-',
             '-i', '"%s"',
-            '-filter_complex', '"[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
+            '-filter_complex', '"[0:a:0][1:a:0]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
+            '-shortest',
+            '-map', '0:v:0',
             '-map', '[a]',
-            '-map', '0:v',
-            '-shortest'
         ]
 
     async def create_output(self, ctx: commands.Context, url):
@@ -33,7 +32,7 @@ class audio(commands.Cog, ffmpeg_cog):
         )
 
         stdin = await self.videofier.videofy(target)
-        out = await self.command_runner.run(cmd, stdin=stdin, t=audio['duration'])
+        out = await self.command_runner.run(cmd, stdin=stdin)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
@@ -44,4 +43,4 @@ class audio(commands.Cog, ffmpeg_cog):
     @decorators.typing
     async def audio(self, ctx: commands.Context, url="https://youtu.be/NOaSdO5H91M"):
         file, pomf_url = await self.create_output(ctx, url)
-        await respond(ctx, content=pomf_url, file=file)
+        await respond(ctx, content=pomf_url, file=file, mention_author=False)

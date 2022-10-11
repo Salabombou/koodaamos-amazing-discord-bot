@@ -57,7 +57,7 @@ class CommandRunner:
             command = [
                 *command,
                 '-loglevel', 'error',  # logs only errors
-                #'-movflags', 'frag_keyframe+empty_moov',  # 100% fragmented
+                # '-movflags', 'frag_keyframe+empty_moov',  # 100% fragmented
                 '-pix_fmt', 'yuv420p',  # pixel format
                 '-b:v', '512k',  # video bitrate
                 '-b:a', '128k',  # audio bitrate
@@ -89,8 +89,8 @@ class CommandRunner:
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()
-        print(err)
         if err != '':
+            print(err)
             raise FfmpegError(err)
 
         return out
@@ -99,77 +99,47 @@ class CommandRunner:
 class Videofier:
     def __init__(self, loop: AbstractEventLoop):
         self.command_runner = CommandRunner(loop)
-        self.img2vid_args = [
-            '-r', '30',
-            '-i', '{input}',
-            '-loop', '-1:1',
-            '-filter_complex', '[0:v]scale={width}:{height}[out]',
-            '-map', '[out]',
-            '-map', '0:a',
-        ]
-        self.aud2vid_args = [
+        self.to_video = [
             '-f', 'lavfi',
-            '-i', 'color=c=black:s={width}x{height}:r=5',
-            '-i', '{input}',
-            '-map', '1:v',
-            '-map', '1:a'
-        ]
-        self.vid2vid_args = [
-            '-i', '{input}',
-            '-filter_complex', '[0:v]scale={width}:{height},framerate=30[out]',
-            '-map', '[out]',
-            '-map', '0:a'
+            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
+            '-f', 'lavfi',
+            '-i', 'color=c=0x36393e:s={width}x{width}:r=5',
+            '-i', '"{url}"',
+            '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x36393e',
+            '-map', '{map_video}:v:0',
+            '-map', '{map_audio}:a'
         ]
         self.overlay_args = [
             '-f', 'lavfi',
             '-i', 'color=c=0x36393e:s={width}x{height}:r=30:d={duration}',
             '-i', '-',
-            '-filter_complex', '"[0:v][1:v]overlay=(W-w)/2:(H-h)/2:enable=\'between(t,0,20)\'[out]"',
+            '-filter_complex', '"[0:v:0][1:v:0]overlay=(W-w)/2:(H-h)/2:enable=\'between(t,0,20)\'[out]"',
             '-map', '[out]',
-            '-map', '1:a'
+            '-map', '1:a:0',
         ]
 
-    def get_cmd(self, target: target.Target):
-        cmd = ''
-
-        if target.width_safe == None or target.height_safe == None:
-            target.width_safe = 1280
-            target.height_safe = 720
-
-        if target.type == 'image' or target.type == 'rich':
-            cmd = self.img2vid_args
-        elif target.type == 'video' or target.type == 'gifv':
-            cmd = self.vid2vid_args
-        elif target.type == 'audio':
-            cmd = self.aud2vid_args
-
-        cmd = create_command(
-            cmd,
-            input='-',
-            width=target.width_safe,
-            height=target.height_safe
-        )
-
-        return cmd
-
     async def videofy(self, target: target.Target) -> bytes:
-        out = await self.command_runner.run(
-            [
-                '-f', 'lavfi',
-                '-i', f'anullsrc=channel_layout=stereo:sample_rate=44100:d={target.duration_s}',
-                '-i', target.proxy_url,
-                '-map', '1:v',
-                '-map', f'{1 if target.has_audio else 0}:a'
-            ]
-        )
+        kwargs = {
+            'width': target.width_safe,
+            'height': target.height_safe,
+            'duration': target.duration_s,
+            'url': target.proxy_url,
+            'map_video': 1 if target.is_audio else 2,
+            'map_audio': 2 if target.has_audio else 0
+        }
+        cmd = create_command(self.to_video, **kwargs)
+        out = await self.command_runner.run(cmd)
 
-        cmd = self.get_cmd(target)
-        out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
-        
+        # makes the width and height match 16/9 aspect ratio
         width, height = create_size(target)
 
-        # second run to fix any playback issues
-        cmd = create_command(self.overlay_args, width=width, height=height, duration=target.duration_s)
+        # second run to add a gray 16/9 gray background and to fix any other issues
+        cmd = create_command(
+            self.overlay_args,
+            width=width,
+            height=height,
+            duration=target.duration_s
+        )
         out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
 
         return out

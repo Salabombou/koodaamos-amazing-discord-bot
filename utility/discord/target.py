@@ -35,6 +35,7 @@ class Target(FfprobeFormat):
         self.proxy_url = None
         self.type = None
         self.has_audio = None
+        self.is_audio = None
         self.duration_s = None
 
         if isinstance(target, Embed):
@@ -54,6 +55,10 @@ class Target(FfprobeFormat):
         if self.width != None and self.height != None:
             self.width_safe = ceil(self.width / 2) * 2
             self.height_safe = ceil(self.height / 2) * 2
+        else:
+            self.width_safe = 1280
+            self.height_safe = 720
+        self.is_audio = self.type == 'audio'
 
     @staticmethod
     def get_embed_proxy(target: Embed):

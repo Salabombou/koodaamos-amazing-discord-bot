@@ -11,15 +11,14 @@ class green(commands.Cog, ffmpeg_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Overlays a greenscreen video on top of an image or a video'
-        self.filter = '[1:v]scale=%s:%s,fps=30,colorkey=0x%s:0.4:0[ckout];[0:v]fps=30[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2[out]'
+        self.filter = '[1:v:0]scale=%s:%s,fps=30,colorkey=0x%s:0.4:0[ckout];[0:v:0]fps=30[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2[out]'
         self.green_args = [
-            '-stream_loop', '-1',
             '-i', '-',
             '-i', '"%s"',
-            '-filter_complex', self.filter % ('%s', '%s', '%s') + ';[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]',
+            '-filter_complex', self.filter % ('%s', '%s', '%s') + ';[0:a:0][1:a:0]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]',
+            '-shortest',
             '-map', '[out]',
-            '-map', '[a]',
-            '-shortest'
+            '-map', '[a]'
         ]
 
     def set_color(self, color: str):  # sets the color for ffmpeg to filter
@@ -51,7 +50,8 @@ class green(commands.Cog, ffmpeg_cog):
             height,
             color
         )
-        out = await self.command_runner.run(cmd, stdin=stdin, t=video['duration'])
+        
+        out = await self.command_runner.run(cmd, stdin=stdin, t=video['duration'] if video['duration'] < 60 else 60)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
