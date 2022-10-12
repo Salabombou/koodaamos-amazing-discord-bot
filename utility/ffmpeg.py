@@ -7,6 +7,7 @@ import subprocess
 from utility.common.errors import CommandTimeout, FfmpegError
 from utility.discord import target
 import concurrent.futures
+import moviepy.editor
 
 client = httpx.AsyncClient()
 
@@ -79,11 +80,11 @@ class CommandRunner:
                         input=stdin,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
-                        bufsize=10**8,
+                        bufsize=8**10,
                         timeout=60
                     )
                 )
-        except:
+        except CommandTimeout:
             print('ffmpeg')
             raise CommandTimeout()
         err: bytes = pipe.stderr
@@ -118,15 +119,10 @@ class Videofier:
             '-map', '1:a:0'
         ]
         self.loop_args = [
-            '-i', '-',
-            '-filter_complex', 'loop=loop=%s:size=32767'
+            '-stream_loop', '-1', # this breaks sometimes i have no idea why send help
+            '-i', 'pipe:0',
         ]
-    @staticmethod
-    def get_loop_for(target: target.Target, duration: int):
-        target_duration = math.ceil(target.duration_s)
-        loops = math.ceil(duration / target_duration)
-        return loops - 1
-    
+
     async def videofy(self, target: target.Target, duration: int = 1) -> bytes:
         kwargs = {
             'width': target.width_safe,
@@ -153,11 +149,7 @@ class Videofier:
 
         cmd = create_command(
             self.loop_args,
-            self.get_loop_for(target, duration)
         )
         out = await self.command_runner.run(cmd, t=duration, stdin=out)
-
-        with open('debug.mp4', 'wb') as file:
-            file.write(out)
 
         return out
