@@ -117,7 +117,7 @@ class Videofier:
             '-map', '[out]',
             '-map', '1:a:0',
         ]
-
+    
     async def videofy(self, target: target.Target) -> bytes:
         kwargs = {
             'width': target.width_safe,

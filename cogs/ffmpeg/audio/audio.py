@@ -12,10 +12,10 @@ class audio(commands.Cog, ffmpeg_cog):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds audio to a image or a video'
         self.audio_args = [
+            '-stream_loop', '-1',
             '-i', '-',
             '-i', '"%s"',
-            '-filter_complex', '"[0:a:0][1:a:0]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
-            '-shortest',
+            '-filter_complex', '"[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
             '-map', '0:v:0',
             '-map', '[a]',
         ]
@@ -24,7 +24,7 @@ class audio(commands.Cog, ffmpeg_cog):
         target = await discordutil.get_target(ctx)
         await target.probe()
 
-        audio = YouTube.get_info(url, video=False, max_duration=300)
+        audio = await self.yt_extractor.get_info(url, video=False, max_duration=300)
 
         cmd = create_command(
             self.audio_args,
@@ -32,7 +32,7 @@ class audio(commands.Cog, ffmpeg_cog):
         )
 
         stdin = await self.videofier.videofy(target)
-        out = await self.command_runner.run(cmd, stdin=stdin)
+        out = await self.command_runner.run(cmd, stdin=stdin, t=audio['duration'])
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
