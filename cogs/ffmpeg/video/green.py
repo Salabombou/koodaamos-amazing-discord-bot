@@ -1,3 +1,4 @@
+import math
 from discord.ext import commands
 from utility.discord import target as discordutil
 from utility.scraping import YouTube
@@ -13,7 +14,6 @@ class green(commands.Cog, ffmpeg_cog):
         self.description = 'Overlays a greenscreen video on top of an image or a video'
         self.filter = '[1:v:0]scale=%s:%s,fps=30,colorkey=0x%s:0.4:0[ckout];[0:v:0]fps=30[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2[out]'
         self.green_args = [
-            '-stream_loop', '-1',
             '-i', '-',
             '-i', '"%s"',
             '-filter_complex', self.filter % ('%s', '%s', '%s') + ';[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]',
@@ -41,7 +41,7 @@ class green(commands.Cog, ffmpeg_cog):
         # creates the duration in format hh:mm:ss
         color = self.set_color(color)  # creates the color
         width, height = create_size(target)
-        stdin = await self.videofier.videofy(target)
+        stdin = await self.videofier.videofy(target, duration=video['duration'])
 
         cmd = create_command(
             self.green_args,

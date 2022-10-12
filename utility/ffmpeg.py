@@ -1,4 +1,5 @@
 from asyncio import AbstractEventLoop
+import math
 import httpx
 import datetime
 import functools
@@ -10,7 +11,6 @@ import concurrent.futures
 client = httpx.AsyncClient()
 
 ideal_aspect_ratio = 16 / 9
-
 
 def create_size(target: target.Target):
     width = target.width_safe
@@ -59,7 +59,7 @@ class CommandRunner:
                 '-loglevel', 'error',  # logs only errors
                 # '-movflags', 'frag_keyframe+empty_moov',  # 100% fragmented
                 '-pix_fmt', 'yuv420p',  # pixel format
-                '-b:v', '512k',  # video bitrate
+                '-b:v', '1024k',  # video bitrate
                 '-b:a', '128k',  # audio bitrate
                 '-c:v', 'libx264',  # video codec
                 '-movflags', 'frag_keyframe+empty_moov+faststart',
@@ -80,7 +80,7 @@ class CommandRunner:
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                         bufsize=10**8,
-                        timeout=180
+                        timeout=60
                     )
                 )
         except:
@@ -115,10 +115,19 @@ class Videofier:
             '-i', '-',
             '-filter_complex', '"[0:v:0][1:v:0]overlay=(W-w)/2:(H-h)/2:enable=\'between(t,0,20)\'[out]"',
             '-map', '[out]',
-            '-map', '1:a:0',
+            '-map', '1:a:0'
         ]
+        self.loop_args = [
+            '-i', '-',
+            '-filter_complex', 'loop=loop=%s:size=32767'
+        ]
+    @staticmethod
+    def get_loop_for(target: target.Target, duration: int):
+        target_duration = math.ceil(target.duration_s)
+        loops = math.ceil(duration / target_duration)
+        return loops - 1
     
-    async def videofy(self, target: target.Target) -> bytes:
+    async def videofy(self, target: target.Target, duration: int = 1) -> bytes:
         kwargs = {
             'width': target.width_safe,
             'height': target.height_safe,
@@ -141,5 +150,14 @@ class Videofier:
             duration=target.duration_s
         )
         out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
+
+        cmd = create_command(
+            self.loop_args,
+            self.get_loop_for(target, duration)
+        )
+        out = await self.command_runner.run(cmd, t=duration, stdin=out)
+
+        with open('debug.mp4', 'wb') as file:
+            file.write(out)
 
         return out

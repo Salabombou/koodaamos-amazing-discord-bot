@@ -12,7 +12,6 @@ class audio(commands.Cog, ffmpeg_cog):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds audio to a image or a video'
         self.audio_args = [
-            '-stream_loop', '-1',
             '-i', '-',
             '-i', '"%s"',
             '-filter_complex', '"[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
@@ -31,7 +30,7 @@ class audio(commands.Cog, ffmpeg_cog):
             audio['url'],
         )
 
-        stdin = await self.videofier.videofy(target)
+        stdin = await self.videofier.videofy(target, duration=audio['duration'])
         out = await self.command_runner.run(cmd, stdin=stdin, t=audio['duration'])
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
