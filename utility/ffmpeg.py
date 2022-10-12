@@ -78,9 +78,9 @@ class CommandRunner:
                     pool, functools.partial(
                         subprocess.run, command,
                         input=stdin,
+                        bufsize=0,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
-                        bufsize=8**10,
                         timeout=60
                     )
                 )
@@ -120,7 +120,7 @@ class Videofier:
         ]
         self.loop_args = [
             '-stream_loop', '-1', # this breaks sometimes i have no idea why send help
-            '-i', 'pipe:0',
+            '-i', '-',
         ]
 
     async def videofy(self, target: target.Target, duration: int = 1) -> bytes:
