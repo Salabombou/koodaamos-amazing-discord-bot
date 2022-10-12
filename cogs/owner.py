@@ -44,11 +44,9 @@ class owner(commands.Cog, command_cog):
         return False
 
     async def get_unknown_guilds(self) -> list[discord.Guild]:
-        unknown_guilds = []
         for guild in self.bot.guilds:
             if not await self.owner_in_guild(guild):
-                unknown_guilds.append(guild)
-        return unknown_guilds
+                yield guild
 
     @commands.command()
     @commands.is_owner()
@@ -65,9 +63,9 @@ class owner(commands.Cog, command_cog):
     @delete_before
     async def invite(self, ctx: commands.Context, server=None):
         if server == None:
-            unknown_guilds = await self.get_unknown_guilds()
+            unknown_guilds = self.get_unknown_guilds()
             dm = await self.bot.create_dm(ctx.author)
-            for guild in unknown_guilds:
+            async for guild in unknown_guilds:
                 content = f'Server name: {guild.name}\nServer ID: {guild.id}'
                 await dm.send(content)
                 await asyncio.sleep(1)

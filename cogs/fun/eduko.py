@@ -67,8 +67,11 @@ class eduko(commands.Cog, command_cog):
             week_spliced = self.splice_list(week, 2)
             for week in week_spliced:
                 for food in week:
-                    embed.add_field(name=food.header,
-                                    value=food.the_actual_food, inline=False)
+                    embed.add_field(
+                        name=food.header,
+                        value=food.the_actual_food,
+                        inline=False
+                    )
             embeds.append(embed)
             del self.week_nums[0]
         return embeds
