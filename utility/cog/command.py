@@ -5,7 +5,7 @@ from utility.scraping.YouTube import YT_Extractor
 
 class command_cog:
     def __init__(self, bot: commands.Bot, tokens: dict, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+        #super().__init__(**kwargs)
         self.bot = bot
         self.tokens = tokens
         self.client = httpx.AsyncClient()

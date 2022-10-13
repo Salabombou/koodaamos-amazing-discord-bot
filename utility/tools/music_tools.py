@@ -62,9 +62,8 @@ class music_tools:
         return duration.seconds
 
     def serialize_songs(self, server):
-        i = 0
         songs = []
-        for song in self.playlist[server][0]:
+        for i, song in enumerate(self.playlist[server][0]):
             digit = str(i).zfill(3)
             title = song.title[0:31]
             title_length = len(title)
@@ -72,7 +71,6 @@ class music_tools:
                 title += ' ...'
             song = f'**``{digit}``**: {title}'
             songs.append(song)
-            i += 1
         if len(songs) <= 1:
             return ['']
         songs.pop(0)
@@ -84,7 +82,7 @@ class music_tools:
             title='PLAYLIST', description='', fields=[], color=0xC4FFBD)
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[server][0]) / 50)
-        songs = self.serialize_songs(self.playlist, server)
+        songs = self.serialize_songs(server)
         currently_playing = YouTube.Video()
         if self.playlist[server][0] != []:
             currently_playing = self.playlist[server][0][0]

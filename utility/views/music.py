@@ -11,17 +11,12 @@ import asyncio
 class music_view(discord.ui.View):
     def __init__(self, music_self, ctx: commands.Context):
         super().__init__(timeout=None)
+        self.tools: music_tools.music_tools = music_self.tools
         self.ctx = ctx
-        self.bot = music_self.bot
-        self.playlist = music_self.playlist
-        self.looping = music_self.looping
-        self.youtube = music_self.youtube
-
         self.embed = None
         self.index = 0
         self.server = music_tools.get_server(ctx)
-        self.children[0].options = music_tools.create_options(
-            ctx, self.playlist)
+        self.children[0].options = self.tools.create_options(ctx)
         self.update_buttons()
 
     async def on_error(self, error, button, interaction):
@@ -43,18 +38,21 @@ class music_view(discord.ui.View):
     async def on_error(self, error, item, interaction):
         if isinstance(error, NotFound):
             return
-        embed = discord.Embed(color=0xFF0000, fields=[],
-                              title='Something went wrong!')
+        embed = discord.Embed(
+            color=0xFF0000,
+            fields=[],
+            title='Something went wrong!'
+        )
         embed.description = f'```{error}```'
         embed.set_thumbnail(
-            url='https://cdn.discordapp.com/emojis/992830317733871636.gif')
+            url='https://cdn.discordapp.com/emojis/992830317733871636.gif'
+        )
         await self.ctx.reply(embed=embed)
         await interaction.response.edit_message(view=self)
 
     def update_buttons(self):  # holy fuck
-        self.children[0].options = music_tools.create_options(
-            self.ctx, self.playlist)
-        playlist_length = math.ceil(len(self.playlist[self.server][0]) / 50)
+        self.children[0].options = self.tools.create_options(self.ctx)
+        playlist_length = math.ceil(len(self.tools.playlist[self.server][0]) / 50)
 
         for child in self.children:
             child.disabled = False
@@ -65,7 +63,7 @@ class music_view(discord.ui.View):
         if self.index >= playlist_length - 1:  # no more to forward
             self.children[4].disabled = True  # for
             self.children[5].disabled = True  # super for
-        if self.playlist[self.server][0] == []:  # if the entire list is empty
+        if self.tools.playlist[self.server][0] == []:  # if the entire list is empty
             for child in self.children:
                 child.disabled = True
             self.children[3].disabled = False  # refresh
@@ -73,8 +71,7 @@ class music_view(discord.ui.View):
 
     def update_embed(self):
         for _ in range(0, self.index + 1):
-            self.embed = music_tools.create_embed(
-                self.ctx, self.playlist, self.index)
+            self.embed = self.tools.create_embed(self.ctx, self.index)
             if self.embed.description != '':
                 break
             self.index -= 1
@@ -116,39 +113,39 @@ class music_view(discord.ui.View):
 
     @discord.ui.button(label='LAST PAGE', emoji='⏩', style=discord.ButtonStyle.red, row=1)
     async def super_forward_callback(self, button, interaction: Interaction):
-        self.index = math.ceil(len(self.playlist[self.server][0]) / 50) - 1
+        self.index = math.ceil(len(self.tools.playlist[self.server][0]) / 50) - 1
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='SKIP', emoji='⏭️', style=discord.ButtonStyle.red, row=2)
     async def skip_callback(self, button, interaction: Interaction):
-        temp = self.looping[self.server]
-        self.looping[self.server] = False
+        temp = self.tools.looping[self.server]
+        self.tools.looping[self.server] = False
         await voice_chat.resume(self.ctx)
         await voice_chat.stop(self.ctx)
         await asyncio.sleep(0.5)
-        self.looping[self.server] = temp
+        self.tools.looping[self.server] = temp
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='SHUFFLE', emoji='🔀', style=discord.ButtonStyle.red, row=2)
     async def shuffle_callback(self, button, interaction: Interaction):
-        if self.playlist[self.server][0] == []:
+        if self.tools.playlist[self.server][0] == []:
             return
-        temp = self.playlist[self.server][0][0]
-        self.playlist[self.server][0].pop(0)
-        np.random.shuffle(self.playlist[self.server][0])
-        np.random.shuffle(self.playlist[self.server][1])
-        self.playlist[self.server][0].insert(0, temp)
+        temp = self.tools.playlist[self.server][0][0]
+        self.tools.playlist[self.server][0].pop(0)
+        np.random.shuffle(self.tools.playlist[self.server][0])
+        np.random.shuffle(self.tools.playlist[self.server][1])
+        self.tools.playlist[self.server][0].insert(0, temp)
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='LOOP', emoji='🔁', style=discord.ButtonStyle.red, row=2)
     async def loop_callback(self, button, interaction: Interaction):
-        self.looping[self.server] = not self.looping[self.server]
+        self.tools.looping[self.server] = not self.tools.looping[self.server]
         await interaction.response.edit_message(view=self)
 
     @discord.ui.button(label='PAUSE/RESUME', emoji='⏯️', style=discord.ButtonStyle.red, row=2)

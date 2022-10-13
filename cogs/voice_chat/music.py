@@ -13,16 +13,18 @@ def update_playlist(func):
     @functools.wraps(func)
     async def wrapper(self, ctx: commands.Context, *args, **kwargs):
         server = get_server(ctx)
-        if not server in self.playlist:
-            self.playlist[server] = [[], []]
-        if server not in self.looping:
-            self.looping[server] = False
+        if not server in self.tools.playlist:
+            self.tools.playlist[server] = [[], []]
+        if server not in self.tools.looping:
+            self.tools.looping[server] = False
         return await func(self, ctx, *args, **kwargs)
     return wrapper
-class music(commands.Cog, command_cog, music_tools):
+
+class music(commands.Cog, command_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens,  yt_api_key=tokens['youtube_v3'], loop=bot.loop)
         self.description = 'Plays songs from a playlist to a discord voice channel'
+        self.tools = music_tools(bot.loop, tokens['youtube_v3'])
 
     @commands.command(help='url: YouTube url to a song / playlist')
     @commands.guild_only()
@@ -33,8 +35,8 @@ class music(commands.Cog, command_cog, music_tools):
     @decorators.delete_after
     async def play(self, ctx, *, arg='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'):
         await voice_chat.join(ctx)
-        songs = await self.fetch_songs(ctx, arg)
-        await self.play_song(ctx, songs)
+        songs = await self.tools.fetch_songs(ctx, arg)
+        await self.tools.play_song(ctx, songs)
 
     @commands.command(help='url: YouTube url to a song / playlist')
     @commands.guild_only()
@@ -45,8 +47,8 @@ class music(commands.Cog, command_cog, music_tools):
     @decorators.delete_after
     async def playnext(self, ctx, *, arg):
         await voice_chat.join(ctx)
-        songs = await self.fetch_songs(ctx, arg, True)
-        await self.play_song(ctx, songs, True)
+        songs = await self.tools.fetch_songs(ctx, arg, True)
+        await self.tools.play_song(ctx, songs, True)
 
     @commands.command(help='lists the bot\'s playlist')
     @commands.guild_only()
@@ -54,7 +56,7 @@ class music(commands.Cog, command_cog, music_tools):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @update_playlist
     async def list(self, ctx: commands.Context):
-        embed = self.create_embed(ctx, self.playlist, 0)
+        embed = self.tools.create_embed(ctx, page_num=0)
         message = await respond(ctx, embed=embed)
         ctx = await self.bot.get_context(message)
         await message.edit(view=music_view(music_self=self, ctx=ctx))
@@ -66,7 +68,7 @@ class music(commands.Cog, command_cog, music_tools):
     @decorators.delete_after
     async def disconnect(self, ctx: commands.Context):
         server = get_server(ctx)
-        self.playlist[server] = [[], []]
+        self.tools.playlist[server] = [[], []]
         await voice_chat.leave(ctx)
 
     @commands.command(help='resumes the currently playing song')
@@ -93,15 +95,15 @@ class music(commands.Cog, command_cog, music_tools):
     @decorators.delete_after
     async def skip(self, ctx, amount=1):
         server = get_server(ctx)
-        temp = self.looping[server]
-        self.looping[server] = False
+        temp = self.tools.looping[server]
+        self.tools.looping[server] = False
         amount = abs(amount)
-        del self.playlist[server][0][1:amount]
-        self.append_songs(ctx)
+        del self.tools.playlist[server][0][1:amount]
+        self.tools.append_songs(ctx)
         await voice_chat.resume(ctx)
         await voice_chat.stop(ctx)  # skips one song
         await asyncio.sleep(0.5)  # why? # just incase
-        self.looping[server] = temp
+        self.tools.looping[server] = temp
 
     @commands.command(help='shuffles the playlist')
     @commands.guild_only()
@@ -111,13 +113,13 @@ class music(commands.Cog, command_cog, music_tools):
     @decorators.delete_after
     async def shuffle(self, ctx: commands.Context):
         server = get_server(ctx)
-        if self.playlist[server] == [[], []]:
+        if self.tools.playlist[server] == [[], []]:
             return
-        temp = self.playlist[server][0][0]
-        self.playlist[server][0].pop(0)
-        np.random.shuffle(self.playlist[server][0])
-        np.random.shuffle(self.playlist[server][1])
-        self.playlist[server][0].insert(0, temp)
+        temp = self.tools.playlist[server][0][0]
+        self.tools.playlist[server][0].pop(0)
+        np.random.shuffle(self.tools.playlist[server][0])
+        np.random.shuffle(self.tools.playlist[server][1])
+        self.tools.playlist[server][0].insert(0, temp)
 
     @commands.command(help='Loops the currently playing song until stopped')
     @commands.guild_only()
@@ -127,7 +129,7 @@ class music(commands.Cog, command_cog, music_tools):
     @decorators.delete_after
     async def loop(self, ctx: commands.Context):
         server = get_server(ctx)
-        self.looping[server] = not self.looping[server]
+        self.tools.looping[server] = not self.tools.looping[server]
 
     @commands.command(help='number: number of the song in the playlist')
     @commands.guild_only()
@@ -136,8 +138,8 @@ class music(commands.Cog, command_cog, music_tools):
     @update_playlist
     async def info(self, ctx, number=0):
         server = get_server(ctx)
-        if self.playlist[server][0] != []:
-            embed = self.create_info_embed(ctx, number=number)
+        if self.tools.playlist[server][0] != []:
+            embed = self.tools.create_info_embed(ctx, number=number)
             await respond(ctx, embed=embed, mention_author=False)
 
     @commands.command(help='replays the current song')
@@ -148,6 +150,6 @@ class music(commands.Cog, command_cog, music_tools):
     @decorators.delete_after
     async def replay(self, ctx: commands.Context):
         server = get_server(ctx)
-        if self.playlist[server][0] != []:
-            self.playlist[server][0].insert(0, self.playlist[server][0][0])
+        if self.tools.playlist[server][0] != []:
+            self.tools.playlist[server][0].insert(0, self.tools.playlist[server][0][0])
             await voice_chat.stop(ctx)
