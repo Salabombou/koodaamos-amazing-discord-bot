@@ -1,8 +1,7 @@
 from asyncio import AbstractEventLoop
 import subprocess
 import functools
-from utility.common.errors import CommandTimeout, FfprobeError
-from utility.common import file_management
+from utility.common.errors import FfprobeError
 
 class FfprobeFormat:
     def __init__(self, **result) -> None:
@@ -53,9 +52,8 @@ class Ffprober:
                     timeout=10
                 )
             )
-        except:
-            print('ffprobe')
-            raise CommandTimeout()
+        except FfprobeError:
+            raise FfprobeError('Command timeout')
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()

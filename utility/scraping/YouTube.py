@@ -1,11 +1,13 @@
 from asyncio import AbstractEventLoop
+import asyncio
 import functools
 import googleapiclient.discovery
 import json
 import yt_dlp
 import urllib
 import urllib.parse
-import urllib.request
+from urllib.parse import urlparse, parse_qs
+from utility.common.requests import get_redirect_url
 import validators
 from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable
 import httpx
@@ -74,7 +76,7 @@ class YT_Extractor:
                         download=False
                     )
                 )
-            info['url'] = urllib.request.urlopen(info['url']).url
+            info['url'] = await get_redirect_url(info['url'])
             if max_duration != None:
                 if info['duration'] < max_duration:
                     return info
@@ -160,3 +162,20 @@ class YT_Extractor:
             )
         icon = r['items'][0]['snippet']['thumbnails']['default']['url']
         return icon
+
+async def get_raw_url(url): # scraping instead of using yt_dlp for async
+    query = parse_qs(urlparse(url).query, keep_blank_values=True)
+    url = urllib.parse.quote('https://www.youtube.com/watch?v=' + query['v'][0])
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(f'https://loader.to/ajax/download.php?format=1080&url={url}')
+        resp.raise_for_status()
+        resp_json = resp.json()
+        ID = resp_json['id']
+        condition = True
+        while condition:
+            await asyncio.sleep(1)
+            resp = await client.get(f'https://loader.to/ajax/progress.php?id={ID}')
+            resp.raise_for_status()
+            resp_json = resp.json()
+            condition = resp_json['success'] == 0
+    return resp_json['download_url']

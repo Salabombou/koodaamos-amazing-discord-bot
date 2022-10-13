@@ -1,6 +1,7 @@
 from utility.scraping import YouTube
 from utility.common.errors import UrlInvalid, SongNotFound
 from utility.scraping.YouTube import YT_Extractor
+from utility.common.requests import get_redirect_url
 from discord.ext import commands
 import urllib.request
 from urllib.parse import parse_qs, urlparse
@@ -20,6 +21,7 @@ ffmpeg_options = {
 
 def get_server(ctx: commands.Context):
     return str(ctx.guild.id)
+
 
 class music_tools:
     def __init__(self, loop: AbstractEventLoop, yt_api_key: str) -> None:
@@ -135,8 +137,7 @@ class music_tools:
             song = await self.yt_extractor.fetch_from_search(query=url)
             await ctx.send(f"found a video with the query '{url}' with the title '{song.title}'.", delete_after=10, mention_author=False)
             return [song]
-        r = urllib.request.urlopen(url)
-        url = r.url
+        url = await get_redirect_url(url)
         query = parse_qs(urlparse(url).query, keep_blank_values=True)
         if 'v' in query:
             return self.yt_extractor.fetch_from_video(videoId=query['v'][0])

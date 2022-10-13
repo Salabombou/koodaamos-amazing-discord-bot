@@ -1,22 +1,20 @@
+import asyncio
 import math
 import threading
+import time
 from discord.ext import commands
 import discord
-import httpx
 import bs4
 from utility.common.command import respond
-import time
 from utility.cog.command import command_cog
 
 
 class eduko(commands.Cog, command_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.client = httpx.Client()
         self.description = 'Gets the Eduko diner menu for the week(s)'
         self.embeds = []
-        self.updater = threading.Thread(target=self.update_food_embeds)
-        self.updater.start()
+        self.last_sync = 0
 
     class Food:
         def __init__(self, p: bs4.BeautifulSoup):
@@ -94,21 +92,23 @@ class eduko(commands.Cog, command_cog):
                 week_nums.append(text[7:])
         return week_nums
 
-    def update_food_embeds(self):
-        while True:
-            try:
-                resp = self.client.get(
-                    'https://www.eduko.fi/eduko/ruokalistat/')
-            except:
-                continue
-            resp.raise_for_status()
-            self.soup = bs4.BeautifulSoup(resp.content, features='lxml')
-            self.week_nums = self.get_week_nums()
-            self.sections = self.section_filter()
-            self.foods = self.get_food()
-            self.embeds = self.create_embeds()
-            time.sleep(1000)
+    async def update_food_embeds(self):
+        resp = await self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
+        resp.raise_for_status()
+
+        self.soup = bs4.BeautifulSoup(resp.content, features='lxml')
+
+        self.week_nums = self.get_week_nums()
+        self.sections = self.section_filter()
+        self.foods = self.get_food()
+
+        self.embeds = self.create_embeds()
+        self.last_sync = time.time() # update the latest sync to current local time
 
     @commands.command()
+    @commands.cooldown(1, 30, commands.BucketType.user)
     async def food(self, ctx):
+        current_time = time.time()
+        if current_time - self.last_sync > 1000: # if it has been more than 1000 seconds since last sync
+            await self.update_food_embeds()
         await respond(ctx, embeds=self.embeds)

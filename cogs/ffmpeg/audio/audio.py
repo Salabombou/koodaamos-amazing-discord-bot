@@ -1,6 +1,5 @@
 from discord.ext import commands
 from utility.discord import target as discordutil
-from utility.scraping import YouTube
 from utility.common.command import respond
 from utility.common import decorators, file_management
 from utility.ffmpeg import *

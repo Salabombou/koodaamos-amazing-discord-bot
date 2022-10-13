@@ -4,7 +4,7 @@ import httpx
 import datetime
 import functools
 import subprocess
-from utility.common.errors import CommandTimeout, FfmpegError
+from utility.common.errors import FfmpegError
 from utility.discord import target
 import concurrent.futures
 from utility import ffprobe
@@ -85,14 +85,12 @@ class CommandRunner:
                         timeout=60
                     )
                 )
-        except CommandTimeout:
-            print('ffmpeg')
-            raise CommandTimeout()
+        except FfmpegError:
+            raise FfmpegError('Command timeout')
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()
         if err != '':
-            print(err)
             raise FfmpegError(err)
 
         return out
@@ -129,6 +127,7 @@ class Videofier:
     async def videofy(self, target: target.Target, duration: int | float = None) -> bytes:
         if duration is None:
             duration = target.duration_s
+
         kwargs = {
             'width': target.width_safe,
             'height': target.height_safe,
@@ -139,6 +138,7 @@ class Videofier:
         }
         cmd = create_command(self.to_video, **kwargs)
         out = await self.command_runner.run(cmd)
+
         # makes the width and height match 16/9 aspect ratio
         width, height = create_size(target)
 
@@ -157,7 +157,8 @@ class Videofier:
                 tmp.flush() # flush the file
                 cmd = create_command(
                     self.loop_args,
-                    tmp.name # path to the file
+                    tmp.name # path to the temp file
                 )
                 out = await self.command_runner.run(cmd, t=duration)
+
         return out
