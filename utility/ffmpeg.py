@@ -1,5 +1,5 @@
 from asyncio import AbstractEventLoop
-import math
+import os
 import httpx
 import datetime
 import functools
@@ -7,7 +7,8 @@ import subprocess
 from utility.common.errors import CommandTimeout, FfmpegError
 from utility.discord import target
 import concurrent.futures
-import moviepy.editor
+from utility import ffprobe
+import tempfile
 
 client = httpx.AsyncClient()
 
@@ -78,7 +79,7 @@ class CommandRunner:
                     pool, functools.partial(
                         subprocess.run, command,
                         input=stdin,
-                        bufsize=0,
+                        bufsize=8**10,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                         timeout=60
@@ -100,11 +101,12 @@ class CommandRunner:
 class Videofier:
     def __init__(self, loop: AbstractEventLoop):
         self.command_runner = CommandRunner(loop)
+        self.prober = ffprobe.Ffprober(loop)
         self.to_video = [
             '-f', 'lavfi',
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
             '-f', 'lavfi',
-            '-i', 'color=c=0x36393e:s={width}x{width}:r=5',
+            '-i', 'color=c=0x36393e:s={width}x{width}:r=5:d={duration}',
             '-i', '"{url}"',
             '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x36393e',
             '-map', '{map_video}:v:0',
@@ -114,16 +116,19 @@ class Videofier:
             '-f', 'lavfi',
             '-i', 'color=c=0x36393e:s={width}x{height}:r=30:d={duration}',
             '-i', '-',
-            '-filter_complex', '"[0:v:0][1:v:0]overlay=(W-w)/2:(H-h)/2:enable=\'between(t,0,20)\'[out]"',
+            '-filter_complex', '"[0:v:0][1:v:0]overlay=(W-w)/2:(H-h)/2:enable=\'between(t,0,61)\'[out]"',
             '-map', '[out]',
             '-map', '1:a:0'
         ]
         self.loop_args = [
             '-stream_loop', '-1', # this breaks sometimes i have no idea why send help
-            '-i', '-',
+            '-f', 'mp4',
+            '-i', '"%s"',
         ]
 
-    async def videofy(self, target: target.Target, duration: int = 1) -> bytes:
+    async def videofy(self, target: target.Target, duration: int | float = None) -> bytes:
+        if duration is None:
+            duration = target.duration_s
         kwargs = {
             'width': target.width_safe,
             'height': target.height_safe,
@@ -134,7 +139,6 @@ class Videofier:
         }
         cmd = create_command(self.to_video, **kwargs)
         out = await self.command_runner.run(cmd)
-
         # makes the width and height match 16/9 aspect ratio
         width, height = create_size(target)
 
@@ -147,9 +151,13 @@ class Videofier:
         )
         out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
 
-        cmd = create_command(
-            self.loop_args,
-        )
-        out = await self.command_runner.run(cmd, t=duration, stdin=out)
-
+        with tempfile.TemporaryDirectory() as dir: # create a temp dir, deletes itself and its content after use
+            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as tmp: # create a temp file in the temp dir
+                tmp.write(out) # write into the temp file
+                tmp.flush() # flush the file
+                cmd = create_command(
+                    self.loop_args,
+                    tmp.name # path to the file
+                )
+                out = await self.command_runner.run(cmd, t=duration)
         return out
