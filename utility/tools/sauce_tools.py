@@ -48,8 +48,12 @@ class parsed_result:
 
 def create_embed(res: bs4.BeautifulSoup, url: str, hidden: bool):
     result = parsed_result(res, hidden)
-    embed = discord.Embed(title=result.title, fields=[],
-                          color=0xC9EDBE, description=result.content)
+    embed = discord.Embed(
+        title=result.title,
+        fields=[],
+        color=0xC9EDBE,
+        description=result.content
+    )
     embed.set_image(url=result.image)
     embed.set_footer(icon_url=url, text='Similarity: ' + result.similarity)
     return embed

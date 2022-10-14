@@ -26,15 +26,26 @@ with open('./tokens.json', 'r') as tokens_file:
     tokens = json.loads(tokens_file.read())
 
 # cogs for the bot to use
-cogs = (dalle, gpt3, music, green, ruin, download, audio,
-        mute, nightcore, flanger, eduko, sauce, earrape, owner)
+cogs = (
+    dalle, gpt3,
+    music, green,
+    ruin, download,
+    audio, mute,
+    nightcore, flanger,
+    eduko, sauce,
+    earrape, owner
+)
 for cog in cogs:
     bot.add_cog(cog(bot, tokens))
 
 # listeners for the bot to use
 listener = Listeners(bot)
-listeners = (listener.on_error, listener.on_application_command_error,
-             listener.on_command_error, listener.on_ready)
+listeners = (
+    listener.on_error,
+    listener.on_application_command_error,
+    listener.on_command_error,
+    listener.on_ready
+)
 for func in listeners:
     bot.add_listener(func=func)
 

@@ -1,4 +1,5 @@
 from asyncio import AbstractEventLoop
+from math import ceil
 import discord.embeds
 from utility.common.errors import TargetNotFound
 from discord.ext import commands
@@ -29,9 +30,12 @@ class Target(FfprobeFormat):
         self.ffprober = Ffprober(loop)
         self.width = None
         self.height = None
+        self.width_safe = None
+        self.height_safe = None
         self.proxy_url = None
         self.type = None
         self.has_audio = None
+        self.is_audio = None
         self.duration_s = None
 
         if isinstance(target, Embed):
@@ -48,6 +52,13 @@ class Target(FfprobeFormat):
             self.proxy_url = target.proxy_url
             self.width = target.width
             self.height = target.height
+        if self.width != None and self.height != None:
+            self.width_safe = ceil(self.width / 2) * 2
+            self.height_safe = ceil(self.height / 2) * 2
+        else:
+            self.width_safe = 1280
+            self.height_safe = 720
+        self.is_audio = self.type == 'audio'
 
     @staticmethod
     def get_embed_proxy(target: Embed):
@@ -61,7 +72,7 @@ class Target(FfprobeFormat):
     async def probe(self) -> None:  # probes the target using ffprobe
         result = await self.ffprober.get_format(self.proxy_url)
         super().__init__(**result)
-        self.has_audio = self.nb_streams > 1
+        self.has_audio = self.nb_streams > 1 or self.type == 'audio'
         self.duration_s = convert.timedelta.to_seconds(
             self.duration) if self.duration != None else 1
 

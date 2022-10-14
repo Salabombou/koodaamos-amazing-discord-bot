@@ -1,6 +1,5 @@
 from discord.ext import commands
 from utility.discord import target as discordutil
-from utility.scraping import YouTube
 from utility.common.command import respond
 from utility.common import decorators, file_management
 from utility.ffmpeg import *
@@ -12,34 +11,26 @@ class audio(commands.Cog, ffmpeg_cog):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds audio to a image or a video'
         self.audio_args = [
-            '-f', 'lavfi',
-            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=%s',
-            '-stream_loop', '-1',
-            '-ss', '00:00:00',
-            '-to', '%s',
             '-i', '-',
             '-i', '"%s"',
-            '-filter_complex', '"[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
-            '-map', '1:v',
+            '-filter_complex', '"[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]"',
+            '-map', '0:v:0',
             '-map', '[a]',
         ]
 
     async def create_output(self, ctx: commands.Context, url):
         target = await discordutil.get_target(ctx)
         await target.probe()
-        audio = YouTube.get_info(url, video=False, max_duration=300)
-        time_to = create_time(audio['duration'])
+
+        audio = await self.yt_extractor.get_info(url, video=False, max_duration=300)
 
         cmd = create_command(
             self.audio_args,
-            audio['duration'],
-            time_to,
             audio['url'],
-            1 if target.has_audio else 0,
         )
 
-        stdin = await self.videofier.videofy(target)
-        out = await self.command_runner.run(cmd, stdin=stdin)
+        stdin = await self.videofier.videofy(target, duration=audio['duration'])
+        out = await self.command_runner.run(cmd, stdin=stdin, t=audio['duration'])
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
@@ -50,4 +41,4 @@ class audio(commands.Cog, ffmpeg_cog):
     @decorators.typing
     async def audio(self, ctx: commands.Context, url="https://youtu.be/NOaSdO5H91M"):
         file, pomf_url = await self.create_output(ctx, url)
-        await respond(ctx, content=pomf_url, file=file)
+        await respond(ctx, content=pomf_url, file=file, mention_author=False)

@@ -55,6 +55,14 @@ class UnsupportedUrl(Exception):
         return self.message
 
 
+class DownloadFailure(Exception):
+    def __init__(self) -> None:
+        self.message = 'File could not be downloaded'
+
+    def __str__(self) -> str:
+        return self.message
+
+
 class TargetNotFound(Exception):
     def __init__(self) -> None:
         self.message = 'No images/videos in the reply or video or audio is not accepted'

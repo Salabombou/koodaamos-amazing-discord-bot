@@ -1,3 +1,4 @@
+import math
 from discord.ext import commands
 from utility.discord import target as discordutil
 from utility.scraping import YouTube
@@ -11,19 +12,13 @@ class green(commands.Cog, ffmpeg_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Overlays a greenscreen video on top of an image or a video'
-        self.filter = '[2:v]scale=%s,fps=30,scale=-1:720,colorkey=0x%s:0.4:0[ckout];[1:v]fps=30,scale=-1:720[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2,pad=ceil(iw/2)*2:ceil(ih/2)*2[out]'
+        self.filter = '[1:v:0]scale=%s:%s,fps=30,colorkey=0x%s:0.4:0[ckout];[0:v:0]fps=30[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2[out]'
         self.green_args = [
-            '-f', 'lavfi',
-            '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d=%s',
-            '-stream_loop', '-1',
-            '-ss', '00:00:00',
-            '-to', '%s',
             '-i', '-',
             '-i', '"%s"',
-            '-filter_complex', self.filter % (
-                '%s:720', '%s') + ';[%s:a][2:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]',
+            '-filter_complex', self.filter % ('%s', '%s', '%s') + ';[0:a][1:a]amerge=inputs=2,pan=stereo|FL<c0+c1|FR<c2+c3[a]',
             '-map', '[out]',
-            '-map', '[a]',
+            '-map', '[a]'
         ]
 
     def set_color(self, color: str):  # sets the color for ffmpeg to filter
@@ -41,25 +36,22 @@ class green(commands.Cog, ffmpeg_cog):
         await target.probe()
 
         # gets the info from the youtube video specified
-        video = YouTube.get_info(url=url, video=True, max_duration=300)
+        video = await self.yt_extractor.get_info(url=url, video=True, max_duration=300)
 
-        # creates a width that is divisible by two
-        width = create_width(target)
         # creates the duration in format hh:mm:ss
-        time_to = create_time(video['duration'])
         color = self.set_color(color)  # creates the color
+        width, height = create_size(target)
+        stdin = await self.videofier.videofy(target, duration=video['duration'])
 
-        stdin = await self.videofier.videofy(target)
         cmd = create_command(
             self.green_args,
-            video['duration'],
-            time_to,
             video['url'],
             width,
-            color,
-            1 if target.has_audio else 0
+            height,
+            color
         )
-        out = await self.command_runner.run(cmd, stdin=stdin)
+        
+        out = await self.command_runner.run(cmd, stdin=stdin, t=video['duration'] if video['duration'] < 60 else 60)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
@@ -70,4 +62,4 @@ class green(commands.Cog, ffmpeg_cog):
     @decorators.typing
     async def green(self, ctx: commands.Context, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
         file, pomf_url = await self.create_output_video(ctx, url, color)
-        await respond(ctx, content=pomf_url, file=file)
+        await respond(ctx, content=pomf_url, file=file, mention_author=False)

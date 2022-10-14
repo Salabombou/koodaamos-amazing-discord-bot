@@ -1,5 +1,6 @@
 from asyncio import AbstractEventLoop
 from discord.ext import commands
+import httpx
 from utility.common import decorators
 from PIL import Image
 import discord
@@ -7,7 +8,7 @@ import base64
 import json
 import io
 from utility.cog.command import command_cog
-
+import concurrent.futures
 
 class dalle(commands.Cog, command_cog):
     def __init__(self, bot: commands.Bot, tokens):
@@ -15,17 +16,19 @@ class dalle(commands.Cog, command_cog):
         self.description = 'Creates an image collage from images produced by an AI with a prompt'
 
     async def DallE_Collage(self, loop: AbstractEventLoop, arg):
-        images = await self.CreateImages(prompt=arg)
-        images = await loop.run_in_executor(None, self.ConvertImages, images)
-        collage = await loop.run_in_executor(None, self.CreateCollage, images)
-        collage = await loop.run_in_executor(None, self.PillowImageToBytes, collage)
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            images = await self.CreateImages(prompt=arg)
+            images = await loop.run_in_executor(pool, self.ConvertImages, images)
+            collage = await loop.run_in_executor(pool, self.CreateCollage, images)
+            collage = await loop.run_in_executor(pool, self.PillowImageToBytes, collage)
         return collage
 
     async def CreateImages(self, prompt):
         condition = True
-        while condition:
-            r = await self.client.post(headers={'Content-Type': 'application/json'}, data=json.dumps({'prompt': prompt}), url='https://backend.craiyon.com/generate')
-            condition = r.status_code == 524
+        async with httpx.AsyncClient(timeout=90) as client:
+            while condition:
+                r = await client.post(headers={'Content-Type': 'application/json'}, data=json.dumps({'prompt': prompt}), url='https://backend.craiyon.com/generate')
+                condition = r.status_code == 524
         r.raise_for_status()
         return r.json()['images']
 

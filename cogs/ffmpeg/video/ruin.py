@@ -28,7 +28,7 @@ class ruin(commands.Cog, ffmpeg_cog):
         target = await discordutil.get_target(ctx)
         await target.probe()
 
-        stdin = await self.videofier(target)
+        stdin = await self.videofier.videofy(target)
         cmd = self.ruin_args
         out = await self.command_runner.run(cmd, arbitrary_command=True, stdin=stdin)
 

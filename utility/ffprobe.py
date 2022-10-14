@@ -1,8 +1,7 @@
 from asyncio import AbstractEventLoop
 import subprocess
 import functools
-from utility.common.errors import CommandTimeout, FfprobeError
-
+from utility.common.errors import FfprobeError
 
 class FfprobeFormat:
     def __init__(self, **result) -> None:
@@ -34,8 +33,13 @@ class Ffprober:
                 result[line[0]] = '='.join(line[1:])
         return result
 
-    async def get_format(self, file) -> dict:
-        command = f'ffprobe -show_format -pretty -loglevel error "{file}"'
+    async def get_format(self, file : str | bytes) -> dict:
+        command = 'ffprobe -show_format -pretty -loglevel error '
+        is_str = isinstance(file, str)
+        if is_str:
+            command += f'"{file}"'
+        else:
+            command += '-'
         try:
             pipe = await self.loop.run_in_executor(
                 None, functools.partial(
@@ -43,11 +47,13 @@ class Ffprober:
                     command,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    timeout=5
+                    input=file if not is_str else None,
+                    bufsize=10**8,
+                    timeout=10
                 )
             )
-        except:
-            raise CommandTimeout()
+        except FfprobeError:
+            raise FfprobeError('Command timeout')
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()

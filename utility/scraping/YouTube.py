@@ -1,27 +1,31 @@
 from asyncio import AbstractEventLoop
-from googleapiclient.discovery import Resource
+import asyncio
+import functools
+import googleapiclient.discovery
 import json
 import yt_dlp
 import urllib
 import urllib.parse
-import urllib.request
+from urllib.parse import urlparse, parse_qs
+from utility.common.requests import get_redirect_url
 import validators
 from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable
 import httpx
 import re
-
-client = httpx.AsyncClient()
-
+import concurrent.futures
+from utility.common.string import zero_width_space as zws
 
 class Video:  # for the video info
-    def __init__(self, data={
-        'title': '​',
-        'description': '​',
-        'resourceId': {'videoId': '​'},
-        'channelId': '​',
-        'videoOwnerChannelId': '​',
-        'videoOwnerChannelTitle': '​'
-    }):
+    def __init__(self, data=None):
+        if data is None:
+            data = {
+                'title': zws,
+                'description': zws,
+                'resourceId': {'videoId': zws},
+                'channelId': zws,
+                'videoOwnerChannelId': zws,
+                'videoOwnerChannelTitle': zws
+            }
         self.title = data['title'][0:256]  # just incase
         self.description = data['description'][0:4096]  # just incase
         self.channel = '???'
@@ -33,105 +37,145 @@ class Video:  # for the video info
             self.channel = data['videoOwnerChannelTitle']
             self.channelId = data['videoOwnerChannelId']
 
+class YT_Extractor:
+    def __init__(self, loop: AbstractEventLoop, yt_api_key: str=None) -> None:
+        self.loop = loop
+        self.youtube = None
+        if not yt_api_key is None:
+            self.youtube = googleapiclient.discovery.build(
+                'youtube', 'v3', developerKey=yt_api_key
+            )
+        self.client = httpx.AsyncClient()
 
-def get_raw_url(url, video=False, max_duration=None):
-    info = get_info(url=url, video=video, max_duration=max_duration)
-    return info['url']
+    async def get_raw_url(self, url, video=False, max_duration=None):
+        info = await self.get_info(url=url, video=video, max_duration=max_duration)
+        return info['url']
 
-
-def get_info(url, video=False, max_duration=None):
-    if not validators.url(url):
-        raise UrlInvalid()
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'throttled-rate': '180K',
-        'restrictfilenames': True,
-        'noplaylist': True,
-        'nocheckcertificate': True,
-        'ignoreerrors': False,
-        'logtostderr': False,
-        'quiet': True,
-        'no_warnings': True,
-        'default_search': 'auto',
-    }
-    if video:
-        ydl_opts['format'] = 'best'
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=False)
-        info['url'] = urllib.request.urlopen(info['url']).url
-        if max_duration != None:
-            if info['duration'] < max_duration:
+    async def get_info(self, url, video=False, max_duration=None):
+        if not validators.url(url):
+            raise UrlInvalid()
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'throttled-rate': '180K',
+            'restrictfilenames': True,
+            'noplaylist': True,
+            'nocheckcertificate': True,
+            'ignoreerrors': False,
+            'logtostderr': False,
+            'quiet': True,
+            'no_warnings': True,
+            'default_search': 'auto',
+        }
+        if video:
+            ydl_opts['format'] = 'best'
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                info = await self.loop.run_in_executor(
+                    pool, functools.partial(
+                        ydl.extract_info, url,
+                        download=False
+                    )
+                )
+            info['url'] = await get_redirect_url(info['url'])
+            if max_duration != None:
+                if info['duration'] < max_duration:
+                    return info
+            else:
                 return info
+            raise VideoTooLong(max_duration)
+
+
+    # youtube api searches are expensive so webscraping it is
+    async def fetch_from_search(self, query) -> Video:
+        urlsafe_quote = urllib.parse.quote(query)
+        url = 'https://www.youtube.com/results?search_query=' + urlsafe_quote
+        resp = await self.client.get(url)
+        resp.raise_for_status()
+        content = resp.content.decode('utf-8')
+        try:    
+            # gets the variable that contains the search results
+            ytInitialData = re.findall('var ytInitialData = .*};', content)
+            # removes the variable declaration itself
+            ytInitialData: str = ytInitialData[0][20:]
+            # trims the end of any gunk that would otherwise run the conversion
+            ytInitialData = ytInitialData.split('};')[0] + '}'
+            ytInitialData = json.loads(ytInitialData)  # str => dict
+            results = ytInitialData['contents']['twoColumnSearchResultsRenderer']['primaryContents'][
+                'sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']  # the videos
+            for result in results:
+                if 'videoRenderer' in result:
+                    videoId = result['videoRenderer']['videoId']
+                    return await self.fetch_from_video(videoId)[0]
+            raise VideoSearchNotFound(query)
+        except VideoSearchNotFound:
+            raise VideoSearchNotFound(query)
+
+
+    async def fetch_from_video(self, videoId) -> list[Video]:
+        request = self.youtube.videos().list(
+            part='snippet',
+            id=videoId
+        )
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            r = await self.loop.run_in_executor(
+                pool, request.execute
+            )
+        if r['items'] != []:
+            r['items'][0]['snippet']['resourceId'] = {'videoId': videoId}
+            song = r['items'][0]['snippet']
+            song['videoOwnerChannelTitle'] = song['channelTitle']
+            song['videoOwnerChannelId'] = song['channelId']
+            return [Video(data=song)]
         else:
-            return info
-        raise VideoTooLong(max_duration)
+            raise VideoUnavailable()
 
 
-# youtube api searches are expensive so webscraping it is
-async def fetch_from_search(youtube: Resource, query) -> Video:
-    urlsafe_quote = urllib.parse.quote(query)
-    url = 'https://www.youtube.com/results?search_query=' + urlsafe_quote
-    resp = await client.get(url)
-    resp.raise_for_status()
-    content = resp.content.decode('utf-8')
-    try:
-        # gets the variable that contains the search results
-        ytInitialData = re.findall('var ytInitialData = .*};', content)
-        # removes the variable declaration itself
-        ytInitialData: str = ytInitialData[0][20:]
-        # trims the end of any gunk that would otherwise run the conversion
-        ytInitialData = ytInitialData.split('};')[0] + '}'
-        ytInitialData = json.loads(ytInitialData)  # str => dict
-        results = ytInitialData['contents']['twoColumnSearchResultsRenderer']['primaryContents'][
-            'sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']  # the videos
-        for result in results:
-            if 'videoRenderer' in result:
-                videoId = result['videoRenderer']['videoId']
-                return fetch_from_video(youtube, videoId)[0]
-        raise VideoSearchNotFound(query)
-    except:
-        raise VideoSearchNotFound(query)
+    async def fetch_from_playlist(self, playlistId) -> list[Video]:
+        request = self.youtube.playlistItems().list(
+            part='snippet',
+            playlistId=playlistId,
+            maxResults=1000
+        )
+        items = []
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            while request != None:
+                r = await self.loop.run_in_executor(
+                    pool, request.execute
+                )
+                items += r['items']
+                request = self.youtube.playlistItems().list_next(request, r)
+        songs = []
+        for song in items:
+            song = song['snippet']
+            songs.append(Video(data=song))
+        return songs
 
 
-def fetch_from_video(youtube: Resource, videoId) -> list[Video]:
-    request = youtube.videos().list(
-        part='snippet',
-        id=videoId
-    )
-    r = request.execute()
-    if r['items'] != []:
-        r['items'][0]['snippet']['resourceId'] = {'videoId': videoId}
-        song = r['items'][0]['snippet']
-        song['videoOwnerChannelTitle'] = song['channelTitle']
-        song['videoOwnerChannelId'] = song['channelId']
-        return [Video(data=song)]
-    else:
-        raise VideoUnavailable()
+    async def fetch_channel_icon(self, channelId) -> str:
+        request = self.youtube.channels().list(
+            part='snippet',
+            id=channelId
+        )
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            r = await self.loop.run_in_executor(
+                pool, request.execute
+            )
+        icon = r['items'][0]['snippet']['thumbnails']['default']['url']
+        return icon
 
-
-async def fetch_from_playlist(loop: AbstractEventLoop, youtube: Resource, playlistId) -> list[Video]:
-    request = youtube.playlistItems().list(
-        part='snippet',
-        playlistId=playlistId,
-        maxResults=1000
-    )
-    items = []
-    while request != None:
-        r = await loop.run_in_executor(None, request.execute)
-        items += r['items']
-        request = youtube.playlistItems().list_next(request, r)
-    songs = []
-    for song in items:
-        song = song['snippet']
-        songs.append(Video(data=song))
-    return songs
-
-
-def fetch_channel_icon(youtube: Resource, channelId) -> str:
-    request = youtube.channels().list(
-        part='snippet',
-        id=channelId
-    )
-    r = request.execute()
-    icon = r['items'][0]['snippet']['thumbnails']['default']['url']
-    return icon
+async def get_raw_url(url): # scraping instead of using yt_dlp for async
+    query = parse_qs(urlparse(url).query, keep_blank_values=True)
+    url = urllib.parse.quote('https://www.youtube.com/watch?v=' + query['v'][0])
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(f'https://loader.to/ajax/download.php?format=1080&url={url}')
+        resp.raise_for_status()
+        resp_json = resp.json()
+        ID = resp_json['id']
+        condition = True
+        while condition:
+            await asyncio.sleep(1)
+            resp = await client.get(f'https://loader.to/ajax/progress.php?id={ID}')
+            resp.raise_for_status()
+            resp_json = resp.json()
+            condition = resp_json['success'] == 0
+    return resp_json['download_url']
