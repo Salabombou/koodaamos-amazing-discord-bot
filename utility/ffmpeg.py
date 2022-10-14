@@ -121,6 +121,7 @@ class Videofier:
         ]
         self.loop_args = [
             '-stream_loop', '-1', # this breaks sometimes i have no idea why send help
+            '-ss', '0:00:00.066667', # so the first frame isnt gray
             '-f', 'mp4',
             '-i', '"%s"',
         ]
