@@ -7,11 +7,16 @@ import os
 
 
 def create_error_embed(error):
-    embed = discord.Embed(color=0xFF0000, fields=[],
-                          title='Something went wrong!')
+    embed = discord.Embed(
+        color=0xFF0000,
+        fields=[],
+        title='Something went wrong!'
+    )
     embed.description = f'```{str(error)[:4090]}```'
     embed.set_footer(
-        icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif', text=type(error).__name__)
+        icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif',
+        text=type(error).__name__
+    )
     return embed
 
 

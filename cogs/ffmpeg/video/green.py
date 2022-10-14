@@ -33,7 +33,6 @@ class green(commands.Cog, ffmpeg_cog):
     async def create_output_video(self, ctx: commands.Context, url, color):
         # gets the target file
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
-        await target.probe()
 
         # gets the info from the youtube video specified
         video = await self.yt_extractor.get_info(url=url, video=True, max_duration=300)
@@ -41,7 +40,8 @@ class green(commands.Cog, ffmpeg_cog):
         # creates the duration in format hh:mm:ss
         color = self.set_color(color)  # creates the color
         width, height = create_size(target)
-        stdin = await self.videofier.videofy(target, duration=video['duration'])
+
+        out = await self.videofier.videofy(target, duration=video['duration'])
 
         cmd = create_command(
             self.green_args,
@@ -51,7 +51,7 @@ class green(commands.Cog, ffmpeg_cog):
             color
         )
         
-        out = await self.command_runner.run(cmd, stdin=stdin, t=video['duration'] if video['duration'] < 60 else 60)
+        out = await self.command_runner.run(cmd, input=out, t=video['duration'] if video['duration'] < 60 else 60)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

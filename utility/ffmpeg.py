@@ -47,13 +47,14 @@ class CommandRunner:
     def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
 
-    async def run(self, command: list, t: float = 60.0, output: str = 'pipe:1', arbitrary_command=False, stdin=None) -> None:
+    async def run(self, command: list, t: float = 60.0, output: str = 'pipe:1', arbitrary_command=False, input=None, max_duration=60) -> None:
+        t =  t if t < max_duration else max_duration
         command = [
             'ffmpeg',
             '-analyzeduration', '100M',
             '-probesize', '100M',
             *command,
-            '-t', str(t)
+            '-t', f'{t}'
         ]
         if not arbitrary_command:
             command = [
@@ -78,7 +79,7 @@ class CommandRunner:
                 pipe = await self.loop.run_in_executor(
                     pool, functools.partial(
                         subprocess.run, command,
-                        input=stdin,
+                        input=input,
                         bufsize=8**10,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
@@ -149,15 +150,15 @@ class Videofier:
             height=height,
             duration=target.duration_s
         )
-        out = await self.command_runner.run(cmd, t=target.duration_s, stdin=out)
+        out = await self.command_runner.run(cmd, t=target.duration_s, input=out)
 
         with tempfile.TemporaryDirectory() as dir: # create a temp dir, deletes itself and its content after use
-            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as tmp: # create a temp file in the temp dir
-                tmp.write(out) # write into the temp file
-                tmp.flush() # flush the file
+            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp: # create a temp file in the temp dir
+                temp.write(out) # write into the temp file
+                temp.flush() # flush the file
                 cmd = create_command(
                     self.loop_args,
-                    tmp.name # path to the temp file
+                    temp.name # path to the temp file
                 )
                 out = await self.command_runner.run(cmd, t=duration)
 

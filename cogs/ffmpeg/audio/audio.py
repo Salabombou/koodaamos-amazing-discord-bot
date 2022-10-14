@@ -20,7 +20,6 @@ class audio(commands.Cog, ffmpeg_cog):
 
     async def create_output(self, ctx: commands.Context, url):
         target = await discordutil.get_target(ctx)
-        await target.probe()
 
         audio = await self.yt_extractor.get_info(url, video=False, max_duration=300)
 
@@ -29,8 +28,8 @@ class audio(commands.Cog, ffmpeg_cog):
             audio['url'],
         )
 
-        stdin = await self.videofier.videofy(target, duration=audio['duration'])
-        out = await self.command_runner.run(cmd, stdin=stdin, t=audio['duration'])
+        out = await self.videofier.videofy(target, duration=audio['duration'])
+        out = await self.command_runner.run(cmd, input=out, t=audio['duration'])
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

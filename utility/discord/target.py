@@ -130,5 +130,7 @@ async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=F
         file = fetcher.get_file(embeds, attachments, stickers)
 
     if file != None:
-        return Target(ctx.bot.loop, file)
+        target = Target(ctx.bot.loop, file)
+        await target.probe()
+        return target
     raise TargetNotFound()

@@ -17,10 +17,11 @@ class earrape(commands.Cog, ffmpeg_cog):
 
     async def create_output_video(self, ctx: commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
-        await target.probe()
-        stdin = await self.videofier.videofy(target)
+
+        out = await self.videofier.videofy(target)
+
         cmd = self.earrape_args
-        out = await self.command_runner.run(cmd, stdin=stdin)
+        out = await self.command_runner.run(cmd, input=out)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

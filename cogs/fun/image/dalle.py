@@ -65,6 +65,6 @@ class dalle(commands.Cog, command_cog):
     async def dalle(self, ctx: commands.Context, *, prompt="a cute kitten"):
         embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
         embed.set_image(url="attachment://unknown.png")
-        image = await self.DallE_Collage(ctx.bot.loop, prompt)
+        image = await self.DallE_Collage(self.bot.loop, prompt)
         file = discord.File(fp=image, filename="unknown.png")
         await ctx.reply(embed=embed, file=file)

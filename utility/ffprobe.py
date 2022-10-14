@@ -49,7 +49,7 @@ class Ffprober:
                     stderr=subprocess.PIPE,
                     input=file if not is_str else None,
                     bufsize=10**8,
-                    timeout=10
+                    timeout=20
                 )
             )
         except FfprobeError:
