@@ -1,6 +1,4 @@
-import asyncio
 import math
-import threading
 import time
 from discord.ext import commands
 import discord

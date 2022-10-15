@@ -14,6 +14,10 @@ client = httpx.AsyncClient()
 
 ideal_aspect_ratio = 16 / 9
 
+min_width = 640
+min_height = 360
+
+
 def create_size(target: target.Target):
     width = target.width_safe
     height = target.height_safe
@@ -21,6 +25,9 @@ def create_size(target: target.Target):
     if width == None or height == None:
         width = 1280
         height = 720
+    elif width < min_width and height < min_height:
+        width = min_width
+        height = min_height
 
     aspect_ratio = width / height
 
@@ -47,8 +54,8 @@ class CommandRunner:
     def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
 
-    async def run(self, command: list, t: float = 60.0, output: str = 'pipe:1', arbitrary_command=False, input=None, max_duration=60) -> None:
-        t =  t if t < max_duration else max_duration
+    async def run(self, command: list, t: float = 60.0, output: str = 'pipe:1', arbitrary_command=False, input: bytes = None, max_duration: int | float = 60) -> None:
+        t = t if t < max_duration else max_duration
         command = [
             'ffmpeg',
             '-analyzeduration', '100M',
@@ -60,12 +67,11 @@ class CommandRunner:
             command = [
                 *command,
                 '-loglevel', 'error',  # logs only errors
-                # '-movflags', 'frag_keyframe+empty_moov',  # 100% fragmented
                 '-pix_fmt', 'yuv420p',  # pixel format
                 '-b:v', '1024k',  # video bitrate
                 '-b:a', '128k',  # audio bitrate
                 '-c:v', 'libx264',  # video codec
-                '-movflags', 'frag_keyframe+empty_moov+faststart',
+                '-movflags', 'frag_keyframe+empty_moov+faststart',  # 100% fragmented
                 '-c:a', 'aac',  # audio codec
                 '-crf', '28',
                 '-preset', 'veryfast',
@@ -120,8 +126,8 @@ class Videofier:
             '-map', '1:a:0'
         ]
         self.loop_args = [
-            '-stream_loop', '-1', # this breaks sometimes i have no idea why send help
-            '-ss', '0:00:00.066667', # so the first frame isnt gray
+            '-stream_loop', '-1',
+            '-ss', '0:00:00.066667',  # so the first frame isnt gray
             '-f', 'mp4',
             '-i', '"%s"',
         ]
@@ -153,13 +159,14 @@ class Videofier:
         )
         out = await self.command_runner.run(cmd, t=target.duration_s, input=out)
 
-        with tempfile.TemporaryDirectory() as dir: # create a temp dir, deletes itself and its content after use
-            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp: # create a temp file in the temp dir
-                temp.write(out) # write into the temp file
-                temp.flush() # flush the file
+        with tempfile.TemporaryDirectory() as dir:  # create a temp dir, deletes itself and its content after use
+            # create a temp file in the temp dir
+            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp:
+                temp.write(out)  # write into the temp file
+                temp.flush()  # flush the file
                 cmd = create_command(
                     self.loop_args,
-                    temp.name # path to the temp file
+                    temp.name  # path to the temp file
                 )
                 out = await self.command_runner.run(cmd, t=duration)
 
