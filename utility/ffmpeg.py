@@ -61,6 +61,7 @@ class CommandRunner:
             '-analyzeduration', '100M',
             '-probesize', '100M',
             *command,
+            '-r', '30',
             '-t', f'{t}'
         ]
         if not arbitrary_command:
@@ -121,13 +122,13 @@ class Videofier:
             '-f', 'lavfi',
             '-i', 'color=c=0x36393e:s={width}x{height}:r=30:d={duration}',
             '-i', '-',
-            '-filter_complex', '"[0:v:0][1:v:0]overlay=(W-w)/2:(H-h)/2:enable=\'between(t,0,61)\'[out]"',
+            '-filter_complex', '"[0:v:0][1:v:0]overlay=(W-w)/2:(H-h)/2[out]"',
             '-map', '[out]',
             '-map', '1:a:0'
         ]
         self.loop_args = [
             '-stream_loop', '-1',
-            '-ss', '0:00:00.066667',  # so the first frame isnt gray
+            '-ss', '00:00:00.2',
             '-f', 'mp4',
             '-i', '"%s"',
         ]
@@ -146,7 +147,6 @@ class Videofier:
         }
         cmd = create_command(self.to_video, **kwargs)
         out = await self.command_runner.run(cmd)
-
         # makes the width and height match 16/9 aspect ratio
         width, height = create_size(target)
 
@@ -160,8 +160,7 @@ class Videofier:
         out = await self.command_runner.run(cmd, t=target.duration_s, input=out)
 
         with tempfile.TemporaryDirectory() as dir:  # create a temp dir, deletes itself and its content after use
-            # create a temp file in the temp dir
-            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp:
+            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp: # create a temp file in the temp dir
                 temp.write(out)  # write into the temp file
                 temp.flush()  # flush the file
                 cmd = create_command(

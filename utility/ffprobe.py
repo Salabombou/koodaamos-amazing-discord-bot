@@ -60,4 +60,5 @@ class Ffprober:
         out = out.decode()
         if out == '':
             raise FfprobeError(err)
-        return self.output_parser(out)
+        parsed = self.output_parser(out)
+        return parsed
