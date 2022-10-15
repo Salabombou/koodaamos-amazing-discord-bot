@@ -112,9 +112,9 @@ class Videofier:
             '-f', 'lavfi',
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
             '-f', 'lavfi',
-            '-i', 'color=c=0x36393e:s={width}x{width}:r=5:d={duration}',
+            '-i', 'color=c=0x36393e:s={width}x{height}:r=5:d={duration}',
             '-i', '"{url}"',
-            '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x36393e',
+            '-vf', 'scale={scale},pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x36393e',
             '-map', '{map_video}:v:0',
             '-map', '{map_audio}:a'
         ]
@@ -133,13 +133,23 @@ class Videofier:
             '-i', '"%s"',
         ]
 
+    @staticmethod
+    def get_scale(target: target.Target):
+        min_safe_height = target.height_safe if target.height_safe >= min_height else min_height
+        min_safe_width = target.width_safe if target.width_safe >= min_width else min_width
+
+        args = ('-2', min_safe_height) if min_safe_height > min_safe_width else (min_safe_width, '-2')
+
+        scale = '%s:%s' % args
+        return scale
+
     async def videofy(self, target: target.Target, duration: int | float = None) -> bytes:
         if duration is None:
             duration = target.duration_s
-
         kwargs = {
             'width': target.width_safe,
             'height': target.height_safe,
+            'scale': self.get_scale(target),
             'duration': target.duration_s,
             'url': target.proxy_url,
             'map_video': 1 if target.is_audio else 2,
