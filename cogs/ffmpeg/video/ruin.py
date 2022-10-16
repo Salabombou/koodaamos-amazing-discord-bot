@@ -15,7 +15,7 @@ class ruin(commands.Cog, ffmpeg_cog):
             '-loglevel', 'error',
             '-t', '00:01:00',
             '-b:a', '10k',
-            '-b:v', '10k',
+            '-b:v', '50k',
             '-filter:v', 'fps=5',
             '-loglevel', 'error',
             '-t', '60',

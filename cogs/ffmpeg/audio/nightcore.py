@@ -15,6 +15,7 @@ class nightcore(commands.Cog, ffmpeg_cog):
             '-filter_complex', '"[0:a]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[a];[0:v]setpts=0.75*PTS[v]"',
             '-map', '[v]',
             '-map', '[a]',
+            '-shortest',
         ]
 
     async def create_output_video(self,  ctx: commands.Context):

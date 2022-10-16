@@ -128,7 +128,7 @@ class Videofier:
         ]
         self.loop_args = [
             '-stream_loop', '-1',
-            '-ss', '00:00:00.2',
+            #'-ss', '00:00:00.2',
             '-f', 'mp4',
             '-i', '"%s"',
         ]

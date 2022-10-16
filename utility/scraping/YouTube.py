@@ -105,7 +105,8 @@ class YT_Extractor:
             for result in results:
                 if 'videoRenderer' in result:
                     videoId = result['videoRenderer']['videoId']
-                    return await self.fetch_from_video(videoId)[0]
+                    result = await self.fetch_from_video(videoId)
+                    return result[0]
             raise VideoSearchNotFound(query)
         except VideoSearchNotFound:
             raise VideoSearchNotFound(query)
