@@ -88,10 +88,13 @@ class music_tools:
             currently_playing = self.playlist[server][0][0]
         for song in songs[index:50 + index][::-1]:
             embed.description += song + '\n'
-        embed.add_field(name='CURRENTLY PLAYING:',
-                        value=f'```{currently_playing.title}```')
+        embed.add_field(
+            name='CURRENTLY PLAYING:',
+            value=f'```{currently_playing.title}```'
+        )
         embed.set_footer(
-            text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(self.playlist[server][0])} song(s) in the queue')  # bigggggg
+            text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(self.playlist[server][0])} song(s) in the queue'
+        )  # bigggggg
         return embed
 
     def create_options(self, ctx):
@@ -140,7 +143,9 @@ class music_tools:
         if 'v' in query:
             return self.yt_extractor.fetch_from_video(videoId=query['v'][0])
         elif 'list' in query and not no_playlists:
+            message = await ctx.send('Fetching from playlist...') # fething from playlist takes time
             songs = await self.yt_extractor.fetch_from_playlist(playlistId=query['list'][0])
+            await message.delete()
             return songs
         raise UrlInvalid()
 
