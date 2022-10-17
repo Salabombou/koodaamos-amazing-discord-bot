@@ -3,7 +3,6 @@ from utility.common.errors import UrlInvalid, SongNotFound
 from utility.scraping.YouTube import YT_Extractor
 from utility.common.requests import get_redirect_url
 from discord.ext import commands
-import urllib.request
 from urllib.parse import parse_qs, urlparse
 import isodate
 import discord
@@ -11,7 +10,6 @@ import math
 import asyncio
 from asyncio import AbstractEventLoop
 import validators
-import functools
 
 ffmpeg_options = {
     'options': '-vn',
@@ -79,7 +77,11 @@ class music_tools:
     def create_embed(self, ctx, page_num):  # todo add timestamp
         server = get_server(ctx)
         embed = discord.Embed(
-            title='PLAYLIST', description='', fields=[], color=0xC4FFBD)
+            title='PLAYLIST',
+            description='',
+            fields=[],
+            color=0xC4FFBD
+        )
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[server][0]) / 50)
         songs = self.serialize_songs(server)
@@ -97,7 +99,7 @@ class music_tools:
         )  # bigggggg
         return embed
 
-    def create_options(self, ctx):
+    def create_options(self, ctx): # create the options for the dropdown select menu
         server = get_server(ctx)
         page_amount = math.ceil(len(self.playlist[server][0]) / 50)
         options = [
@@ -143,7 +145,8 @@ class music_tools:
         if 'v' in query:
             return self.yt_extractor.fetch_from_video(videoId=query['v'][0])
         elif 'list' in query and not no_playlists:
-            message = await ctx.send('Fetching from playlist...') # fething from playlist takes time
+            # fething from playlist takes time
+            message = await ctx.send('Fetching from playlist...')
             songs = await self.yt_extractor.fetch_from_playlist(playlistId=query['list'][0])
             await message.delete()
             return songs
@@ -157,9 +160,9 @@ class music_tools:
         server = get_server(ctx)
         self.append_songs(ctx, playnext, songs)
         if not ctx.voice_client.is_playing() and self.playlist[server][0] != []:
-            song = self.playlist[server][0][0]
+            song: YouTube.Video = self.playlist[server][0][0]
             try:
-                info = await self.yt_extractor.get_info('https://www.youtube.com/watch?v=' + song.id)
+                info = await self.yt_extractor.get_info(f'https://www.youtube.com/watch?v={song.id}')
             except:
                 info = await self.yt_extractor.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
             duration = None
