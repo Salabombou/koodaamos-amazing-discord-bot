@@ -22,7 +22,7 @@ bot = commands.Bot(
 )
 
 # gets the tokens
-with open('./tokens.json', 'r') as tokens_file:
+with open('tokens.json', 'r') as tokens_file:
     tokens = json.loads(tokens_file.read())
 
 # cogs for the bot to use
@@ -33,7 +33,8 @@ cogs = (
     audio, mute,
     nightcore, flanger,
     eduko, sauce,
-    earrape, owner
+    earrape, owner,
+    #removebg
 )
 for cog in cogs:
     bot.add_cog(cog(bot, tokens))

@@ -11,6 +11,7 @@ from cogs.fun.image.sauce import sauce
 from cogs.fun.text.gpt3 import gpt3
 from cogs.voice_chat.music import music
 from cogs.tools.download import download
+from cogs.tools.removebg import removebg
 from cogs.owner import owner
 
-__all__ = ['audio', 'earrape', 'flanger', 'mute', 'nightcore', 'green', 'ruin', 'eduko', 'dalle', 'sauce', 'gpt3', 'download', 'music', 'owner']
+__all__ = ['audio', 'earrape', 'flanger', 'mute', 'nightcore', 'green', 'ruin', 'eduko', 'dalle', 'sauce', 'gpt3', 'download', 'music', 'owner', 'removebg']

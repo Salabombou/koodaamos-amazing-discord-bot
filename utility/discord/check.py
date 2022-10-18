@@ -8,11 +8,11 @@ class command_checker:
 
     @staticmethod
     def naughty_list() -> list:
-        with open('./naughty_list.json', 'r') as file:
+        with open('naughty_list.json', 'r') as file:
             return list(json.loads(file.read()))
 
     async def check(self, ctx: commands.Context):
-        if await self.bot.is_owner(ctx.author):
+        if await self.bot.is_owner(ctx.author): # owner's command is absolute
             # resets the cooldown of the command
             ctx.command.reset_cooldown(ctx)
             return True

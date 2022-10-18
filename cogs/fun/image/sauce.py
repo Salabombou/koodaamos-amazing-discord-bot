@@ -16,11 +16,13 @@ class sauce(commands.Cog, command_cog):
         self.fields = [
             ['url', '']
         ]
-        rejected_dbs = [1, 4, 6, 7.13, 14, 17,
-                        29, 34, 40, 42]  # everything furry
-        for i in range(0, 44 + 1):
-            if not i in rejected_dbs:
-                self.fields.append(['dbs[]', str(i)])
+        rejected_dbs = [
+            1, 4, 6, 7, 13, 14,
+            17, 29, 34, 40, 42
+        ]  # everything furry
+        accepted_dbs = [str(db) for db in range(0, 44 + 1) if not db in rejected_dbs]
+        for db in accepted_dbs:
+            self.fields += [['dbs[]', db]]
 
     async def get_sauce(self, url):
         try:

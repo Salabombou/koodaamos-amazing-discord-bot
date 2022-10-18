@@ -55,6 +55,7 @@ class CommandRunner:
         self.loop = loop
 
     async def run(self, command: list, t: float = 60.0, output: str = 'pipe:1', arbitrary_command=False, input: bytes = None, max_duration: int | float = 60) -> None:
+        output = output if output == 'pipe:1' else f'"{output}"'
         t = t if t < max_duration else max_duration
         command = [
             'ffmpeg',
@@ -74,9 +75,10 @@ class CommandRunner:
                 '-c:v', 'libx264',  # video codec
                 '-movflags', 'frag_keyframe+empty_moov+faststart',  # 100% fragmented
                 '-c:a', 'aac',  # audio codec
-                '-crf', '28',
+                '-crf', '28', # level of compression
                 '-preset', 'veryfast',
                 '-ac', '1',  # mono sound
+                '-y', # overwrite file if exists without asking
                 '-f', 'mp4',  # mp4 format
             ]
         command.append(output)
@@ -101,7 +103,7 @@ class CommandRunner:
         if err != '':
             raise FfmpegError(err)
 
-        return out
+        return out if output == 'pipe:1' else output
 
 
 class Videofier:
@@ -120,15 +122,13 @@ class Videofier:
         ]
         self.overlay_args = [
             '-f', 'lavfi',
-            '-i', 'color=c=0x36393e:s={width}x{height}:r=30:d={duration}',
+            '-i', 'color=color=0x36393e@0.0:size={width}x{height},format=yuv420p',
             '-i', '-',
-            '-filter_complex', '"[0:v:0][1:v:0]overlay=(W-w)/2:(H-h)/2[out]"',
-            '-map', '[out]',
-            '-map', '1:a:0'
+            '-filter_complex', '[0][1]overlay=(W-w)/2:(H-h)/2',
         ]
         self.loop_args = [
             '-stream_loop', '-1',
-            #'-ss', '00:00:00.2',
+            '-ss', '00:00:00.1666666666666667',
             '-f', 'mp4',
             '-i', '"%s"',
         ]
@@ -137,6 +137,14 @@ class Videofier:
     def get_scale(target: target.Target):
         min_safe_height = target.height_safe if target.height_safe >= min_height else min_height
         min_safe_width = target.width_safe if target.width_safe >= min_width else min_width
+
+        ratio = target.width_safe / target.height_safe
+        min_safe_ratio =  min_safe_width / min_safe_height
+
+        if ratio < min_safe_ratio: # to make sure the ratio still stays the same
+            min_safe_width = round(min_safe_height * ratio)
+        elif ratio > min_safe_ratio:
+            min_safe_height = round(min_safe_width / ratio)
 
         args = ('-2', min_safe_height) if min_safe_height > min_safe_width else (min_safe_width, '-2')
 
@@ -157,6 +165,7 @@ class Videofier:
         }
         cmd = create_command(self.to_video, **kwargs)
         out = await self.command_runner.run(cmd)
+        
         # makes the width and height match 16/9 aspect ratio
         width, height = create_size(target)
 

@@ -143,7 +143,7 @@ class music_tools:
         url = await get_redirect_url(url)
         query = parse_qs(urlparse(url).query, keep_blank_values=True)
         if 'v' in query:
-            return self.yt_extractor.fetch_from_video(videoId=query['v'][0])
+            return await self.yt_extractor.fetch_from_video(videoId=query['v'][0])
         elif 'list' in query and not no_playlists:
             # fething from playlist takes time
             message = await ctx.send('Fetching from playlist...')
