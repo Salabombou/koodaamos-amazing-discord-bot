@@ -16,8 +16,8 @@ bot = commands.Bot(
     intents=discord.Intents.all(),
     help_command=help.help_command(),
     activity=Activity(  # watching you
-        name='you',
-        type=ActivityType.watching
+        type=ActivityType.watching,
+        name='you'
     )
 )
 
