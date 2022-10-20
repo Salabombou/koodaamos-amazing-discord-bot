@@ -10,6 +10,8 @@ import math
 import asyncio
 from asyncio import AbstractEventLoop
 import validators
+import numpy as np
+
 
 ffmpeg_options = {
     'options': '-vn',
@@ -99,7 +101,7 @@ class music_tools:
         )  # bigggggg
         return embed
 
-    def create_options(self, ctx): # create the options for the dropdown select menu
+    def create_options(self, ctx):  # create the options for the dropdown select menu
         server = get_server(ctx)
         page_amount = math.ceil(len(self.playlist[server][0]) / 50)
         options = [
@@ -151,6 +153,13 @@ class music_tools:
             await message.delete()
             return songs
         raise UrlInvalid()
+
+    def shuffle_playlist(self, server: str):
+        temp = self.playlist[server][0][0]
+        self.playlist[server][0].pop(0)
+        np.random.shuffle(self.playlist[server][0])
+        np.random.shuffle(self.playlist[server][1])
+        self.playlist[server][0].insert(0, temp)
 
     async def play_song(self, ctx: commands.Context, songs=None, playnext=False):
         if ctx.voice_client == None:

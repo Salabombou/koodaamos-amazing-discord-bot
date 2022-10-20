@@ -1,5 +1,5 @@
 from asyncio import AbstractEventLoop
-import os
+import shlex
 import httpx
 import datetime
 import functools
@@ -9,8 +9,7 @@ from utility.discord import target
 import concurrent.futures
 from utility import ffprobe
 import tempfile
-
-client = httpx.AsyncClient()
+from utility.common import file_management
 
 ideal_aspect_ratio = 16 / 9
 
@@ -46,7 +45,7 @@ def create_time(duration):
 def create_command(command: list[str], *args, **kwargs):
     command: str = ' '.join(command) % args
     command = command.format(**kwargs)
-    command = command.split(' ')
+    command = shlex.split(command, posix=False)
     return command
 
 
@@ -82,8 +81,8 @@ class CommandRunner:
                 '-f', 'mp4',  # mp4 format
             ]
         command.append(output)
+        command = ' '.join(command)
         try:
-            command = ' '.join(command)
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 pipe = await self.loop.run_in_executor(
                     pool, functools.partial(

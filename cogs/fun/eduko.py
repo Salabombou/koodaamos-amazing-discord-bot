@@ -4,6 +4,7 @@ from discord.ext import commands
 import discord
 import bs4
 from utility.common.command import respond
+from utility.common import decorators
 from utility.cog.command import command_cog
 
 
@@ -109,6 +110,7 @@ class eduko(commands.Cog, command_cog):
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
+    @decorators.typing
     async def food(self, ctx):
         current_time = time.time()
         if current_time - self.last_sync > 1000:  # if it has been more than 1000 seconds since last sync

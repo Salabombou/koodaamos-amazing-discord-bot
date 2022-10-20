@@ -35,4 +35,4 @@ class nightcore(commands.Cog, ffmpeg_cog):
     @decorators.typing
     async def nc(self, ctx: commands.Context):
         file, pomf_url = await self.create_output_video(ctx)
-        await respond(ctx, content=pomf_url, file=file, mention_author=False)
+        await respond(ctx, content=pomf_url, file=file)

@@ -24,14 +24,14 @@ class Listeners:
     def __init__(self, bot) -> None:
         self.bot = bot
 
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx : commands.Context, error):
         if isinstance(error, CommandInvokeError):
             error = error.original  # gets the original exception from CommandInvokeError
         # ignores the error if it just didnt find the command
         if isinstance(error, CommandNotFound):
             return
         if isinstance(error, CheckFailure):
-            return
+            await ctx.message.add_reaction('👎')
         embed = create_error_embed(error)
         await respond(ctx, embed=embed)
 

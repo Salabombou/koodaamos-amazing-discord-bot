@@ -101,3 +101,19 @@ class PomfUploadFail(Exception):
 
     def __str__(self) -> str:
         return self.message
+
+
+class TargetError(Exception):
+    def __init__(self, message) -> None:
+        self.message = message
+
+    def __str__(self) -> str:
+        return self.message
+
+
+class UrlRedirectError(Exception):
+    def __init__(self, message) -> None:
+        self.message = message
+
+    def __str__(self) -> str:
+        return self.message

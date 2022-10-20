@@ -7,16 +7,16 @@ class FfprobeFormat:
     def __init__(self, **result) -> None:
         for key, value in result.items():
             result[key] = None if value == 'N/A' else value
-        self.filename = result['filename']
+        self.filename: str = result['filename']
         self.nb_streams = int(result['nb_streams'])
         self.nb_programs = int(result['nb_programs'])
-        self.format_name = result['format_name'].split(',')
-        self.format_long_name = result['format_long_name']
-        self.start_time = result['start_time']
-        self.duration = result['duration']
-        self.size = result['size']
-        self.bit_rate = result['bit_rate']
-        self.probe_score = int(result['probe_score'])
+        self.format_name: str = result['format_name'].split(',')
+        self.format_long_name: str = result['format_long_name']
+        self.start_time: str = result['start_time']
+        self.duration: str = result['duration']
+        self.size: str = result['size']
+        self.bit_rate: str = result['bit_rate']
+        self.probe_score: str = int(result['probe_score'])
 
 
 class Ffprober:

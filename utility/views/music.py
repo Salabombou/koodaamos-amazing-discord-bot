@@ -6,12 +6,15 @@ from discord.ext import commands
 import math
 import numpy as np
 import asyncio
+import concurrent.futures
+
 
 
 class music_view(discord.ui.View):
     def __init__(self, music_self, ctx: commands.Context):
         super().__init__(timeout=None)
         self.tools: music_tools.music_tools = music_self.tools
+        self.bot: commands.Bot = music_self.bot
         self.ctx = ctx
         self.embed = None
         self.index = 0
@@ -134,11 +137,11 @@ class music_view(discord.ui.View):
     async def shuffle_callback(self, button, interaction: Interaction):
         if self.tools.playlist[self.server][0] == []:
             return
-        temp = self.tools.playlist[self.server][0][0]
-        self.tools.playlist[self.server][0].pop(0)
-        np.random.shuffle(self.tools.playlist[self.server][0])
-        np.random.shuffle(self.tools.playlist[self.server][1])
-        self.tools.playlist[self.server][0].insert(0, temp)
+        with concurrent.futures.ProcessPoolExecutor() as pool: # for cpu bound stuff
+            await self.bot.loop.run_in_executor(
+                pool,
+                self.tools.shuffle_playlist, str(interaction.guild.id)
+            )
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)

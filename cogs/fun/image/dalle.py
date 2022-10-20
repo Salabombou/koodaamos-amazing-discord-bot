@@ -10,6 +10,7 @@ import io
 from utility.cog.command import command_cog
 import concurrent.futures
 
+
 class dalle(commands.Cog, command_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
@@ -36,11 +37,9 @@ class dalle(commands.Cog, command_cog):
         imgs = []
         for image in images:
             image = str.encode(image)  # encodes string to bytes
-            # decodes the base64 data to bytes image
-            image = base64.decodebytes(image)
+            image = base64.decodebytes(image)  # decodes base64 to bytes
             image = Image.open(io.BytesIO(image))  # opens the image in PIL
-            # appends the finished image to the imgs array
-            imgs.append(image)
+            imgs.append(image)  # appends the finished image to the imgs array
         return imgs
 
     def CreateCollage(self, images: list):
