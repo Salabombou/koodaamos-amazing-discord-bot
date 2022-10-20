@@ -137,7 +137,7 @@ class music_view(discord.ui.View):
     async def shuffle_callback(self, button, interaction: Interaction):
         if self.tools.playlist[self.server][0] == []:
             return
-        with concurrent.futures.ProcessPoolExecutor() as pool: # for cpu bound stuff
+        with concurrent.futures.ThreadPoolExecutor() as pool:
             await self.bot.loop.run_in_executor(
                 pool,
                 self.tools.shuffle_playlist, str(interaction.guild.id)

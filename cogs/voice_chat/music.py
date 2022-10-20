@@ -116,7 +116,7 @@ class music(commands.Cog, command_cog):
         server = get_server(ctx)
         if self.tools.playlist[server] == [[], []]:
             return
-        with concurrent.futures.ProcessPoolExecutor() as pool: # for cpu bound stuff
+        with concurrent.futures.ThreadPoolExecutor() as pool:
             await self.bot.loop.run_in_executor(
                 pool,
                 self.tools.shuffle_playlist, server
