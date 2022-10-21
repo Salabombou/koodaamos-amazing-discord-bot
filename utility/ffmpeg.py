@@ -1,4 +1,5 @@
 from asyncio import AbstractEventLoop
+import math
 import shlex
 import httpx
 import datetime
@@ -34,6 +35,9 @@ def create_size(target: target.Target):
         height = round(width / ideal_aspect_ratio)
     elif aspect_ratio < ideal_aspect_ratio:
         width = round(height * ideal_aspect_ratio)
+    
+    width = math.ceil(width / 2) * 2
+    height = math.ceil(height / 2) * 2
 
     return width, height
 
@@ -104,6 +108,11 @@ class CommandRunner:
 
         return out if output == 'pipe:1' else output
 
+class Videofied:
+    def __init__(self, out: bytes, width, height) -> None:
+        self.width = width
+        self.height = height
+        self.out = out
 
 class Videofier:
     def __init__(self, loop: AbstractEventLoop):
@@ -114,7 +123,7 @@ class Videofier:
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
             '-f', 'lavfi',
             '-i', 'color=c=0x36393e:s={width}x{height}:r=5:d={duration}',
-            '-i', '"{url}"',
+            '-i', '-',
             '-vf', 'scale={scale},pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x36393e',
             '-map', '{map_video}:v:0',
             '-map', '{map_audio}:a'
@@ -150,7 +159,7 @@ class Videofier:
         scale = '%s:%s' % args
         return scale
 
-    async def videofy(self, target: target.Target, duration: int | float = None) -> bytes:
+    async def videofy(self, target: target.Target, duration: int | float = None) -> Videofied:
         if duration is None:
             duration = target.duration_s
         kwargs = {
@@ -158,12 +167,15 @@ class Videofier:
             'height': target.height_safe,
             'scale': self.get_scale(target),
             'duration': target.duration_s,
-            'url': target.proxy_url,
             'map_video': 1 if target.is_audio else 2,
             'map_audio': 2 if target.has_audio else 0
         }
         cmd = create_command(self.to_video, **kwargs)
-        out = await self.command_runner.run(cmd)
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(target.proxy_url)
+            resp.raise_for_status()
+            input = resp.content
+        out = await self.command_runner.run(cmd, input=input)
         
         # makes the width and height match 16/9 aspect ratio
         width, height = create_size(target)
@@ -187,4 +199,4 @@ class Videofier:
                 )
                 out = await self.command_runner.run(cmd, t=duration)
 
-        return out
+        return Videofied(out, width, height)

@@ -117,3 +117,8 @@ class UrlRedirectError(Exception):
 
     def __str__(self) -> str:
         return self.message
+
+
+class NaughtyError(Exception):
+    def __init__(self) -> None:
+        pass

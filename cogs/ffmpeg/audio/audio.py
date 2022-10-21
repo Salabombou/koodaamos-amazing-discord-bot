@@ -28,8 +28,8 @@ class audio(commands.Cog, ffmpeg_cog):
             audio['url'],
         )
 
-        out = await self.videofier.videofy(target, duration=audio['duration'])
-        out = await self.command_runner.run(cmd, input=out, t=audio['duration'])
+        videofied = await self.videofier.videofy(target, duration=audio['duration'])
+        out = await self.command_runner.run(cmd, input=videofied.out, t=audio['duration'])
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

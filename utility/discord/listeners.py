@@ -3,6 +3,7 @@ from discord import HTTPException, Forbidden, NotFound, ApplicationCommandInvoke
 import discord
 from discord.ext import commands
 from utility.common.command import respond
+from utility.common.errors import NaughtyError
 import os
 
 
@@ -32,6 +33,8 @@ class Listeners:
             return
         if isinstance(error, CheckFailure):
             await ctx.message.add_reaction('👎')
+        if isinstance(error, NaughtyError):
+            return
         embed = create_error_embed(error)
         await respond(ctx, embed=embed)
 
@@ -42,6 +45,8 @@ class Listeners:
             return
         if isinstance(error, CheckFailure):
             return
+        if isinstance(error, NaughtyError):
+            return
         embed = create_error_embed(error)
         await ctx.send(embed=embed)
 
@@ -51,6 +56,8 @@ class Listeners:
         if isinstance(error, HTTPException):  # response could not be delivered
             return
         if isinstance(error, Forbidden):  # bot does not have access to send a response
+            return
+        if isinstance(error, NaughtyError):
             return
         print(str(error))
 

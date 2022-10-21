@@ -21,10 +21,10 @@ class nightcore(commands.Cog, ffmpeg_cog):
     async def create_output_video(self,  ctx: commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
 
-        out = await self.videofier.videofy(target)
+        videofied = await self.videofier.videofy(target)
 
         cmd = self.nightcore_args
-        out = await self.command_runner.run(cmd, input=out)
+        out = await self.command_runner.run(cmd, input=videofied.out)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

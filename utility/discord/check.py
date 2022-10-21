@@ -1,6 +1,8 @@
 import json
 from discord.ext import commands
 
+from utility.common.errors import NaughtyError
+
 
 class command_checker:
     def __init__(self, bot: commands.Bot) -> None:
@@ -17,7 +19,7 @@ class command_checker:
             ctx.command.reset_cooldown(ctx)
             return True
         if ctx.author.id in self.naughty_list():
-            return False
+            raise NaughtyError()
         if ctx.author.bot:
             return False
         return True
