@@ -33,6 +33,7 @@ class Listeners:
             return
         if isinstance(error, CheckFailure):
             await ctx.message.add_reaction('👎')
+            return
         if isinstance(error, NaughtyError):
             return
         embed = create_error_embed(error)

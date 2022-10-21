@@ -133,3 +133,4 @@ files/eduko/chromedriver.exe
 tokens.json
 *.temp
 naughty_list.json
+*.json

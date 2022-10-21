@@ -10,7 +10,6 @@ from utility.discord import target
 import concurrent.futures
 from utility import ffprobe
 import tempfile
-from utility.common import file_management
 
 ideal_aspect_ratio = 16 / 9
 
