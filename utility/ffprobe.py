@@ -2,6 +2,7 @@ from asyncio import AbstractEventLoop
 import subprocess
 import functools
 from utility.common.errors import FfprobeError
+import httpx
 
 class FfprobeFormat:
     def __init__(self, **result) -> None:
@@ -32,14 +33,27 @@ class Ffprober:
                 line = line.split('=')
                 result[line[0]] = '='.join(line[1:])
         return result
+    
+    @staticmethod
+    def create_size(size: int) -> str:
+        character_length = len(str(size))
+        if character_length < 4:
+            return f'{size} byte'
+        if character_length >= 4 and character_length < 7:
+            return f'{size / 1000} Kibyte'
+        if character_length >= 7:
+            return f'{size / (1000*1000)} Mibyte'
+        raise FfprobeError('File size could not be determined')
 
     async def get_format(self, file : str | bytes) -> dict:
-        command = 'ffprobe -show_format -pretty -loglevel error '
-        is_str = isinstance(file, str)
-        if is_str:
-            command += f'"{file}"'
-        else:
-            command += '-'
+        command = 'ffprobe -show_format -pretty -loglevel error -'
+
+        if isinstance(file, str):
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(file)
+                resp.raise_for_status()
+                file = resp.content
+
         try:
             pipe = await self.loop.run_in_executor(
                 None, functools.partial(
@@ -47,7 +61,7 @@ class Ffprober:
                     command,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    input=file if not is_str else None,
+                    input=file,
                     bufsize=10**8,
                     timeout=20
                 )
@@ -61,4 +75,5 @@ class Ffprober:
         if out == '':
             raise FfprobeError(err)
         parsed = self.output_parser(out)
+        parsed['size'] = self.create_size(len(file))
         return parsed

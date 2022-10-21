@@ -46,6 +46,6 @@ class bait(commands.Cog, ffmpeg_cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.typing
-    async def bait(self, ctx: commands.Context, url='https://youtu.be/FU_CMr_8WiI'):
+    async def bait(self, ctx: commands.Context, url='https://youtu.be/QCXmUplRd_M'):
         file, pomf_url = await self.create_output_video(ctx, url)
         await respond(ctx, content=pomf_url, file=file, mention_author=False)
