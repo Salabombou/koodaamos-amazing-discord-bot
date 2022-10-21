@@ -122,7 +122,7 @@ class Videofier:
             '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100:d={duration}',
             '-f', 'lavfi',
             '-i', 'color=c=0x36393e:s={width}x{height}:r=5:d={duration}',
-            '-i', '-',
+            '-i', '{url}',
             '-vf', 'scale={scale},pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x36393e',
             '-map', '{map_video}:v:0',
             '-map', '{map_audio}:a'
@@ -165,16 +165,13 @@ class Videofier:
             'width': target.width_safe,
             'height': target.height_safe,
             'scale': self.get_scale(target),
+            'url': target.proxy_url,
             'duration': target.duration_s,
             'map_video': 1 if target.is_audio else 2,
             'map_audio': 2 if target.has_audio else 0
         }
         cmd = create_command(self.to_video, **kwargs)
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(target.proxy_url)
-            resp.raise_for_status()
-            input = resp.content
-        out = await self.command_runner.run(cmd, input=input)
+        out = await self.command_runner.run(cmd)
         
         # makes the width and height match 16/9 aspect ratio
         width, height = create_size(target)
