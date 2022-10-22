@@ -1,6 +1,7 @@
 from asyncio import AbstractEventLoop
 import subprocess
 import functools
+import tempfile
 from utility.common.errors import FfprobeError
 import httpx
 
@@ -46,28 +47,34 @@ class Ffprober:
         raise FfprobeError('File size could not be determined')
 
     async def get_format(self, file : str | bytes) -> dict:
-        command = 'ffprobe -show_format -pretty -loglevel error -'
+        command = 'ffprobe -show_format -pretty -loglevel error "%s"'
 
         if isinstance(file, str):
             async with httpx.AsyncClient() as client:
                 resp = await client.get(file)
                 resp.raise_for_status()
                 file = resp.content
-
-        try:
-            pipe = await self.loop.run_in_executor(
-                None, functools.partial(
-                    subprocess.run,
-                    command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    input=file,
-                    bufsize=10**8,
-                    timeout=20
-                )
-            )
-        except FfprobeError:
-            raise FfprobeError('Command timeout')
+        
+        with tempfile.TemporaryDirectory() as dir:  # create a temp dir, deletes itself and its content after use
+            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp: # create a temp file in the temp dir
+                try:
+                    temp.write(file)  # write into the temp file
+                    temp.flush()  # flush the file
+                    command = command % temp.name
+                    
+                    pipe = await self.loop.run_in_executor(
+                        None, functools.partial(
+                            subprocess.run,
+                            command,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            input=file,
+                            bufsize=10**8,
+                            timeout=20
+                        )
+                    )
+                except FfprobeError:
+                    raise FfprobeError('Command timeout')
         err: bytes = pipe.stderr
         out: bytes = pipe.stdout
         err = err.decode()

@@ -20,17 +20,13 @@ async def fetch_url(url, host):
             return await TikTok.get_raw_url(url), 'mp4'
         elif host == 'open.spotify.com':
             return await Spotify.get_raw_url(url), 'mp3'
-
-        if host == 'www.reddit.com':
-            url = await Reddit.get_raw_url(url)
-        else:
-            raise UnsupportedUrl()
-
-        path = urllib.parse.urlparse(url).path
-        ext = os.path.splitext(path)[1]
-        ext = ext if ext != '' else 'mp4'
-
-        return url, ext
+        elif host == 'www.reddit.com':
+            url: str = await Reddit.get_raw_url(url)
+            path = urllib.parse.urlparse(url.split('?')[1]).path[1:]
+            ext = os.path.splitext(path)[1][1:]
+            ext = ext if ext != '' else 'mp4'
+            return url, ext
+        raise DownloadFailure()
     except DownloadFailure:
         raise DownloadFailure()
 
