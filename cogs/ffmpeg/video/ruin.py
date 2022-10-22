@@ -27,7 +27,7 @@ class ruin(commands.Cog, ffmpeg_cog):
     async def create_output_video(self, ctx: commands.Context):
         target = await discordutil.get_target(ctx)
 
-        videofied = await self.videofier.videofy(target)
+        videofied = await self.videofier.videofy(target, borderless=True)
 
         cmd = self.ruin_args
         out = await self.command_runner.run(cmd, arbitrary_command=True, input=videofied.out)

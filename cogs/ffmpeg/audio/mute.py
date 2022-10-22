@@ -18,7 +18,7 @@ class mute(commands.Cog, ffmpeg_cog):
     async def create_output_video(self, ctx: commands.Context):
         target = await discordutil.get_target(ctx, no_img=True, no_aud=True)
 
-        videofied = await self.videofier.videofy(target)
+        videofied = await self.videofier.videofy(target, borderless=True)
 
         cmd = self.mute_args
         out = await self.command_runner.run(cmd, input=videofied.out)

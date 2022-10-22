@@ -34,7 +34,7 @@ def create_size(target: target.Target):
         height = round(width / ideal_aspect_ratio)
     elif aspect_ratio < ideal_aspect_ratio:
         width = round(height * ideal_aspect_ratio)
-    
+
     width = math.ceil(width / 2) * 2
     height = math.ceil(height / 2) * 2
 
@@ -77,10 +77,10 @@ class CommandRunner:
                 '-c:v', 'libx264',  # video codec
                 '-movflags', 'frag_keyframe+empty_moov+faststart',  # 100% fragmented
                 '-c:a', 'aac',  # audio codec
-                '-crf', '28', # level of compression
+                '-crf', '28',  # level of compression
                 '-preset', 'veryfast',
                 '-ac', '1',  # mono sound
-                '-y', # overwrite file if exists without asking
+                '-y',  # overwrite file if exists without asking
                 '-f', 'mp4',  # mp4 format
             ]
         command.append(output)
@@ -107,11 +107,13 @@ class CommandRunner:
 
         return out if output == 'pipe:1' else output
 
+
 class Videofied:
     def __init__(self, out: bytes, width, height) -> None:
         self.width = width
         self.height = height
         self.out = out
+
 
 class Videofier:
     def __init__(self, loop: AbstractEventLoop):
@@ -146,19 +148,20 @@ class Videofier:
         min_safe_width = target.width_safe if target.width_safe >= min_width else min_width
 
         ratio = target.width_safe / target.height_safe
-        min_safe_ratio =  min_safe_width / min_safe_height
+        min_safe_ratio = min_safe_width / min_safe_height
 
-        if ratio < min_safe_ratio: # to make sure the ratio still stays the same
+        if ratio < min_safe_ratio:  # to make sure the ratio still stays the same
             min_safe_width = round(min_safe_height * ratio)
         elif ratio > min_safe_ratio:
             min_safe_height = round(min_safe_width / ratio)
 
-        args = ('-2', min_safe_height) if min_safe_height > min_safe_width else (min_safe_width, '-2')
+        args = (
+            '-2', min_safe_height) if min_safe_height > min_safe_width else (min_safe_width, '-2')
 
         scale = '%s:%s' % args
         return scale
 
-    async def videofy(self, target: target.Target, duration: int | float = None) -> Videofied:
+    async def videofy(self, target: target.Target, duration: int | float = None, borderless: bool = False) -> Videofied:
         if duration is None:
             duration = target.duration_s
         with tempfile.TemporaryDirectory() as dir:  # create a temp dir, deletes itself and its content after use
@@ -166,7 +169,7 @@ class Videofier:
                 resp = await client.get(target.proxy_url)
                 resp.raise_for_status()
                 file = resp.content
-            
+
             with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp:
                 temp.write(file)
                 temp.flush()
@@ -181,20 +184,25 @@ class Videofier:
                 }
                 cmd = create_command(self.to_video, **kwargs)
                 out = await self.command_runner.run(cmd)
-        
+
             # makes the width and height match 16/9 aspect ratio
             width, height = create_size(target)
+            ratio = target.width / target.height
 
-            # second run to add a gray 16/9 gray background and to fix any other issues
-            cmd = create_command(
-                self.overlay_args,
-                width=width,
-                height=height,
-                duration=target.duration_s
-            )
-            out = await self.command_runner.run(cmd, t=target.duration_s, input=out)
+            if ratio > 4 or ratio < 0.25: # if the output would look wrong without borders
+                borderless = False
 
-            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp: # create a temp file in the temp dir
+            if not borderless:
+                cmd = create_command(
+                    self.overlay_args,
+                    width=width,
+                    height=height,
+                    duration=target.duration_s
+                )
+                out = await self.command_runner.run(cmd, t=target.duration_s, input=out)
+
+            # create a temp file in the temp dir
+            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp:
                 temp.write(out)  # write into the temp file
                 temp.flush()  # flush the file
                 cmd = create_command(

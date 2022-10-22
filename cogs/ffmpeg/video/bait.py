@@ -28,7 +28,7 @@ class bait(commands.Cog, ffmpeg_cog):
         # gets the info from the youtube video specified
         video = await self.yt_extractor.get_info(url=url, video=True, max_duration=300)
 
-        videofied = await self.videofier.videofy(target, duration=video['duration'])
+        videofied = await self.videofier.videofy(target, duration=video['duration'], borderless=True)
 
         cmd = create_command(
             self.green_args,

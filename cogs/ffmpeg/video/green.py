@@ -41,7 +41,7 @@ class green(commands.Cog, ffmpeg_cog):
         color = self.set_color(color)  # creates the color
         width, height = create_size(target)
 
-        videofied = await self.videofier.videofy(target, duration=video['duration'])
+        videofied = await self.videofier.videofy(target, duration=video['duration'], borderless=True)
 
         cmd = create_command(
             self.green_args,
