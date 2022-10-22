@@ -164,33 +164,23 @@ class Videofier:
     async def videofy(self, target: target.Target, duration: int | float = None, borderless: bool = False) -> Videofied:
         if duration is None:
             duration = target.duration_s
-        with tempfile.TemporaryDirectory() as dir:  # create a temp dir, deletes itself and its content after use
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(target.proxy_url)
-                resp.raise_for_status()
-                file = resp.content
-
-            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp:
-                temp.write(file)
-                temp.flush()
-                kwargs = {
-                    'width': target.width_safe,
-                    'height': target.height_safe,
-                    'scale': self.get_scale(target),
-                    'path': temp.name,
-                    'duration': target.duration_s,
-                    'map_video': 1 if target.is_audio else 2,
-                    'map_audio': 2 if target.has_audio else 0
-                }
-                cmd = create_command(self.to_video, **kwargs)
-                out = await self.command_runner.run(cmd)
-
-            # makes the width and height match 16/9 aspect ratio
-            width, height = create_size(target)
-            ratio = target.width / target.height
-
-            if ratio > 4 or ratio < 0.25: # if the output would look wrong without borders
-                borderless = False
+        kwargs = {
+            'width': target.width_safe,
+            'height': target.height_safe,
+            'scale': self.get_scale(target),
+            'duration': target.duration_s,
+            'map_video': 1 if target.is_audio else 2,
+            'map_audio': 2 if target.has_audio else 0
+        }
+        cmd = create_command(self.to_video, **kwargs)
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(target.proxy_url)
+            resp.raise_for_status()
+            input = resp.content
+        out = await self.command_runner.run(cmd, input=input)
+        
+        # makes the width and height match 16/9 aspect ratio
+        width, height = create_size(target)
 
             if not borderless:
                 cmd = create_command(
