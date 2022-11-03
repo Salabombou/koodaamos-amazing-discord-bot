@@ -155,8 +155,7 @@ class Videofier:
         elif ratio > min_safe_ratio:
             min_safe_height = round(min_safe_width / ratio)
 
-        args = (
-            '-2', min_safe_height) if min_safe_height > min_safe_width else (min_safe_width, '-2')
+        args = ('-2', min_safe_height) if min_safe_height > min_safe_width else (min_safe_width, '-2')
 
         scale = '%s:%s' % args
         return scale

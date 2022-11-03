@@ -22,8 +22,8 @@ bot = commands.Bot(
 )
 
 # gets the tokens
-with open('tokens.json', 'r') as tokens_file:
-    tokens = json.loads(tokens_file.read())
+with open('tokens.json') as file:
+    tokens = json.loads(file.read())
 
 # cogs for the bot to use
 cogs = (
