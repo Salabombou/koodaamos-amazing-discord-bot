@@ -8,6 +8,7 @@ from utility.views.music import music_view
 import numpy as np
 from utility.cog.command import command_cog
 import functools
+import concurrent.futures
 
 def update_playlist(func):
     @functools.wraps(func)
@@ -115,11 +116,11 @@ class music(commands.Cog, command_cog):
         server = get_server(ctx)
         if self.tools.playlist[server] == [[], []]:
             return
-        temp = self.tools.playlist[server][0][0]
-        self.tools.playlist[server][0].pop(0)
-        np.random.shuffle(self.tools.playlist[server][0])
-        np.random.shuffle(self.tools.playlist[server][1])
-        self.tools.playlist[server][0].insert(0, temp)
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            await self.bot.loop.run_in_executor(
+                pool,
+                self.tools.shuffle_playlist, server
+            )
 
     @commands.command(help='Loops the currently playing song until stopped')
     @commands.guild_only()

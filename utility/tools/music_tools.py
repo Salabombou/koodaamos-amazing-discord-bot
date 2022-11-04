@@ -3,7 +3,6 @@ from utility.common.errors import UrlInvalid, SongNotFound
 from utility.scraping.YouTube import YT_Extractor
 from utility.common.requests import get_redirect_url
 from discord.ext import commands
-import urllib.request
 from urllib.parse import parse_qs, urlparse
 import isodate
 import discord
@@ -11,7 +10,8 @@ import math
 import asyncio
 from asyncio import AbstractEventLoop
 import validators
-import functools
+import numpy as np
+
 
 ffmpeg_options = {
     'options': '-vn',
@@ -79,7 +79,11 @@ class music_tools:
     def create_embed(self, ctx, page_num):  # todo add timestamp
         server = get_server(ctx)
         embed = discord.Embed(
-            title='PLAYLIST', description='', fields=[], color=0xC4FFBD)
+            title='PLAYLIST',
+            description='',
+            fields=[],
+            color=0xC4FFBD
+        )
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[server][0]) / 50)
         songs = self.serialize_songs(server)
@@ -88,13 +92,16 @@ class music_tools:
             currently_playing = self.playlist[server][0][0]
         for song in songs[index:50 + index][::-1]:
             embed.description += song + '\n'
-        embed.add_field(name='CURRENTLY PLAYING:',
-                        value=f'```{currently_playing.title}```')
+        embed.add_field(
+            name='CURRENTLY PLAYING:',
+            value=f'```{currently_playing.title}```'
+        )
         embed.set_footer(
-            text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(self.playlist[server][0])} song(s) in the queue')  # bigggggg
+            text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(self.playlist[server][0])} song(s) in the queue'
+        )  # bigggggg
         return embed
 
-    def create_options(self, ctx):
+    def create_options(self, ctx):  # create the options for the dropdown select menu
         server = get_server(ctx)
         page_amount = math.ceil(len(self.playlist[server][0]) / 50)
         options = [
@@ -138,11 +145,21 @@ class music_tools:
         url = await get_redirect_url(url)
         query = parse_qs(urlparse(url).query, keep_blank_values=True)
         if 'v' in query:
-            return self.yt_extractor.fetch_from_video(videoId=query['v'][0])
+            return await self.yt_extractor.fetch_from_video(videoId=query['v'][0])
         elif 'list' in query and not no_playlists:
+            # fething from playlist takes time
+            message = await ctx.send('Fetching from playlist...')
             songs = await self.yt_extractor.fetch_from_playlist(playlistId=query['list'][0])
+            await message.delete()
             return songs
         raise UrlInvalid()
+
+    def shuffle_playlist(self, server: str):
+        temp = self.playlist[server][0][0]
+        self.playlist[server][0].pop(0)
+        np.random.shuffle(self.playlist[server][0])
+        np.random.shuffle(self.playlist[server][1])
+        self.playlist[server][0].insert(0, temp)
 
     async def play_song(self, ctx: commands.Context, songs=None, playnext=False):
         if ctx.voice_client == None:
@@ -151,26 +168,32 @@ class music_tools:
             songs = []
         server = get_server(ctx)
         self.append_songs(ctx, playnext, songs)
-        if not ctx.voice_client.is_playing() and self.playlist[server][0] != []:
-            song = self.playlist[server][0][0]
-            try:
-                info = await self.yt_extractor.get_info('https://www.youtube.com/watch?v=' + song.id)
-            except:
-                info = await self.yt_extractor.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
-            duration = None
-            if 'duration' in info:
-                duration = info['duration'] + 10
-            source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
-            embed = await self.create_info_embed(ctx)
-            message = await ctx.send('Now playing:', embed=embed, delete_after=duration)
+        
+        await asyncio.sleep(1)
+        ready = not ctx.voice_client.is_playing() and self.playlist[server][0] != []
+       
+        if not ready:
+            return
+            
+        song: YouTube.Video = self.playlist[server][0][0]
+        try:
+            info = await self.yt_extractor.get_info(f'https://www.youtube.com/watch?v={song.id}')
+        except:
+            info = await self.yt_extractor.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
+        duration = None
+        if 'duration' in info:
+            duration = info['duration'] + 10
+        source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
+        embed = await self.create_info_embed(ctx)
+        message = await ctx.send('Now playing:', embed=embed, delete_after=duration)
 
-            ctx.voice_client.play(
-                discord.PCMVolumeTransformer(
-                    source,
-                    volume=0.75
-                ),
-                after=lambda e: self.next_song(ctx, message)
-            )
+        ctx.voice_client.play(
+            discord.PCMVolumeTransformer(
+                source,
+                volume=0.75
+            ),
+            after=lambda e: self.next_song(ctx, message)
+        )
 
     def next_song(self, ctx: commands.Context, message: discord.Message):
         server = get_server(ctx)

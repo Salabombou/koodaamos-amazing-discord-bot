@@ -7,7 +7,7 @@ from utility.cog.command import ffmpeg_cog
 
 
 class flanger(commands.Cog, ffmpeg_cog):
-    def init(self, bot: commands.Bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds a vibrato effect to audio'
         self.flanger_args = [
@@ -17,10 +17,11 @@ class flanger(commands.Cog, ffmpeg_cog):
 
     async def create_output_video(self, ctx: commands.Context, speed):
         target = await discordutil.get_target(ctx, no_img=True)
-        await target.probe()
-        stdin = await self.videofier.videofy(target)
+
+        videofied = await self.videofier.videofy(target, borderless=True)
+
         cmd = create_command(self.flanger_args, speed)
-        out = await self.command_runner.run(cmd, stdin=stdin)
+        out = await self.command_runner.run(cmd, input=videofied.out)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

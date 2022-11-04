@@ -17,7 +17,7 @@ async def fetch_avatar(ctx: commands.Context) -> bytes:
 async def fetch_webhook(ctx: commands.Context) -> Webhook:
     webhooks = await ctx.message.channel.webhooks()
     for webhook in webhooks:
-        if webhook.user.id == 955557550735106098:
+        if webhook.user.id == ctx.me.id:
             return webhook
     return await ctx.message.channel.create_webhook(name='サラボンボのすばらしいウエブフーック', avatar=await fetch_avatar(ctx))
 

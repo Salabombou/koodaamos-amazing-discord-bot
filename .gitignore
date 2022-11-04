@@ -132,3 +132,5 @@ files/eduko/chromedriver.exe
 *.mp4
 tokens.json
 *.temp
+naughty_list.json
+*.json

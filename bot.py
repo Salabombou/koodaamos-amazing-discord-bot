@@ -10,20 +10,28 @@ from utility.discord.listeners import Listeners
 # imports all the used cogs
 from cogs import *
 
+import logging
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+
 # Setup the bot
 bot = commands.Bot(
     command_prefix='.',
     intents=discord.Intents.all(),
     help_command=help.help_command(),
     activity=Activity(  # watching you
-        name='you',
-        type=ActivityType.watching
+        type=ActivityType.watching,
+        name='you'
     )
 )
 
 # gets the tokens
-with open('./tokens.json', 'r') as tokens_file:
-    tokens = json.loads(tokens_file.read())
+with open('tokens.json') as file:
+    tokens = json.loads(file.read())
 
 # cogs for the bot to use
 cogs = (
@@ -33,7 +41,9 @@ cogs = (
     audio, mute,
     nightcore, flanger,
     eduko, sauce,
-    earrape, owner
+    earrape, owner,
+    bait
+    #removebg
 )
 for cog in cogs:
     bot.add_cog(cog(bot, tokens))

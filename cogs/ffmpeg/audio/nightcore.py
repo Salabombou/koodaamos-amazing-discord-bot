@@ -15,15 +15,16 @@ class nightcore(commands.Cog, ffmpeg_cog):
             '-filter_complex', '"[0:a]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[a];[0:v]setpts=0.75*PTS[v]"',
             '-map', '[v]',
             '-map', '[a]',
+            '-shortest',
         ]
 
     async def create_output_video(self,  ctx: commands.Context):
         target = await discordutil.get_target(ctx, no_img=True)
-        await target.probe()
 
-        stdin = await self.videofier.videofy(target)
+        videofied = await self.videofier.videofy(target, borderless=True)
+
         cmd = self.nightcore_args
-        out = await self.command_runner.run(cmd, stdin=stdin)
+        out = await self.command_runner.run(cmd, input=videofied.out)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
@@ -34,4 +35,4 @@ class nightcore(commands.Cog, ffmpeg_cog):
     @decorators.typing
     async def nc(self, ctx: commands.Context):
         file, pomf_url = await self.create_output_video(ctx)
-        await respond(ctx, content=pomf_url, file=file, mention_author=False)
+        await respond(ctx, content=pomf_url, file=file)

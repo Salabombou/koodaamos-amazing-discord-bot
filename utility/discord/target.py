@@ -1,7 +1,7 @@
 from asyncio import AbstractEventLoop
 from math import ceil
 import discord.embeds
-from utility.common.errors import TargetNotFound
+from utility.common.errors import TargetNotFound, TargetError
 from discord.ext import commands
 from discord import StickerItem, Embed, Attachment
 from discord.embeds import EmbedProxy
@@ -37,6 +37,7 @@ class Target(FfprobeFormat):
         self.has_audio = None
         self.is_audio = None
         self.duration_s = None
+        self.size_bytes = None
 
         if isinstance(target, Embed):
             self.type = target.type
@@ -69,12 +70,31 @@ class Target(FfprobeFormat):
         if isinstance(target.thumbnail.proxy_url, str):
             return target.thumbnail
 
+    @staticmethod
+    def get_factor(measurement) -> int:
+        if measurement == 'byte':
+            return 1
+        if measurement == 'Kibyte':
+            return 1000
+        elif measurement == 'Mibyte':
+            return 1000*1000
+        else:
+            raise TargetError('File size invalid')
+
+    def get_bytes(self):
+        digit, measurement = self.size.split()
+        factor = self.get_factor(measurement)
+        size_bytes = float(digit) * factor
+        self.size_bytes = round(size_bytes)
+
     async def probe(self) -> None:  # probes the target using ffprobe
         result = await self.ffprober.get_format(self.proxy_url)
         super().__init__(**result)
         self.has_audio = self.nb_streams > 1 or self.type == 'audio'
         self.duration_s = convert.timedelta.to_seconds(
-            self.duration) if self.duration != None else 1
+            self.duration
+        ) if self.duration != None else 1
+        self.get_bytes()
 
 
 class target_fetcher:
@@ -130,5 +150,9 @@ async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=F
         file = fetcher.get_file(embeds, attachments, stickers)
 
     if file != None:
-        return Target(ctx.bot.loop, file)
+        target = Target(ctx.bot.loop, file)
+        await target.probe()
+        if target.size_bytes > 50 * 1000 * 1000:
+            raise TargetError('File size too large')
+        return target
     raise TargetNotFound()

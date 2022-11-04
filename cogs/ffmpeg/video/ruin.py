@@ -15,7 +15,7 @@ class ruin(commands.Cog, ffmpeg_cog):
             '-loglevel', 'error',
             '-t', '00:01:00',
             '-b:a', '10k',
-            '-b:v', '10k',
+            '-b:v', '50k',
             '-filter:v', 'fps=5',
             '-loglevel', 'error',
             '-t', '60',
@@ -26,11 +26,11 @@ class ruin(commands.Cog, ffmpeg_cog):
 
     async def create_output_video(self, ctx: commands.Context):
         target = await discordutil.get_target(ctx)
-        await target.probe()
 
-        stdin = await self.videofier.videofy(target)
+        videofied = await self.videofier.videofy(target, borderless=True)
+
         cmd = self.ruin_args
-        out = await self.command_runner.run(cmd, arbitrary_command=True, stdin=stdin)
+        out = await self.command_runner.run(cmd, arbitrary_command=True, input=videofied.out)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url

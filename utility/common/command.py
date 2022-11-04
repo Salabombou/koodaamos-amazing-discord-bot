@@ -1,24 +1,24 @@
 from discord.ext import commands
 from discord.commands.context import ApplicationContext
 from discord.ext.commands.context import Message
+from discord import NotFound
 
-
-async def respond(ctx: commands.Context | ApplicationContext, mention_author=False, *args, **kwargs) -> Message:
+async def respond(ctx: commands.Context | ApplicationContext, /, *, mention_author=False, **kwargs) -> Message:
     if isinstance(ctx, ApplicationContext):
         return await ctx.respond(
-            *args,
             mention_author=mention_author,
             **kwargs
         )
+    message = None
     try:
-        return await ctx.reply(
-            *args,
+        message = await ctx.reply(
             mention_author=mention_author,
             **kwargs
         )
-    except:
-        return await ctx.send(
-            *args,
+    except NotFound:
+        message = await ctx.send(
             mention_author=mention_author,
             **kwargs
         )
+    finally:
+        return message

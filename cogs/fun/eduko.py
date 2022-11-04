@@ -1,11 +1,10 @@
-import asyncio
 import math
-import threading
 import time
 from discord.ext import commands
 import discord
 import bs4
 from utility.common.command import respond
+from utility.common import decorators
 from utility.cog.command import command_cog
 
 
@@ -60,8 +59,11 @@ class eduko(commands.Cog, command_cog):
         embeds = []
         weeks = self.splice_list(self.foods, 5)
         for week in weeks:
-            embed = discord.Embed(color=0xC9EDBE, fields=[],
-                                  title='VIIKKO ' + self.week_nums[0])
+            embed = discord.Embed(
+                color=0xC9EDBE,
+                fields=[],
+                title='VIIKKO ' + self.week_nums[0]
+            )
             week_spliced = self.splice_list(week, 2)
             for week in week_spliced:
                 for food in week:
@@ -85,7 +87,8 @@ class eduko(commands.Cog, command_cog):
     def get_week_nums(self):
         week_nums = []
         h2s = self.soup.select(
-            'div .elementor-widget-container h2.elementor-heading-title.elementor-size-default')
+            'div .elementor-widget-container h2.elementor-heading-title.elementor-size-default'
+        )
         for h2 in h2s:
             text = str(h2.contents[0])
             if text.startswith('Viikko '):
@@ -103,12 +106,13 @@ class eduko(commands.Cog, command_cog):
         self.foods = self.get_food()
 
         self.embeds = self.create_embeds()
-        self.last_sync = time.time() # update the latest sync to current local time
+        self.last_sync = time.time()  # update the latest sync to current local time
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
+    @decorators.typing
     async def food(self, ctx):
         current_time = time.time()
-        if current_time - self.last_sync > 1000: # if it has been more than 1000 seconds since last sync
+        if current_time - self.last_sync > 1000:  # if it has been more than 1000 seconds since last sync
             await self.update_food_embeds()
         await respond(ctx, embeds=self.embeds)
