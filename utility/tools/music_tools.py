@@ -168,26 +168,32 @@ class music_tools:
             songs = []
         server = get_server(ctx)
         self.append_songs(ctx, playnext, songs)
-        if not ctx.voice_client.is_playing() and self.playlist[server][0] != []:
-            song: YouTube.Video = self.playlist[server][0][0]
-            try:
-                info = await self.yt_extractor.get_info(f'https://www.youtube.com/watch?v={song.id}')
-            except:
-                info = await self.yt_extractor.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
-            duration = None
-            if 'duration' in info:
-                duration = info['duration'] + 10
-            source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
-            embed = await self.create_info_embed(ctx)
-            message = await ctx.send('Now playing:', embed=embed, delete_after=duration)
+        
+        await asyncio.sleep(1)
+        ready = not ctx.voice_client.is_playing() and self.playlist[server][0] != []
+       
+        if not ready:
+            return
+            
+        song: YouTube.Video = self.playlist[server][0][0]
+        try:
+            info = await self.yt_extractor.get_info(f'https://www.youtube.com/watch?v={song.id}')
+        except:
+            info = await self.yt_extractor.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
+        duration = None
+        if 'duration' in info:
+            duration = info['duration'] + 10
+        source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
+        embed = await self.create_info_embed(ctx)
+        message = await ctx.send('Now playing:', embed=embed, delete_after=duration)
 
-            ctx.voice_client.play(
-                discord.PCMVolumeTransformer(
-                    source,
-                    volume=0.75
-                ),
-                after=lambda e: self.next_song(ctx, message)
-            )
+        ctx.voice_client.play(
+            discord.PCMVolumeTransformer(
+                source,
+                volume=0.75
+            ),
+            after=lambda e: self.next_song(ctx, message)
+        )
 
     def next_song(self, ctx: commands.Context, message: discord.Message):
         server = get_server(ctx)

@@ -43,9 +43,9 @@ class dalle(commands.Cog, command_cog):
         return imgs
 
     def CreateCollage(self, images: list):
-        collage = Image.new("RGBA", (768, 768))
-        for y in range(0, 768, 256):
-            for x in range(0, 768, 256):
+        collage = Image.new("RGBA", (3072, 3072))
+        for y in range(0, 3072, 1024):
+            for x in range(0, 3072, 1024):
                 # pastes the images to a white canvas in 9x9 alignment
                 collage.paste(images[0], (x, y))
                 images.pop(0)

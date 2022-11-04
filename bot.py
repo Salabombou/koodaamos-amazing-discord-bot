@@ -10,6 +10,14 @@ from utility.discord.listeners import Listeners
 # imports all the used cogs
 from cogs import *
 
+import logging
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+
 # Setup the bot
 bot = commands.Bot(
     command_prefix='.',
