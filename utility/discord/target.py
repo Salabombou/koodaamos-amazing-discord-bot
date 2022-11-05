@@ -112,18 +112,17 @@ class target_fetcher:
         for sticker in stickers:
             return sticker
         for attachment in attachments:
-            if attachment.content_type != None:
-                if self.allowed(attachment.content_type[:5]):
-                    return attachment
+            if attachment.content_type == None: continue
+            if self.allowed(attachment.content_type[:5]):
+                return attachment
         for embed in embeds:
-            if isinstance(embed, Embed):
-                if isinstance(embed.video.proxy_url, str) and self.vid:
-                    return embed
-                if isinstance(embed.image.proxy_url, str) and self.img:
-                    return embed
-                if isinstance(embed.thumbnail.proxy_url, str) and self.img:
-                    return embed
-        return None
+            if not isinstance(embed, Embed): continue
+            if isinstance(embed.video.proxy_url, str) and self.vid:
+                return embed
+            if isinstance(embed.image.proxy_url, str) and self.img:
+                return embed
+            if isinstance(embed.thumbnail.proxy_url, str) and self.img:
+                return embed
 
 
 async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=False) -> Target:
