@@ -1,10 +1,8 @@
 from asyncio import AbstractEventLoop
 from math import ceil
-import discord.embeds
 from utility.common.errors import TargetNotFound, TargetError
 from discord.ext import commands
 from discord import StickerItem, Embed, Attachment
-from discord.embeds import EmbedProxy
 from utility.ffprobe import FfprobeFormat, Ffprober
 from utility.common import convert
 
@@ -76,12 +74,11 @@ class Target(FfprobeFormat):
             return 1
         if measurement == 'Kibyte':
             return 1000
-        elif measurement == 'Mibyte':
-            return 1000*1000
-        else:
-            raise TargetError('File size invalid')
+        if measurement == 'Mibyte':
+            return 1000_000
+        raise TargetError('File size invalid')
 
-    def get_bytes(self):
+    def get_bytes(self) -> None:
         digit, measurement = self.size.split()
         factor = self.get_factor(measurement)
         size_bytes = float(digit) * factor
@@ -111,12 +108,10 @@ class target_fetcher:
     def get_file(self, embeds: list[Embed], attachments: list[Attachment], stickers: list[StickerItem]) -> Embed | Attachment | StickerItem:
         for sticker in stickers:
             return sticker
-        for attachment in attachments:
-            if attachment.content_type == None: continue
+        for attachment in [a for a in attachments if a.content_type != None]:
             if self.allowed(attachment.content_type[:5]):
                 return attachment
-        for embed in embeds:
-            if not isinstance(embed, Embed): continue
+        for embed in [e for e in embeds if isinstance(e, Embed)]:
             if isinstance(embed.video.proxy_url, str) and self.vid:
                 return embed
             if isinstance(embed.image.proxy_url, str) and self.img:
@@ -151,7 +146,7 @@ async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=F
     if file != None:
         target = Target(ctx.bot.loop, file)
         await target.probe()
-        if target.size_bytes > 50 * 1000 * 1000:
+        if target.size_bytes > 50_000_000:
             raise TargetError('File size too large')
         return target
     raise TargetNotFound()
