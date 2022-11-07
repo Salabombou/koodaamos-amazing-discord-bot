@@ -1,4 +1,4 @@
-from utility.scraping import YouTube
+from utility.scraping import YouTube, Genius
 from utility.common.errors import UrlInvalid, SongNotFound
 from utility.scraping.YouTube import YT_Extractor
 from utility.common.requests import get_redirect_url
@@ -24,11 +24,12 @@ def get_server(ctx: commands.Context):
 
 
 class music_tools:
-    def __init__(self, loop: AbstractEventLoop, yt_api_key: str) -> None:
+    def __init__(self, loop: AbstractEventLoop, yt_api_key: str, genius_token: str) -> None:
         self.loop = loop
         self.yt_extractor = YT_Extractor(loop, yt_api_key)
         self.playlist = {}
         self.looping = {}
+        self.genius = Genius.Genius(access_token=genius_token)
 
     # appends songs to the playlist
     def append_songs(self, ctx, playnext=None, songs=[]):
@@ -122,16 +123,25 @@ class music_tools:
 
     async def create_info_embed(self, ctx, number=0, song: YouTube.Video = None):
         server = get_server(ctx)
+
         if song == None:
             num = abs(number)
             if len(self.playlist[server][0]) - 1 < num:
                 raise SongNotFound()
             song = self.playlist[server][0][num]
+
         embed = discord.Embed(
-            title=song.title, description=song.description, fields=[], color=0xC4FFBD)
+            title=song.title,
+            description=song.description,
+            fields=[],
+            color=0xC4FFBD
+        )
+
         embed.set_image(url=song.thumbnail)
         embed.add_field(
-            name='LINKS:', value=f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})')
+            name='LINKS:',
+            value=f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})'
+        )
         icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
         embed.set_footer(text=song.channel, icon_url=icon)
         return embed

@@ -122,3 +122,19 @@ class UrlRedirectError(Exception):
 class NaughtyError(Exception):
     def __init__(self) -> None:
         pass
+
+
+class GeniusSongsNotFound(Exception):
+    def __init__(self, query) -> None:
+        self.message = f'Could not find any songs with query "{query}"'
+
+    def __str__(self) -> str:
+        return self.message
+
+class PlaylistEmpty(Exception):
+    def __str__(self) -> str:
+        return 'Playlist does not have songs'
+
+class LyricsTooLong(Exception):
+    def __str__(self) -> str:
+        return 'Lyrics are too long to be posted in chat'

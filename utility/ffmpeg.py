@@ -187,7 +187,7 @@ class Videofier:
             # makes the width and height match 16/9 aspect ratio
             width, height = create_size(target)
 
-            ratio = target.width / target.height
+            ratio = target.width_safe / target.height_safe
             if ratio > 4 or ratio < 0.25: # if the output would look wrong without borders
                 borderless = False
 
