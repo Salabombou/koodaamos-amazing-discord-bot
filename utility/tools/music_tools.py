@@ -29,6 +29,8 @@ class music_tools:
         self.yt_extractor = YT_Extractor(loop, yt_api_key)
         self.playlist = {}
         self.looping = {}
+        self.link_values = lambda song: f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})'
+        self.yt_error_vid_id = 'J3lXjYWPoys'
         self.genius = Genius.Genius(access_token=genius_token)
 
     # appends songs to the playlist
@@ -66,10 +68,10 @@ class music_tools:
         songs = []
         for i, song in enumerate(self.playlist[server][0]):
             digit = str(i).zfill(3)
-            title = song.title[0:31]
+            title = song.title[:64]
             title_length = len(title)
-            if title_length == 31:
-                title += ' ...'
+            if title_length == 64:
+                title += '...'
             song = f'**``{digit}``**: {title}'
             songs.append(song)
         if len(songs) <= 1:
@@ -140,7 +142,7 @@ class music_tools:
         embed.set_image(url=song.thumbnail)
         embed.add_field(
             name='LINKS:',
-            value=f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})'
+            value=self.link_values(song)
         )
         icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
         embed.set_footer(text=song.channel, icon_url=icon)
@@ -171,38 +173,36 @@ class music_tools:
         np.random.shuffle(self.playlist[server][1])
         self.playlist[server][0].insert(0, temp)
 
-    async def play_song(self, ctx: commands.Context, songs=None, playnext=False):
+    async def play_song(self, ctx: commands.Context, songs=[], playnext=False): # plays a song in voice chat
         if ctx.voice_client == None:
             return
-        if songs is None:
-            songs = []
+
         server = get_server(ctx)
         self.append_songs(ctx, playnext, songs)
         
         await asyncio.sleep(1)
-        ready = not ctx.voice_client.is_playing() and self.playlist[server][0] != []
+        ready = not ctx.voice_client.is_playing() and self.playlist[server][0] != [] # bot is ready to play the next song
        
         if not ready:
             return
             
         song: YouTube.Video = self.playlist[server][0][0]
+
         try:
-            info = await self.yt_extractor.get_info(f'https://www.youtube.com/watch?v={song.id}')
+            info = await self.yt_extractor.get_info(id=song.id)
         except:
-            info = await self.yt_extractor.get_info('https://www.youtube.com/watch?v=J3lXjYWPoys')
-        duration = None
-        if 'duration' in info:
-            duration = info['duration'] + 10
+            info = await self.yt_extractor.get_info(id=self.yt_error_vid_id)
+
         source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
         embed = await self.create_info_embed(ctx)
-        message = await ctx.send('Now playing:', embed=embed, delete_after=duration)
+        message = await ctx.send('Now playing:', embed=embed)
 
         ctx.voice_client.play(
             discord.PCMVolumeTransformer(
                 source,
                 volume=0.75
             ),
-            after=lambda e: self.next_song(ctx, message)
+            after=lambda _: self.next_song(ctx, message)
         )
 
     def next_song(self, ctx: commands.Context, message: discord.Message):
@@ -215,13 +215,14 @@ class music_tools:
         except:
             pass  # incase the message was already deleted or something so it wont fuck up the whole queue
         self.append_songs(ctx)
-        if self.playlist[server][0] != []:
-            # if looping is enabled (moves the current song to the end of the playlist)
-            if self.looping[server]:
-                # adds the currently playing song to the end of the playlist
-                self.playlist[server][1].append(self.playlist[server][0][0])
-            self.playlist[server][0].pop(0)
-            asyncio.run_coroutine_threadsafe(
-                self.play_song(ctx),
-                self.loop
-            )
+
+        if self.playlist[server][0] == []:
+            return
+
+        if self.looping[server]: # if looping is enabled (moves the current song to the end of the playlist)
+            self.playlist[server][1].append(self.playlist[server][0][0]) # adds the currently playing song to the end of the playlist
+        self.playlist[server][0].pop(0)
+        asyncio.run_coroutine_threadsafe(
+            self.play_song(ctx),
+            self.loop
+        )

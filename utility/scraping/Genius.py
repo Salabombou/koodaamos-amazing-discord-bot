@@ -48,7 +48,7 @@ class GeniusSearchResults:
             divs = soup.select('div[data-lyrics-container="true"]')
             lyrics = ''
             for div in divs:
-                lyrics += '\n\n'.join([content for content in div.contents if isinstance(content, str)])
+                lyrics += '\n\n'.join([content for content in div.contents if isinstance(content, str)]) + '\n\n'
             self.lyrics = lyrics
             return lyrics
 
@@ -58,24 +58,14 @@ class Genius:
         self.access_token = access_token
         self.search_url = f'https://api.genius.com/search?access_token={access_token}&q='
     
-    async def Search(self, query) -> GeniusSearchResults:
+    async def Search(self, query: str) -> GeniusSearchResults:
         async with httpx.AsyncClient() as client:
             resp = await client.get(self.search_url + quote(query))
             resp.raise_for_status()
         response = resp.json()['response']
+
         if response['hits'] == []:
             raise GeniusSongsNotFound(query)
+
         results = GeniusSearchResults(resp.json()['response'])
         return results
-
-async def main():
-    with open(r'C:\Users\salabombo\Documents\GitHub\koodaamos-amazing-discord-bot\tokens.json') as file:
-        tokens = json.loads(file.read())
-    genius = Genius(tokens['genius'])
-    results = await genius.Search(input())
-    await results.best_song_result.GetLyrics()
-    print(results.best_song_result.lyrics)
-    pass
-
-if __name__ == '__main__':
-    asyncio.run(main())

@@ -156,6 +156,7 @@ class music(commands.Cog, command_cog):
             await voice_chat.stop(ctx)
 
     @commands.command(help='replies with the lyrics from query')
+    @commands.cooldown(1, 60, commands.BucketType.user)
     @decorators.typing
     async def lyrics(self, ctx: commands.Context, *, query: str):
         results = await self.tools.genius.Search(query)

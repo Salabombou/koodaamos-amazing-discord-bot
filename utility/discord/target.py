@@ -23,7 +23,7 @@ THE ORDER WHERE TO LOOK FOR FILES
 
 
 class Target(FfprobeFormat):
-    def __init__(self, loop: AbstractEventLoop, target: Embed | Attachment | StickerItem) -> None:
+    def __init__(self, loop: AbstractEventLoop, target: Embed | Attachment | StickerItem) -> None: 
         self.loop = loop
         self.ffprober = Ffprober(loop)
         self.width = None
@@ -86,6 +86,8 @@ class Target(FfprobeFormat):
 
     async def probe(self) -> None:  # probes the target using ffprobe
         result = await self.ffprober.get_format(self.proxy_url)
+        for key, value in result.items():
+            result[key] = None if value == 'N/A' else value
         super().__init__(**result)
         self.has_audio = self.nb_streams > 1 or self.type == 'audio'
         self.duration_s = convert.timedelta.to_seconds(
