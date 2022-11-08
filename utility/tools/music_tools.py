@@ -68,10 +68,11 @@ class music_tools:
         songs = []
         for i, song in enumerate(self.playlist[server][0]):
             digit = str(i).zfill(3)
-            title = song.title[:64]
+            title = song.title
             title_length = len(title)
-            if title_length == 64:
-                title += '...'
+            if title_length > 63:
+                title = song.title[:63]
+                title += ' ...'
             song = f'**``{digit}``**: {title}'
             songs.append(song)
         if len(songs) <= 1:
