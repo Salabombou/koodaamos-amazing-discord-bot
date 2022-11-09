@@ -21,27 +21,17 @@ class Video:  # for the video info
         title: str,
         description: str,
         channelId: str,
+        channelTitle: str,
         videoId,
         **kwargs
     ):
-        if data is None:
-            data = {
-                'title': zws,
-                'description': zws,
-                'resourceId': {'videoId': zws},
-                'channelId': zws,
-                'channelTitle': zws
-            }
-        self.title = data['title'][0:256]  # just incase
-        self.description = data['description'][0:4096]  # just incase
-        self.channel = '???'
-        self.id = data['resourceId']['videoId']
+        self.title = title
+        self.description = description
+        self.channel = channelTitle
+        self.id = videoId
         self.thumbnail = f'https://i.ytimg.com/vi/{self.id}/mqdefault.jpg'
-        self.channelId = data['channelId']
-        # if i can retrieve these stuff
-        if data['title'] != 'Private video' and data['title'] != 'Deleted video':
-            self.channel = data['videoOwnerChannelTitle']
-            self.channelId = data['videoOwnerChannelId']
+        self.channelId = channelId
+        self.other = kwargs
 
 
 def _parse_data(data: dict, videoId: str):
@@ -50,6 +40,7 @@ def _parse_data(data: dict, videoId: str):
         'title': snippet['title'],
         'description': snippet['description'],
         'channelId': snippet['channelId'],
+        'channelTitle': snippet['channelTitle'],
         'videoId': videoId,
     }
 
