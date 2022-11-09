@@ -130,4 +130,4 @@ files/eduko/chromedriver.exe
 *.wav
 *.mp4
 *.temp
-tokens.json
+*.json
