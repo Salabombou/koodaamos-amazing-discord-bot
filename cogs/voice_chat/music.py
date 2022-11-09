@@ -1,11 +1,11 @@
 from discord.ext import commands
 import asyncio
 from utility.common.command import respond
+from utility.common.errors import LyricsTooLong
 from utility.discord import voice_chat
 from utility.tools.music_tools import music_tools, get_server
 from utility.common import decorators
 from utility.views.music import music_view
-import numpy as np
 from utility.cog.command import command_cog
 import functools
 import concurrent.futures
@@ -25,7 +25,7 @@ class music(commands.Cog, command_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens,  yt_api_key=tokens['youtube_v3'], loop=bot.loop)
         self.description = 'Plays songs from a playlist to a discord voice channel'
-        self.tools = music_tools(bot.loop, tokens['youtube_v3'])
+        self.tools = music_tools(bot.loop, tokens['youtube_v3'], tokens['genius'])
 
     @commands.command(help='url: YouTube url to a song / playlist')
     @commands.guild_only()
@@ -154,3 +154,14 @@ class music(commands.Cog, command_cog):
         if self.tools.playlist[server][0] != []:
             self.tools.playlist[server][0].insert(0, self.tools.playlist[server][0][0])
             await voice_chat.stop(ctx)
+
+    @commands.command(help='replies with the lyrics from query')
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    @decorators.typing
+    async def lyrics(self, ctx: commands.Context, *, query: str):
+        results = await self.tools.genius.Search(query)
+        result = results.best_song_result
+        lyrics = await result.GetLyrics()
+        if len(lyrics) > 4096:
+            raise LyricsTooLong()
+        await respond(ctx, content=f'```{lyrics}```')

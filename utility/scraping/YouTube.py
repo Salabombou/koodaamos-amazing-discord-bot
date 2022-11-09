@@ -51,7 +51,9 @@ class YT_Extractor:
         info = await self.get_info(url=url, video=video, max_duration=max_duration)
         return info['url']
 
-    async def get_info(self, url, video=False, max_duration=None):
+    async def get_info(self, url=None, id=None, video=False, max_duration=None):
+        if id != None:
+            url = f'https://www.youtube.com/watch?v={id}'
         if not validators.url(url):
             raise UrlInvalid()
         ydl_opts = {

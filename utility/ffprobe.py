@@ -6,20 +6,29 @@ from utility.common.errors import FfprobeError
 import httpx
 
 class FfprobeFormat:
-    def __init__(self, **result) -> None:
-        for key, value in result.items():
-            result[key] = None if value == 'N/A' else value
-        self.filename: str = result['filename']
-        self.nb_streams = int(result['nb_streams'])
-        self.nb_programs = int(result['nb_programs'])
-        self.format_name: str = result['format_name'].split(',')
-        self.format_long_name: str = result['format_long_name']
-        self.start_time: str = result['start_time']
-        self.duration: str = result['duration']
-        self.size: str = result['size']
-        self.bit_rate: str = result['bit_rate']
-        self.probe_score: str = int(result['probe_score'])
-
+    def __init__(
+        self,
+        filename,
+        nb_streams,
+        nb_programs,
+        format_name,
+        format_long_name,
+        start_time,
+        duration,
+        size,
+        bit_rate,
+        probe_score
+    ) -> None:
+        self.filename: str = filename
+        self.nb_streams = int(nb_streams)
+        self.nb_programs = int(nb_programs)
+        self.format_name: str = format_name.split(',')
+        self.format_long_name: str = format_long_name
+        self.start_time: str = start_time
+        self.duration: str = duration
+        self.size: str = size
+        self.bit_rate: str = bit_rate
+        self.probe_score: str = int(probe_score)
 
 class Ffprober:
     def __init__(self, loop: AbstractEventLoop) -> None:

@@ -51,7 +51,6 @@ for cog in cogs:
 # listeners for the bot to use
 listener = Listeners(bot)
 listeners = (
-    listener.on_error,
     listener.on_application_command_error,
     listener.on_command_error,
     listener.on_ready

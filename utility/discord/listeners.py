@@ -51,17 +51,6 @@ class Listeners:
         embed = create_error_embed(error)
         await ctx.send(embed=embed)
 
-    async def on_error(self, event, ctx, error):
-        if isinstance(error, CommandInvokeError):
-            error = error.original  # gets the original exception from CommandInvokeError
-        if isinstance(error, HTTPException):  # response could not be delivered
-            return
-        if isinstance(error, Forbidden):  # bot does not have access to send a response
-            return
-        if isinstance(error, NaughtyError):
-            return
-        print(str(error))
-
     async def on_ready(self):
         os.system('cls' if os.name == 'nt' else 'clear')
         print('ready')
