@@ -96,15 +96,14 @@ class music(commands.Cog, command_cog):
     @decorators.delete_after
     async def skip(self, ctx, amount=1):
         server = get_server(ctx)
-        temp = self.tools.looping[server]
-        self.tools.looping[server] = False
         amount = abs(amount)
+        if self.tools.looping[server]:
+            self.tools.playlist[server][1] += self.tools.playlist[server][0][1:amount]
         del self.tools.playlist[server][0][1:amount]
         self.tools.append_songs(ctx)
         await voice_chat.resume(ctx)
         await voice_chat.stop(ctx)  # skips one song
-        await asyncio.sleep(0.5)  # why? # just incase
-        self.tools.looping[server] = temp
+        await asyncio.sleep(0.5)
 
     @commands.command(help='shuffles the playlist')
     @commands.guild_only()

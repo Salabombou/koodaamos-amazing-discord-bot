@@ -15,6 +15,16 @@ import re
 import concurrent.futures
 from utility.common.string import zero_width_space as zws
 
+class VideoDummie: # dummie version used as a placeholder
+    def __init__(self) -> None:
+        self.title = zws
+        self.description = zws
+        self.channel = zws
+        self.id = zws
+        self.thumbnail = f'https://i.ytimg.com/vi/{self.id}/mqdefault.jpg'
+        self.channelId = zws
+        self.other = zws
+
 class Video:  # for the video info
     def __init__(
         self, /,
@@ -24,7 +34,7 @@ class Video:  # for the video info
         channelTitle: str,
         videoId,
         **kwargs
-    ):
+    ) -> None:
         self.title = title
         self.description = description
         self.channel = channelTitle
@@ -34,13 +44,23 @@ class Video:  # for the video info
         self.other = kwargs
 
 
-def _parse_data(data: dict, videoId: str):
+def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:
     snippet = data['snippet']
+    
+    channelId = snippet['channelId']
+    channelTitle = snippet['channelTitle']
+    try:
+        if from_playlist:
+            channelId = snippet['videoOwnerChannelId']
+            channelTitle = snippet['videoOwnerChannelTitle']
+    except KeyError:
+        channelTitle = '???'
+
     parsed = {
         'title': snippet['title'],
         'description': snippet['description'],
-        'channelId': snippet['channelId'],
-        'channelTitle': snippet['channelTitle'],
+        'channelId': channelId,
+        'channelTitle': channelTitle,
         'videoId': videoId,
     }
 
@@ -111,7 +131,10 @@ class YT_Extractor:
         ytInitialData: str = ytInitialData[0][20:]
         # trims the end of any gunk that would otherwise run the conversion
         ytInitialData = ytInitialData.split('};')[0] + '}'
-        ytInitialData = json.loads(ytInitialData)  # str => dict
+        # str -> dict
+        ytInitialData = json.loads(ytInitialData)  
+
+        return ytInitialData
 
     # youtube api searches are expensive so webscraping it is
     async def fetch_from_search(self, query: str) -> Video:
@@ -127,7 +150,7 @@ class YT_Extractor:
                 if 'videoRenderer' in result:
                     videoId = result['videoRenderer']['videoId']
                     result = await self.fetch_from_video(videoId)
-                    return result[0]
+                    return result
             raise VideoSearchNotFound(query)
         except VideoSearchNotFound:
             raise VideoSearchNotFound(query)
@@ -143,13 +166,12 @@ class YT_Extractor:
                 pool, request.execute
             )
         if r['items'] != []:
-            r['items'][0]['snippet']['resourceId'] = {'videoId': videoId}
-            song = r['items'][0]['snippet']
-            song['videoOwnerChannelTitle'] = song['channelTitle']
-            song['videoOwnerChannelId'] = song['channelId']
-
-            result = await _parse_data(data=r['items'][0])
-            return [Video(data=song)]
+            result = _parse_data(
+                data=r['items'][0],
+                videoId=videoId,
+                from_playlist=False
+            )
+            return result
         else:
             raise VideoUnavailable()
 
@@ -168,7 +190,13 @@ class YT_Extractor:
                 )
                 items += r['items']
                 request = self.youtube.playlistItems().list_next(request, r)
-        songs = [Video(data=song['snippet']) for song in items]
+        songs = [
+            _parse_data(
+                data=song,
+                videoId=song['snippet']['resourceId']['videoId'],
+                from_playlist=True
+            ) for song in items
+        ]
         return songs
 
 

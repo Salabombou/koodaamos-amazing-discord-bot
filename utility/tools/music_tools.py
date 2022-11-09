@@ -91,7 +91,7 @@ class music_tools:
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[server][0]) / 50)
         songs = self.serialize_songs(server)
-        currently_playing = YouTube.Video()
+        currently_playing = YouTube.VideoDummie()
         if self.playlist[server][0] != []:
             currently_playing = self.playlist[server][0][0]
         for song in songs[index:50 + index][::-1]:
@@ -158,7 +158,7 @@ class music_tools:
         url = await get_redirect_url(url)
         query = parse_qs(urlparse(url).query, keep_blank_values=True)
         if 'v' in query:
-            return await self.yt_extractor.fetch_from_video(videoId=query['v'][0])
+            return [await self.yt_extractor.fetch_from_video(videoId=query['v'][0])]
         elif 'list' in query and not no_playlists:
             # fething from playlist takes time
             message = await ctx.send('Fetching from playlist...')
