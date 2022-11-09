@@ -129,9 +129,5 @@ cogs/pixiv
 files/eduko/chromedriver.exe
 *.wav
 *.mp4
-*.mp4
-tokens.json
 *.temp
-naughty_list.json
-*.json
-*.json
+tokens.json

@@ -7,28 +7,30 @@ import httpx
 
 class FfprobeFormat:
     def __init__(
-        self,
-        filename,
-        nb_streams,
-        nb_programs,
-        format_name,
-        format_long_name,
-        start_time,
-        duration,
-        size,
-        bit_rate,
-        probe_score
+        self, /,
+        filename: str,
+        nb_streams: str,
+        nb_programs: str,
+        format_name: str,
+        format_long_name: str,
+        start_time: str,
+        duration: str,
+        size: str,
+        bit_rate: str,
+        probe_score: str,
+        **kwargs
     ) -> None:
-        self.filename: str = filename
+        self.filename = filename
         self.nb_streams = int(nb_streams)
         self.nb_programs = int(nb_programs)
-        self.format_name: str = format_name.split(',')
+        self.format_name = format_name.split(',')
         self.format_long_name: str = format_long_name
-        self.start_time: str = start_time
-        self.duration: str = duration
-        self.size: str = size
-        self.bit_rate: str = bit_rate
-        self.probe_score: str = int(probe_score)
+        self.start_time = start_time
+        self.duration = duration
+        self.size = size
+        self.bit_rate = bit_rate
+        self.probe_score = int(probe_score)
+        self.other = kwargs
 
 class Ffprober:
     def __init__(self, loop: AbstractEventLoop) -> None:
