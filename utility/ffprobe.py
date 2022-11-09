@@ -36,14 +36,11 @@ class Ffprober:
     def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
 
-    def output_parser(self, output) -> dict:
+    def output_parser(self, output: str) -> dict:
         output = output.replace('\r', '')  # incase you are using windows
-        output = output.split('\n')
-        result = {}
-        for line in output:
-            if '=' in line:
-                line = line.split('=')
-                result[line[0]] = '='.join(line[1:])
+        lines = output.split('\n')
+        lines = [line.split('=') for line in lines if '=' in line]
+        result = {line[0]: line[1:] for line in lines}
         return result
     
     @staticmethod
@@ -54,7 +51,7 @@ class Ffprober:
         if character_length >= 4 and character_length < 7:
             return f'{size / 1000} Kibyte'
         if character_length >= 7:
-            return f'{size / (1000*1000)} Mibyte'
+            return f'{size / (1000_1000)} Mibyte'
         raise FfprobeError('File size could not be determined')
 
     async def get_format(self, file : str | bytes) -> dict:

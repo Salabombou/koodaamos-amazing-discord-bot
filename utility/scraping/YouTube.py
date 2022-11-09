@@ -16,15 +16,21 @@ import concurrent.futures
 from utility.common.string import zero_width_space as zws
 
 class Video:  # for the video info
-    def __init__(self, data=None):
+    def __init__(
+        self, /,
+        title: str,
+        description: str,
+        channelId: str,
+        videoId,
+        **kwargs
+    ):
         if data is None:
             data = {
                 'title': zws,
                 'description': zws,
                 'resourceId': {'videoId': zws},
                 'channelId': zws,
-                'videoOwnerChannelId': zws,
-                'videoOwnerChannelTitle': zws
+                'channelTitle': zws
             }
         self.title = data['title'][0:256]  # just incase
         self.description = data['description'][0:4096]  # just incase
@@ -37,6 +43,18 @@ class Video:  # for the video info
             self.channel = data['videoOwnerChannelTitle']
             self.channelId = data['videoOwnerChannelId']
 
+
+def _parse_data(data: dict, videoId: str):
+    snippet = data['snippet']
+    parsed = {
+        'title': snippet['title'],
+        'description': snippet['description'],
+        'channelId': snippet['channelId'],
+        'videoId': videoId,
+    }
+
+    return Video(**parsed)
+
 class YT_Extractor:
     def __init__(self, loop: AbstractEventLoop, yt_api_key: str=None) -> None:
         self.loop = loop
@@ -47,11 +65,11 @@ class YT_Extractor:
             )
         self.client = httpx.AsyncClient()
 
-    async def get_raw_url(self, url, video=False, max_duration=None):
+    async def get_raw_url(self, url: str, video: bool = False, max_duration: int = None):
         info = await self.get_info(url=url, video=video, max_duration=max_duration)
         return info['url']
 
-    async def get_info(self, url=None, id=None, video=False, max_duration=None):
+    async def get_info(self, url: str = None, id: str = None, video: bool = False, max_duration: int = None) -> dict:
         if id != None:
             url = f'https://www.youtube.com/watch?v={id}'
         if not validators.url(url):
@@ -85,25 +103,35 @@ class YT_Extractor:
             else:
                 return info
             raise VideoTooLong(max_duration)
-
+    
+    @staticmethod
+    def __get_results(ytInitialData: dict) -> dict:
+        results = ytInitialData['contents']['twoColumnSearchResultsRenderer']
+        results = results['primaryContents']['sectionListRenderer']  
+        results = results['contents'][0]
+        results = results['itemSectionRenderer']['contents']
+        return results
+    
+    @staticmethod
+    def __get_initial_data(content: str) -> dict:
+        # gets the variable that contains the search results
+        ytInitialData = re.findall('var ytInitialData = .*};', content)
+        # removes the variable declaration itself
+        ytInitialData: str = ytInitialData[0][20:]
+        # trims the end of any gunk that would otherwise run the conversion
+        ytInitialData = ytInitialData.split('};')[0] + '}'
+        ytInitialData = json.loads(ytInitialData)  # str => dict
 
     # youtube api searches are expensive so webscraping it is
-    async def fetch_from_search(self, query) -> Video:
+    async def fetch_from_search(self, query: str) -> Video:
         urlsafe_quote = urllib.parse.quote(query)
         url = 'https://www.youtube.com/results?search_query=' + urlsafe_quote
         resp = await self.client.get(url)
         resp.raise_for_status()
-        content = resp.content.decode('utf-8')
+        content = resp.content.decode()
         try:    
-            # gets the variable that contains the search results
-            ytInitialData = re.findall('var ytInitialData = .*};', content)
-            # removes the variable declaration itself
-            ytInitialData: str = ytInitialData[0][20:]
-            # trims the end of any gunk that would otherwise run the conversion
-            ytInitialData = ytInitialData.split('};')[0] + '}'
-            ytInitialData = json.loads(ytInitialData)  # str => dict
-            results = ytInitialData['contents']['twoColumnSearchResultsRenderer']['primaryContents'][
-                'sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']  # the videos
+            ytInitialData = self.__get_initial_data(content)
+            results = self.__get_results(ytInitialData) # the videos
             for result in results:
                 if 'videoRenderer' in result:
                     videoId = result['videoRenderer']['videoId']
@@ -114,7 +142,7 @@ class YT_Extractor:
             raise VideoSearchNotFound(query)
 
 
-    async def fetch_from_video(self, videoId) -> list[Video]:
+    async def fetch_from_video(self, videoId: str) -> list[Video]:
         request = self.youtube.videos().list(
             part='snippet',
             id=videoId
@@ -128,12 +156,14 @@ class YT_Extractor:
             song = r['items'][0]['snippet']
             song['videoOwnerChannelTitle'] = song['channelTitle']
             song['videoOwnerChannelId'] = song['channelId']
+
+            result = await _parse_data(data=r['items'][0])
             return [Video(data=song)]
         else:
             raise VideoUnavailable()
 
 
-    async def fetch_from_playlist(self, playlistId) -> list[Video]:
+    async def fetch_from_playlist(self, playlistId: str) -> list[Video]:
         request = self.youtube.playlistItems().list(
             part='snippet',
             playlistId=playlistId,
@@ -147,10 +177,7 @@ class YT_Extractor:
                 )
                 items += r['items']
                 request = self.youtube.playlistItems().list_next(request, r)
-        songs = []
-        for song in items:
-            song = song['snippet']
-            songs.append(Video(data=song))
+        songs = [Video(data=song['snippet']) for song in items]
         return songs
 
 
