@@ -3,6 +3,7 @@ import subprocess
 import functools
 import tempfile
 from utility.common.errors import FfprobeError
+import concurrent.futures
 import httpx
 
 class FfprobeFormat:
@@ -70,17 +71,18 @@ class Ffprober:
                     temp.flush()  # flush the file
                     command = command % temp.name
                     
-                    pipe = await self.loop.run_in_executor(
-                        None, functools.partial(
-                            subprocess.run,
-                            command,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            input=file,
-                            bufsize=10**8,
-                            timeout=20
+                    with concurrent.futures.ThreadPoolExecutor() as pool:
+                        pipe = await self.loop.run_in_executor(
+                            pool, functools.partial(
+                                subprocess.run,
+                                command,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                input=file,
+                                bufsize=10**8,
+                                timeout=20
+                            )
                         )
-                    )
                 except FfprobeError:
                     raise FfprobeError('Command timeout')
         err: bytes = pipe.stderr
