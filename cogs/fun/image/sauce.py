@@ -46,7 +46,7 @@ class sauce(commands.Cog, command_cog):
 
     @commands.command(help='url: optionally specify the url to the image')
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @decorators.typing
+    @decorators.Async.typing
     async def sauce(self, ctx: commands.Context, url=None):
         if url == None:
             url = await discordutil.get_target(ctx, no_aud=True, no_vid=True)

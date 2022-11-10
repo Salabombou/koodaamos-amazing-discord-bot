@@ -57,7 +57,7 @@ class dalle(commands.Cog, command_cog):
     @commands.command(help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @decorators.typing
+    @decorators.Async.typing
     async def dalle(self, ctx: commands.Context, *, prompt="a cute kitten"):
         embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
         embed.set_image(url="attachment://unknown.png")

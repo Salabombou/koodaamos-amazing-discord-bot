@@ -29,7 +29,7 @@ class flanger(commands.Cog, ffmpeg_cog):
     @commands.command(help='speed: the speed of the oscilation in Hz')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
-    @decorators.typing
+    @decorators.Async.typing
     async def flan(self, ctx: commands.Context, speed=10.0):
         file, pomf_url = await self.create_output_video(ctx, speed)
         await respond(ctx, content=pomf_url, file=file, mention_author=False)

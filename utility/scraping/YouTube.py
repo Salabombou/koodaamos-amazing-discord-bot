@@ -16,14 +16,13 @@ import concurrent.futures
 from utility.common.string import zero_width_space as zws
 
 class VideoDummie: # dummie version used as a placeholder
-    def __init__(self) -> None:
-        self.title = zws
-        self.description = zws
-        self.channel = zws
-        self.id = zws
-        self.thumbnail = f'https://i.ytimg.com/vi/{self.id}/mqdefault.jpg'
-        self.channelId = zws
-        self.other = zws
+    title = zws
+    description = zws
+    channel = zws
+    id = zws
+    thumbnail = f'https://i.ytimg.com/vi/{id}/mqdefault.jpg'
+    channelId = zws
+    other = zws
 
 class Video:  # for the video info
     def __init__(
