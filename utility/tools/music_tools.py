@@ -29,7 +29,7 @@ class music_tools:
 
     # appends songs to the playlist
     @decorators.Sync.get_server
-    def append_songs(self, ctx, playnext=False, songs=[], /, *, server: str = None):
+    def append_songs(self, ctx, playnext=False, songs=[], *, server: str = None):
         if playnext and songs != []:
             self.playlist[server][0].insert(1, songs)
             self.playlist[server][1] += self.playlist[server][0][-len(songs):][::-1]
@@ -73,7 +73,7 @@ class music_tools:
         return songs
 
     @decorators.Sync.get_server
-    def create_embed(self, ctx: commands.Context, page_num: int, /, *, server: str = None):  # todo add timestamp
+    def create_embed(self, ctx: commands.Context, page_num: int, *, server: str = None):  # todo add timestamp
         embed = discord.Embed(
             title='PLAYLIST',
             description='',
@@ -97,7 +97,7 @@ class music_tools:
         )  # bigggggg
         return embed
     @decorators.Sync.get_server
-    def create_options(self, ctx: commands.Context, /, *, server: str = None):  # create the options for the dropdown select menu
+    def create_options(self, ctx: commands.Context, *, server: str = None):  # create the options for the dropdown select menu
         page_amount = math.ceil(len(self.playlist[server][0]) / 50)
         options = [
             discord.SelectOption(
@@ -116,7 +116,7 @@ class music_tools:
         return options
     
     @decorators.Async.get_server
-    async def create_info_embed(self, ctx: commands.Context, number=0, song: YouTube.Video = None, /, *, server: str = None):
+    async def create_info_embed(self, ctx: commands.Context, number=0, song: YouTube.Video = None, *, server: str = None):
         if song == None:
             num = abs(number)
             if len(self.playlist[server][0]) - 1 < num:
@@ -165,7 +165,7 @@ class music_tools:
         self.playlist[server][0].insert(0, temp)
 
     @decorators.Async.get_server
-    async def play_song(self, ctx: commands.Context, songs=[], playnext=False, /, *, server: str = None): # plays a song in voice chat
+    async def play_song(self, ctx: commands.Context, songs=[], playnext=False, *, server: str = None): # plays a song in voice chat
         if ctx.voice_client == None:
             return
 
@@ -196,7 +196,7 @@ class music_tools:
             after=lambda _: self.next_song(ctx, message)
         )
     @decorators.Sync.get_server
-    def next_song(self, ctx: commands.Context, message: discord.Message, /, *, server: str = None):
+    def next_song(self, ctx: commands.Context, message: discord.Message, *, server: str = None):
         try:
             asyncio.run_coroutine_threadsafe(
                 message.delete(),
@@ -217,5 +217,5 @@ class music_tools:
             self.loop
         )
     @decorators.Async.get_server
-    async def looping_response(self, ctx: commands.Context, /, *, server: str = None) -> discord.Message:
+    async def looping_response(self, ctx: commands.Context, *, server: str = None) -> discord.Message:
         return await ctx.send('LOOPING' if self.looping[server] else 'NOT LOOPING', delete_after=10)
