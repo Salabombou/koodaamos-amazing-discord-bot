@@ -7,6 +7,7 @@ from utility.tools.music_tools import music_tools
 from utility.common import decorators
 from utility.views.music import music_view
 from utility.cog.command import command_cog
+from utility.scraping import Genius
 import concurrent.futures
 
 class music(commands.Cog, command_cog):
@@ -14,6 +15,7 @@ class music(commands.Cog, command_cog):
         super().__init__(bot=bot, tokens=tokens,  yt_api_key=tokens['youtube_v3'], loop=bot.loop)
         self.description = 'Plays songs from a playlist to a discord voice channel'
         self.tools = music_tools(bot.loop, tokens['youtube_v3'])
+        self.genius = Genius.Genius(access_token=tokens['genius'])
 
     @commands.command(help='url: YouTube url to a song / playlist')
     @commands.guild_only()
@@ -147,7 +149,7 @@ class music(commands.Cog, command_cog):
     @commands.cooldown(1, 60, commands.BucketType.user)
     @decorators.Async.typing
     async def lyrics(self, ctx: commands.Context, *, query: str):
-        results = await self.tools.genius.Search(query)
+        results = await self.genius.Search(query)
         result = results.best_song_result
         lyrics = await result.GetLyrics()
         if len(lyrics) > 4096:
