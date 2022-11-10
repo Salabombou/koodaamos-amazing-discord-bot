@@ -59,7 +59,7 @@ class green(commands.Cog, ffmpeg_cog):
     @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
-    @decorators.typing
+    @decorators.Async.typing
     async def green(self, ctx: commands.Context, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
         file, pomf_url = await self.create_output_video(ctx, url, color)
         await respond(ctx, content=pomf_url, file=file, mention_author=False)

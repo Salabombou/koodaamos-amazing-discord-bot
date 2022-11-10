@@ -16,7 +16,7 @@ class download(commands.Cog, command_cog):
     @commands.command(help='url: a link to the downloadable content (YouTube, Reddit, Tiktok, Spotify)')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
-    @decorators.typing
+    @decorators.Async.typing
     async def dl(self, ctx: commands.Context, url):
         if validators.url(url):
             url = await get_redirect_url(url)

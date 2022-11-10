@@ -32,7 +32,7 @@ class nightcore(commands.Cog, ffmpeg_cog):
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
-    @decorators.typing
+    @decorators.Async.typing
     async def nc(self, ctx: commands.Context):
         file, pomf_url = await self.create_output_video(ctx)
         await respond(ctx, content=pomf_url, file=file)

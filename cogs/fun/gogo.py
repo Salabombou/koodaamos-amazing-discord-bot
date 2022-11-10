@@ -14,7 +14,7 @@ class gogo(commands.Cog):
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @decorators.typing
+    @decorators.Async.typing
     async def gogo(self, ctx: commands.Context, url):
         if validators.url(url):
             try:

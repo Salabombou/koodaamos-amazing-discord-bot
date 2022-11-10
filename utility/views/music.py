@@ -18,14 +18,14 @@ class music_view(discord.ui.View):
         self.ctx = ctx
         self.embed = None
         self.index = 0
-        self.server = music_tools.get_server(ctx)
+        self.server = str(ctx.guild.id)
         self.children[0].options = self.tools.create_options(ctx)
         self.update_buttons()
 
     async def on_error(self, error, button, interaction):
         if isinstance(error, NotFound):
             return
-        print(str(error))
+        raise error
 
     async def interaction_check(self, interaction) -> bool:
         if interaction.user.bot:
@@ -123,12 +123,9 @@ class music_view(discord.ui.View):
 
     @discord.ui.button(label='SKIP', emoji='⏭️', style=discord.ButtonStyle.red, row=2)
     async def skip_callback(self, button, interaction: Interaction):
-        temp = self.tools.looping[self.server]
-        self.tools.looping[self.server] = False
         await voice_chat.resume(self.ctx)
         await voice_chat.stop(self.ctx)
         await asyncio.sleep(0.5)
-        self.tools.looping[self.server] = temp
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
@@ -150,6 +147,7 @@ class music_view(discord.ui.View):
     async def loop_callback(self, button, interaction: Interaction):
         self.tools.looping[self.server] = not self.tools.looping[self.server]
         await interaction.response.edit_message(view=self)
+        await self.tools.looping_response(self.ctx)
 
     @discord.ui.button(label='PAUSE/RESUME', emoji='⏯️', style=discord.ButtonStyle.red, row=2)
     async def pauseresume_callback(self, button, interaction: Interaction):

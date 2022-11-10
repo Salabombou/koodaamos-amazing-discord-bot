@@ -1,4 +1,4 @@
-from utility.scraping import YouTube, Genius
+from utility.scraping import YouTube
 from utility.common.errors import UrlInvalid, SongNotFound
 from utility.scraping.YouTube import YT_Extractor
 from utility.common.requests import get_redirect_url
@@ -11,43 +11,35 @@ import asyncio
 from asyncio import AbstractEventLoop
 import validators
 import numpy as np
-
+from utility.common import decorators
 
 ffmpeg_options = {
     'options': '-vn',
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
 }
 
-
-def get_server(ctx: commands.Context):
-    return str(ctx.guild.id)
-
-
 class music_tools:
-    def __init__(self, loop: AbstractEventLoop, yt_api_key: str, genius_token: str) -> None:
+    def __init__(self, loop: AbstractEventLoop, yt_api_key: str) -> None:
         self.loop = loop
         self.yt_extractor = YT_Extractor(loop, yt_api_key)
-        self.playlist = {}
+        self.playlist: dict[list[list, list]] = {}
         self.looping = {}
         self.link_values = lambda song: f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})'
         self.yt_error_vid_id = 'J3lXjYWPoys'
-        self.genius = Genius.Genius(access_token=genius_token)
 
     # appends songs to the playlist
-    def append_songs(self, ctx, playnext=None, songs=[]):
-        if playnext is None:
-            playnext = False
-        server = get_server(ctx)
-        if playnext:
-            self.playlist[server][0].insert(1, songs[0])
-            self.playlist[server][1].insert(0, self.playlist[server][0][-1])
-            del self.playlist[server][0][-1]
+    @decorators.Sync.get_server
+    def append_songs(self, ctx, playnext=False, songs=[], /, *, server: str = None):
+        if playnext and songs != []:
+            self.playlist[server][0].insert(1, songs)
+            self.playlist[server][1] += self.playlist[server][0][-len(songs):][::-1]
+            del self.playlist[server][0][-len(songs):]
         else:
             self.playlist[server][1] += songs
         length = len(self.playlist[server][0])
         # limits the visible playlist to go to upto 1000 song at once
-        self.playlist[server][0] += self.playlist[server][1][0:1000 - length]
-        del self.playlist[server][1][0:1000 - length]
+        self.playlist[server][0] += self.playlist[server][1][:1000 - length]
+        del self.playlist[server][1][:1000 - length]
 
     def get_duration(self, videoId):  # youtube api v3 needs a v4
         request = self.youtube.videos().list(
@@ -80,8 +72,8 @@ class music_tools:
         songs.pop(0)
         return songs
 
-    def create_embed(self, ctx, page_num):  # todo add timestamp
-        server = get_server(ctx)
+    @decorators.Sync.get_server
+    def create_embed(self, ctx: commands.Context, page_num: int, /, *, server: str = None):  # todo add timestamp
         embed = discord.Embed(
             title='PLAYLIST',
             description='',
@@ -91,7 +83,7 @@ class music_tools:
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[server][0]) / 50)
         songs = self.serialize_songs(server)
-        currently_playing = YouTube.Video()
+        currently_playing = YouTube.VideoDummie()
         if self.playlist[server][0] != []:
             currently_playing = self.playlist[server][0][0]
         for song in songs[index:50 + index][::-1]:
@@ -104,9 +96,8 @@ class music_tools:
             text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(self.playlist[server][0])} song(s) in the queue'
         )  # bigggggg
         return embed
-
-    def create_options(self, ctx):  # create the options for the dropdown select menu
-        server = get_server(ctx)
+    @decorators.Sync.get_server
+    def create_options(self, ctx: commands.Context, /, *, server: str = None):  # create the options for the dropdown select menu
         page_amount = math.ceil(len(self.playlist[server][0]) / 50)
         options = [
             discord.SelectOption(
@@ -123,10 +114,9 @@ class music_tools:
                 )
             )
         return options
-
-    async def create_info_embed(self, ctx, number=0, song: YouTube.Video = None):
-        server = get_server(ctx)
-
+    
+    @decorators.Async.get_server
+    async def create_info_embed(self, ctx: commands.Context, number=0, song: YouTube.Video = None, /, *, server: str = None):
         if song == None:
             num = abs(number)
             if len(self.playlist[server][0]) - 1 < num:
@@ -158,7 +148,7 @@ class music_tools:
         url = await get_redirect_url(url)
         query = parse_qs(urlparse(url).query, keep_blank_values=True)
         if 'v' in query:
-            return await self.yt_extractor.fetch_from_video(videoId=query['v'][0])
+            return [await self.yt_extractor.fetch_from_video(videoId=query['v'][0])]
         elif 'list' in query and not no_playlists:
             # fething from playlist takes time
             message = await ctx.send('Fetching from playlist...')
@@ -174,11 +164,11 @@ class music_tools:
         np.random.shuffle(self.playlist[server][1])
         self.playlist[server][0].insert(0, temp)
 
-    async def play_song(self, ctx: commands.Context, songs=[], playnext=False): # plays a song in voice chat
+    @decorators.Async.get_server
+    async def play_song(self, ctx: commands.Context, songs=[], playnext=False, /, *, server: str = None): # plays a song in voice chat
         if ctx.voice_client == None:
             return
 
-        server = get_server(ctx)
         self.append_songs(ctx, playnext, songs)
         
         await asyncio.sleep(1)
@@ -205,9 +195,8 @@ class music_tools:
             ),
             after=lambda _: self.next_song(ctx, message)
         )
-
-    def next_song(self, ctx: commands.Context, message: discord.Message):
-        server = get_server(ctx)
+    @decorators.Sync.get_server
+    def next_song(self, ctx: commands.Context, message: discord.Message, /, *, server: str = None):
         try:
             asyncio.run_coroutine_threadsafe(
                 message.delete(),
@@ -227,3 +216,6 @@ class music_tools:
             self.play_song(ctx),
             self.loop
         )
+    @decorators.Async.get_server
+    async def looping_response(self, ctx: commands.Context, /, *, server: str = None) -> discord.Message:
+        return await ctx.send('LOOPING' if self.looping[server] else 'NOT LOOPING', delete_after=10)
