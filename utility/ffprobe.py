@@ -40,7 +40,7 @@ class Ffprober:
         output = output.replace('\r', '')  # incase you are using windows
         lines = output.split('\n')
         lines = [line.split('=') for line in lines if '=' in line]
-        result = {line[0]: line[1:] for line in lines}
+        result = {line[0]: '='.join(line[1:]) for line in lines}
         return result
     
     @staticmethod
