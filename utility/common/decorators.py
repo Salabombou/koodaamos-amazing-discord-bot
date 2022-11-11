@@ -2,7 +2,7 @@ import asyncio
 import functools
 from discord.ext import commands
 from discord.commands.context import ApplicationContext
-
+import tempfile
 
 class Async:
 
@@ -37,6 +37,17 @@ class Async:
                 await ctx.delete()
             return value
         return wrapper
+    
+    class ffmpeg:
+    
+        @staticmethod
+        def create_dir(func):
+            @functools.wraps(func)
+            async def wrapper(*args, **kwargs):
+                with tempfile.TemporaryDirectory() as dir:  # create a temp dir, deletes itself and its content after use
+                    kwargs['_dir'] = dir
+                    return await func(*args, **kwargs)
+            return wrapper
 
     @staticmethod
     def update_playlist(func):
