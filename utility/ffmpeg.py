@@ -126,7 +126,7 @@ class Videofier:
             '-f', 'lavfi',
             '-i', 'color=c=0x36393e:s={width}x{height}:r=5:d={duration}',
             '-i', '"{path}"',
-            '-vf', 'scale={scale},pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x36393e',
+            '-vf', 'setsar=1:1,fps=30,scale={scale},pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x36393e',
             '-map', '{map_video}:v:0',
             '-map', '{map_audio}:a'
         ]
