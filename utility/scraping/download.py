@@ -1,46 +1,32 @@
 from utility.scraping import YouTube, Reddit, TikTok, Spotify
 from utility.common.errors import UnsupportedUrl, DownloadFailure
 from utility.common.requests import get_redirect_url
-import urllib.parse
+from urllib.parse import urlparse
 import urllib.request
 import os
 
-supported_sites = [
-    'www.youtube.com',
-    'www.reddit.com',
-    'www.tiktok.com',
-    'open.spotify.com'
-]
 
+supported_sites = {
+    'www.youtube.com': (YouTube.get_raw_url, lambda _: 'mp4'),
+    'www.reddit.com': (Reddit.get_raw_url, lambda url: os.path.splitext(urlparse(url).path)[1] if '?' not in url else 'mp4'),
+    'www.tiktok.com': (TikTok.get_raw_url, lambda _: 'mp4'),
+    'open.spotify.com': (Spotify.get_raw_url, lambda _: 'mp3')
+}
 
-
-def get_extension(url: str):
-    path = urllib.parse.urlparse(url.split('?')[1]).path[1:]
-    ext = os.path.splitext(path)[1][1:]
-    ext = ext if ext != '' else 'mp4'
-    return ext
 
 async def fetch_url(url: str, host: str):
+    get_raw_url, ext = supported_sites[host]
     try:
-        match host:
-            case 'www.youtube.com':
-                return await YouTube.get_raw_url(url), 'mp4'
-            case 'www.tiktok.com':
-                return await TikTok.get_raw_url(url), 'mp4'
-            case 'open.spotify.com':
-                return await Spotify.get_raw_url(url), 'mp3'
-            case 'www.reddit.com':
-                url = await Reddit.get_raw_url(url)
-                return url, get_extension(url)
-        raise DownloadFailure()
+        raw_url = await get_raw_url(url)
+        return raw_url, ext(raw_url)
     except DownloadFailure:
         raise DownloadFailure()
 
 
 async def from_url(url):
     url = await get_redirect_url(url)
-    parsed = urllib.parse.urlparse(url)
+    parsed = urlparse(url)
     host = parsed.hostname
-    if host in supported_sites:
+    if host in supported_sites.keys():
         return await fetch_url(url, host)
     raise UnsupportedUrl()
