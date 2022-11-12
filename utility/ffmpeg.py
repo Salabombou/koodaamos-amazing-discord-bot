@@ -10,6 +10,7 @@ from utility.discord import target
 import concurrent.futures
 from utility import ffprobe
 import tempfile
+from utility.common import decorators
 
 ideal_aspect_ratio = 16 / 9
 
@@ -159,55 +160,55 @@ class Videofier:
 
         scale = '%s:%s' % args
         return scale
-
-    async def videofy(self, target: target.Target, duration: int | float = None, borderless: bool = False) -> Videofied:
-        if duration is None:
+    
+    @decorators.Async.ffmpeg.create_dir
+    async def videofy(self, target: target.Target, duration: int | float = None, borderless: bool = False, _dir: str = None) -> Videofied:
+        if duration == None:
             duration = target.duration_s
-        with tempfile.TemporaryDirectory() as dir:  # create a temp dir, deletes itself and its content after use
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(target.proxy_url)
-                resp.raise_for_status()
-                file = resp.content
 
-            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp:
-                temp.write(file)
-                temp.flush()
-                kwargs = {
-                    'width': target.width_safe,
-                    'height': target.height_safe,
-                    'scale': self.get_scale(target),
-                    'path': temp.name,
-                    'duration': target.duration_s,
-                    'map_video': 1 if target.is_audio else 2,
-                    'map_audio': 2 if target.has_audio else 0
-                }
-                cmd = create_command(self.to_video, **kwargs)
-                out = await self.command_runner.run(cmd)
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(target.proxy_url)
+            resp.raise_for_status()
+            file = resp.content
 
-            # makes the width and height match 16/9 aspect ratio
-            width, height = create_size(target)
+        with tempfile.NamedTemporaryFile(delete=False, dir=_dir) as temp:
+            temp.write(file)
+            temp.flush()
+            kwargs = {
+                'width': target.width_safe,
+                'height': target.height_safe,
+                'scale': self.get_scale(target),
+                'path': temp.name,
+                'duration': target.duration_s,
+                'map_video': 1 if target.is_audio else 2,
+                'map_audio': 2 if target.has_audio else 0
+            }
+            cmd = create_command(self.to_video, **kwargs)
+            out = await self.command_runner.run(cmd)
 
-            ratio = target.width_safe / target.height_safe
-            if ratio > 4 or ratio < 0.25: # if the output would look wrong without borders
-                borderless = False
+        # makes the width and height match 16/9 aspect ratio
+        width, height = create_size(target)
 
-            if not borderless:
-                cmd = create_command(
-                    self.overlay_args,
-                    width=width,
-                    height=height,
-                    duration=target.duration_s
-                )
-                out = await self.command_runner.run(cmd, t=target.duration_s, input=out)
+        ratio = target.width_safe / target.height_safe
+        borderless = ratio < 4 or ratio > 0.25 # should the video have borders
+        
+        if not borderless:
+            cmd = create_command(
+                self.overlay_args,
+                width=width,
+                height=height,
+                duration=target.duration_s
+            )
+            out = await self.command_runner.run(cmd, t=target.duration_s, input=out)
 
-            # create a temp file in the temp dir
-            with tempfile.NamedTemporaryFile(delete=False, dir=dir) as temp:
-                temp.write(out)  # write into the temp file
-                temp.flush()  # flush the file
-                cmd = create_command(
-                    self.loop_args,
-                    temp.name  # path to the temp file
-                )
-                out = await self.command_runner.run(cmd, t=duration)
-
+        # create a temp file in the temp dir
+        with tempfile.NamedTemporaryFile(delete=False, dir=_dir) as temp:
+            temp.write(out)  # write into the temp file
+            temp.flush()  # flush the file
+            cmd = create_command(
+                self.loop_args,
+                temp.name  # path to the temp file
+            )
+            out = await self.command_runner.run(cmd, t=duration)
+            
         return Videofied(out, width, height)
