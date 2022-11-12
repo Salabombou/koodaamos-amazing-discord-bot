@@ -25,7 +25,7 @@ class GeniusSearchResults:
             release_date_components: dict,
             title: str,
             url: str,
-            **kwargs
+            **other
         ) -> None:
             self.api_path = api_path
             self.artist_names = artist_names
@@ -38,6 +38,7 @@ class GeniusSearchResults:
             self.path = path
             self.release_date = release_date_components
             self.url = url
+            self.other = other
             self.lyrics = None
 
         async def GetLyrics(self) -> str:

@@ -21,8 +21,8 @@ class sauce(commands.Cog, command_cog):
             17, 29, 34, 40, 42
         ]  # everything furry
         accepted_dbs = [str(db) for db in range(0, 44 + 1) if not db in rejected_dbs]
-        for db in accepted_dbs:
-            self.fields += [['dbs[]', db]]
+        self.fields += [['dbs[]', db] for db in accepted_dbs]
+        pass
 
     async def get_sauce(self, url):
         try:

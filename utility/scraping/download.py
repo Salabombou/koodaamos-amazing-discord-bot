@@ -2,7 +2,6 @@ from utility.scraping import YouTube, Reddit, TikTok, Spotify
 from utility.common.errors import UnsupportedUrl, DownloadFailure
 from utility.common.requests import get_redirect_url
 from urllib.parse import urlparse
-import urllib.request
 import os
 
 
@@ -14,8 +13,7 @@ supported_sites = {
 }
 
 
-async def fetch_url(url: str, host: str):
-    get_raw_url, ext = supported_sites[host]
+async def fetch_url(url: str, get_raw_url, ext):
     try:
         raw_url = await get_raw_url(url)
         return raw_url, ext(raw_url)
@@ -28,5 +26,5 @@ async def from_url(url):
     parsed = urlparse(url)
     host = parsed.hostname
     if host in supported_sites.keys():
-        return await fetch_url(url, host)
+        return await fetch_url(url, *supported_sites[host])
     raise UnsupportedUrl()
