@@ -4,7 +4,6 @@ from utility.scraping.YouTube import YT_Extractor
 from utility.common.requests import get_redirect_url
 from discord.ext import commands
 from urllib.parse import parse_qs, urlparse
-import isodate
 import discord
 import math
 import asyncio
@@ -40,21 +39,6 @@ class music_tools:
         # limits the visible playlist to go to upto 1000 song at once
         self.playlist[server][0] += self.playlist[server][1][:1000 - length]
         del self.playlist[server][1][:1000 - length]
-
-    def get_duration(self, videoId):  # youtube api v3 needs a v4
-        request = self.youtube.videos().list(
-            part='contentDetails',
-            id=videoId
-        )
-        r = request.execute()
-        duration = 'PT2S'
-        try:
-            duration = r['items'][0]['contentDetails']['duration']
-        except:
-            pass
-        duration = isodate.parse_duration(duration)
-        # returns the duration of the song that was not included in the snippet for some reason
-        return duration.seconds
 
     def serialize_songs(self, server):
         songs = []

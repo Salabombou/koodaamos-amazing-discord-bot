@@ -1,11 +1,11 @@
 from discord.ext import commands
 import asyncio
 from utility.common.command import respond
-from utility.common.errors import LyricsTooLong
 from utility.discord import voice_chat
 from utility.tools.music_tools import music_tools
 from utility.common import decorators
 from utility.views.music import music_view
+from utility.views.lyrics import lyrics_view
 from utility.cog.command import command_cog
 from utility.scraping import Genius
 import concurrent.futures
@@ -150,8 +150,8 @@ class music(commands.Cog, command_cog):
     @decorators.Async.typing
     async def lyrics(self, ctx: commands.Context, *, query: str):
         results = await self.genius.Search(query)
+        message = await respond(ctx, content='loading...')
+        await message.edit(view=lyrics_view(message, results))
         result = results.best_song_result
-        lyrics = await result.GetLyrics()
-        if len(lyrics) > 4096:
-            raise LyricsTooLong()
-        await respond(ctx, content=f'```{lyrics}```')
+        
+        

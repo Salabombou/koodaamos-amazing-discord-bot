@@ -25,6 +25,8 @@ class GeniusSearchResults:
             release_date_components: dict,
             title: str,
             url: str,
+            header_image_thumbnail_url: str = '',
+            primary_artist: dict[str],
             **other
         ) -> None:
             self.api_path = api_path
@@ -38,6 +40,8 @@ class GeniusSearchResults:
             self.path = path
             self.release_date = release_date_components
             self.url = url
+            self.thumbnail = header_image_thumbnail_url
+            self.artist_icon = primary_artist['image_url']
             self.other = other
             self.lyrics = None
 
