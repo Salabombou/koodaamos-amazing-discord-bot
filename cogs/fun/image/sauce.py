@@ -1,12 +1,13 @@
+import bs4
+from discord.ext import commands
+from requests_toolbelt import MultipartEncoder
+
+from utility.cog.command import command_cog
+from utility.common import decorators
+from utility.common.errors import SauceNotFound
 from utility.discord import target as discordutil
 from utility.tools import sauce_tools
 from utility.views.sauce import sauce_view
-from utility.common import decorators
-from utility.common.errors import SauceNotFound
-from utility.cog.command import command_cog
-from discord.ext import commands
-from requests_toolbelt import MultipartEncoder
-import bs4
 
 
 class sauce(commands.Cog, command_cog):
@@ -20,9 +21,8 @@ class sauce(commands.Cog, command_cog):
             1, 4, 6, 7, 13, 14,
             17, 29, 34, 40, 42
         ]  # everything furry
-        accepted_dbs = [str(db) for db in range(0, 44 + 1) if not db in rejected_dbs]
+        accepted_dbs = [str(db) for db in range(0, 44 + 1) if db not in rejected_dbs]
         self.fields += [['dbs[]', db] for db in accepted_dbs]
-        pass
 
     async def get_sauce(self, url):
         try:
@@ -33,11 +33,8 @@ class sauce(commands.Cog, command_cog):
             resp.raise_for_status()
             soup = bs4.BeautifulSoup(resp.content, features='lxml')
             hidden = soup.select('div #result-hidden-notification') != []
-            results = soup.select('div.result') + \
-                soup.select('div.result.hidden')
-            for result in results:
-                if 'onclick' in result.attrs:
-                    results.remove(result)
+            results = soup.select('div.result') + soup.select('div.result.hidden')
+            results = [result for result in results if 'onclick' not in result.attrs]
             if len(results) > 1:
                 return results, hidden
             raise SauceNotFound()
@@ -54,4 +51,5 @@ class sauce(commands.Cog, command_cog):
         results, hidden = await self.get_sauce(url)
         embed = sauce_tools.create_embed(results[0], url, hidden=hidden)
         message = await ctx.reply(embed=embed, mention_author=False)
+        await message.edit(view=sauce_view(results=results, url=url, hidden=hidden))
         await message.edit(view=sauce_view(results=results, url=url, hidden=hidden))
