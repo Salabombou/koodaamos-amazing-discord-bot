@@ -67,7 +67,9 @@ class music(commands.Cog, command_cog):
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
     async def resume(self, ctx: commands.Context):
-        await voice_chat.resume(ctx)
+        if ctx.voice_client.is_paused():
+            return await voice_chat.resume(ctx)
+        await voice_chat.pause(ctx)
 
     @commands.command(help='pauses the currently playing song')
     @commands.guild_only()
@@ -75,6 +77,8 @@ class music(commands.Cog, command_cog):
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
     async def pause(self, ctx: commands.Context):
+        if ctx.voice_client.is_paused():
+            return await voice_chat.resume(ctx)
         await voice_chat.pause(ctx)
 
     @commands.command(help='skips the currently playing song')

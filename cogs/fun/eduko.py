@@ -14,6 +14,7 @@ class eduko(commands.Cog, command_cog):
         self.description = 'Gets the Eduko diner menu for the week(s)'
         self.embeds = []
         self.last_sync = 0
+        self.foodlist_url = 'https://www.eduko.fi/eduko/ruokalistat/'
 
     class Food:
         def __init__(self, p: bs4.BeautifulSoup):
@@ -86,17 +87,17 @@ class eduko(commands.Cog, command_cog):
 
     def get_week_nums(self):
         week_nums = []
-        h2s = self.soup.select(
+        h2_s = self.soup.select(
             'div .elementor-widget-container h2.elementor-heading-title.elementor-size-default'
         )
-        for h2 in h2s:
+        for h2 in h2_s:
             text = str(h2.contents[0])
             if text.startswith('Viikko '):
                 week_nums.append(text[7:])
         return week_nums
 
     async def update_food_embeds(self):
-        resp = await self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
+        resp = await self.client.get(self.foodlist_url)
         resp.raise_for_status()
 
         self.soup = bs4.BeautifulSoup(resp.content, features='lxml')
