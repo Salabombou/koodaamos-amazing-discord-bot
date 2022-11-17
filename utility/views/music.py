@@ -4,7 +4,6 @@ from utility.discord import voice_chat
 from utility.tools import music_tools
 from discord.ext import commands
 import math
-import numpy as np
 import asyncio
 import concurrent.futures
 
@@ -15,13 +14,12 @@ class music_view(discord.ui.View):
         super().__init__(timeout=None)
         self.tools: music_tools.music_tools = music_self.tools
         self.bot: commands.Bot = music_self.bot
-        self.ctx = ctx
         self.embed = None
         self.index = 0
         self.server = str(ctx.guild.id)
-        self.children[0].options = self.tools.create_options(ctx)
+        self.ctx = ctx
         self.update_buttons()
-
+    
     async def interaction_check(self, interaction) -> bool:
         if interaction.user.bot:
             return False  # if the user is bot
@@ -117,7 +115,7 @@ class music_view(discord.ui.View):
         with concurrent.futures.ThreadPoolExecutor() as pool:
             await self.bot.loop.run_in_executor(
                 pool,
-                self.tools.shuffle_playlist, str(interaction.guild.id)
+                self.tools.shuffle_playlist, self.server
             )
         self.update_embed()
         self.update_buttons()

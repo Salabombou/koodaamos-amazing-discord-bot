@@ -11,6 +11,7 @@ from asyncio import AbstractEventLoop
 import validators
 import numpy as np
 from utility.common import decorators
+from utility.common import embed_config
 
 ffmpeg_options = {
     'options': '-vn',
@@ -62,7 +63,7 @@ class music_tools:
             title='PLAYLIST',
             description='',
             fields=[],
-            color=0xC4FFBD
+            color=embed_config.color
         )
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[server][0]) / 50)
@@ -81,7 +82,7 @@ class music_tools:
         )  # bigggggg
         return embed
     @decorators.Sync.get_server
-    def create_options(self, ctx: commands.Context, *, server: str = None):  # create the options for the dropdown select menu
+    def create_options(self, ctx: commands.Context | discord.Message, *, server: str = None):  # create the options for the dropdown select menu
         page_amount = math.ceil(len(self.playlist[server][0]) / 50)
         options = [
             discord.SelectOption(
@@ -111,7 +112,7 @@ class music_tools:
             title=song.title,
             description=song.description,
             fields=[],
-            color=0xC4FFBD
+            color=embed_config.color
         )
 
         embed.set_image(url=song.thumbnail)

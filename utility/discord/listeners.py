@@ -20,14 +20,9 @@ def create_error_embed(error):
     )
     return embed
 
-
 class Listeners:
     def __init__(self, bot) -> None:
         self.bot = bot
-        self.logger = logging.getLogger()
-        handler = logging.FileHandler(filename='error.log', encoding='utf-8', mode='w')
-        handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-        self.logger.addHandler(handler)
 
     async def on_command_error(self, ctx : commands.Context, error):
         if isinstance(error, CommandInvokeError):
@@ -54,9 +49,6 @@ class Listeners:
             return
         embed = create_error_embed(error)
         await ctx.send(embed=embed)
-    
-    async def on_error(self, error: Exception, *args, **kwargs):
-        self.logger.exception(str(error))
 
     async def on_ready(self):
         os.system('cls' if os.name == 'nt' else 'clear')

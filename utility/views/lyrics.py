@@ -2,6 +2,7 @@ import discord
 from utility.scraping.Genius import GeniusSearchResults
 from utility.common.errors import LyricsTooLong
 from utility.common import embed_config
+from utility.discord import message_config
 import asyncio
 
 class lyrics_view(discord.ui.View):
@@ -10,10 +11,10 @@ class lyrics_view(discord.ui.View):
         self.embeds = self.create_embeds(results.song_results)
         self.index = 0
         self.results = results
-        self.message = message
         self.loop = asyncio.get_running_loop()
+        self.message = message
         asyncio.run_coroutine_threadsafe(
-            self.message.edit(content='', embed=self.embeds[0]), self.loop
+            message.edit(embed=self.embeds[0], content=''), self.loop
         )
     
     async def on_timeout(self) -> None:
@@ -48,7 +49,7 @@ class lyrics_view(discord.ui.View):
     @discord.ui.button(emoji='👆', style=discord.ButtonStyle.gray)
     async def select_lyrics_callback(self, button, interaction: discord.Interaction):
         lyrics = await self.results.song_results[self.index].GetLyrics()
-        if len(lyrics) > 4096:
+        if len(lyrics) + 6 > message_config.max_length:
             raise LyricsTooLong()
         await self.message.edit(view=None)
         await interaction.response.send_message(content=f'```{lyrics}```')

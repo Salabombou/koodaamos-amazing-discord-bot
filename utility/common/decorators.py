@@ -1,4 +1,5 @@
 import asyncio
+import discord
 import functools
 from discord.ext import commands
 from discord.commands.context import ApplicationContext
@@ -64,7 +65,7 @@ class Async:
     @staticmethod
     def get_server(func):  # passes the server id as a string since its needed to access some dicts
         @functools.wraps(func)
-        async def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
+        async def wrapper(self, ctx: commands.Context | ApplicationContext | discord.Message, *args, **kwargs):
             kwargs['server'] = str(ctx.guild.id)
             return await func(self, ctx, *args, **kwargs)
         return wrapper

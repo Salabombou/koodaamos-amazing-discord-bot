@@ -49,8 +49,7 @@ class music(commands.Cog, command_cog):
     async def list(self, ctx: commands.Context):
         embed = self.tools.create_embed(ctx, page_num=0)
         message = await respond(ctx, embed=embed)
-        ctx = await self.bot.get_context(message)
-        await message.edit(view=music_view(music_self=self, ctx=ctx))
+        await message.edit(view=music_view(music_self=self, ctx=await self.bot.get_context(message)))
 
     @commands.command(help='disconnects from the voice channel')
     @commands.guild_only()
@@ -152,6 +151,3 @@ class music(commands.Cog, command_cog):
         results = await self.genius.Search(query)
         message = await respond(ctx, content='loading...')
         await message.edit(view=lyrics_view(message, results))
-        result = results.best_song_result
-        
-        

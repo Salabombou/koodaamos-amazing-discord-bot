@@ -2,7 +2,7 @@ import bs4
 import discord
 import utility.common.string
 from bs4 import BeautifulSoup
-
+from utility.common import embed_config
 
 class parsed_result:
     def __init__(self, result: BeautifulSoup, hidden: bool):
@@ -51,7 +51,7 @@ def create_embed(res: bs4.BeautifulSoup, url: str, hidden: bool):
     embed = discord.Embed(
         title=result.title,
         fields=[],
-        color=0xC9EDBE,
+        color=embed_config.color,
         description=result.content
     )
     embed.set_image(url=result.image)
