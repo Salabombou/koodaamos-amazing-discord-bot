@@ -50,6 +50,22 @@ class GeniusSearchResults:
             self.artist_icon = primary_artist['image_url']
             self.other = other
             self.lyrics = None
+        
+        def __parse_results(self, contents: bs4.element.Tag) -> list[str]:
+            results = []
+            for content in contents:
+                if isinstance(content, str):
+                    results.append(content)
+                
+                if not isinstance(content, bs4.element.Tag):
+                    continue
+                
+                if content.string != None:
+                    results.append(content.text)
+                else:
+                    results += self.__parse_results(content.contents)
+                    
+            return results
 
         async def GetLyrics(self) -> str:
             """
@@ -58,11 +74,16 @@ class GeniusSearchResults:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(self.url)
                 resp.raise_for_status()
+            with open('website.html', 'wb') as file:
+                file.write(resp.content)
             soup = bs4.BeautifulSoup(resp.content, features='lxml')
             divs = soup.select('div[data-lyrics-container="true"]')
             lyrics = ''
+
+            contents = []
             for div in divs:
-                lyrics += '\n\n'.join([content for content in div.contents if isinstance(content, str)]) + '\n\n'
+                contents += self.__parse_results(div.contents)
+            lyrics += '\n\n'.join(contents) + '\n\n'
             self.lyrics = lyrics
             return lyrics
 
