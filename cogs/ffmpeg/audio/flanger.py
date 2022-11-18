@@ -7,6 +7,9 @@ from utility.cog.command import ffmpeg_cog
 
 
 class flanger(commands.Cog, ffmpeg_cog):
+    """
+        Adds to video's audio or to an audio file a vibrato effect
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds a vibrato effect to audio'

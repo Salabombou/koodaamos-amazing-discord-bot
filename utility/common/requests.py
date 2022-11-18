@@ -7,6 +7,9 @@ loop = asyncio.get_event_loop()
 
 
 async def get_redirect_url(url: str):
+    """
+        Gets the redirect url from url
+    """
     with concurrent.futures.ThreadPoolExecutor() as pool:
         for _ in range(10):
             resp = await loop.run_in_executor(

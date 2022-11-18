@@ -5,20 +5,23 @@ from bs4 import BeautifulSoup
 from utility.common import embed_config
 
 class parsed_result:
+    """
+        Gets the parsed results 
+    """
     def __init__(self, result: BeautifulSoup, hidden: bool):
-        contents = result.select('div.resultcontent')[0]
-        column = contents.select('div.resultcontentcolumn')[0]
+        contents = result.select_one('div.resultcontent')
+        column = contents.select_one('div.resultcontentcolumn')
         self.content = self.get_content(column)
-        self.similarity = result.select('div.resultsimilarityinfo')[0].text
+        self.similarity = result.select_one('div.resultsimilarityinfo').text
 
         title = '???'
         try:
-            title = contents.select('div.resulttitle strong')[0].text
+            title = contents.select_one('div.resulttitle strong').text
         except:
             pass
         self.title = title
 
-        self.image = result.select('img')[0]
+        self.image = result.select_one('img')
 
         if not 'data-src' in self.image.attrs:
             self.image = self.image['src']
@@ -26,6 +29,9 @@ class parsed_result:
             self.image = self.image['data-src']
 
     def get_content(self, column: bs4.BeautifulSoup):
+        """
+            Gets the content from the SauceNao document
+        """
         def get_string(content: bs4.BeautifulSoup):
             if content.name == 'strong':
                 return content.text.strip() + ' '
@@ -47,6 +53,9 @@ class parsed_result:
 
 
 def create_embed(res: bs4.BeautifulSoup, url: str, hidden: bool):
+    """
+        Creates the embed for the sauce
+    """
     result = parsed_result(res, hidden)
     embed = discord.Embed(
         title=result.title,

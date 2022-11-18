@@ -21,10 +21,16 @@ def create_error_embed(error):
     return embed
 
 class Listeners:
+    """
+        All the listeners to be added to the bot
+    """
     def __init__(self, bot) -> None:
         self.bot = bot
 
     async def on_command_error(self, ctx : commands.Context, error):
+        """
+            When command raises an exception
+        """
         if isinstance(error, CommandInvokeError):
             error = error.original  # gets the original exception from CommandInvokeError
         # ignores the error if it just didnt find the command
@@ -39,6 +45,9 @@ class Listeners:
         await respond(ctx, embed=embed)
 
     async def on_application_command_error(self, ctx: commands.Context, error):
+        """
+            When application command raises an exception
+        """
         if isinstance(error, ApplicationCommandInvokeError):
             error = error.original  # gets the original exception from ApplicationCommandInvokeError
         if isinstance(error, NotFound):
@@ -51,5 +60,8 @@ class Listeners:
         await ctx.send(embed=embed)
 
     async def on_ready(self):
+        """
+            Run once the bot is ready. Clears the terminal and prints 'ready'
+        """
         os.system('cls' if os.name == 'nt' else 'clear')
         print('ready')

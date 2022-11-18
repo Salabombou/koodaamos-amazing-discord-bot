@@ -7,6 +7,9 @@ from utility.cog.command import ffmpeg_cog
 
 
 class mute(commands.Cog, ffmpeg_cog):
+    """
+        Silences the targeted video
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Mutes the audio of a video'

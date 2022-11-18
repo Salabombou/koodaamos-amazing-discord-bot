@@ -10,6 +10,10 @@ from utility.cog.command import command_cog
 from requests_toolbelt import MultipartEncoder
 
 class removebg(commands.Cog, command_cog):
+    """
+        *WIP*
+        Removes the background from the image
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Removes the background from an image'

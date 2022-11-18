@@ -9,6 +9,9 @@ import concurrent.futures
 
 
 class gpt3(commands.Cog):
+    """
+        An ai chatbot that can respond to different questions and tasks
+    """
     def __init__(self, bot, tokens):
         self.description = 'Outputs a response from a chat bot ai from the specified prompt'
         self.bot = bot

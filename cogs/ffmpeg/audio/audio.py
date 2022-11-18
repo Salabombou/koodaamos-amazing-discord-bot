@@ -7,6 +7,9 @@ from utility.cog.command import ffmpeg_cog
 
 
 class audio(commands.Cog, ffmpeg_cog):
+    """
+        Add audio from YouTube video on top of an image or video
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Adds audio to a image or a video'

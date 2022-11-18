@@ -12,6 +12,9 @@ client = httpx.AsyncClient()
 
 
 class AesCbc:
+    """
+        Encryption and decryption using AES CBC
+    """
     def __init__(self, key=None):
         self.key = key
         self.mode = AES.MODE_CBC
@@ -20,11 +23,17 @@ class AesCbc:
                                   self.size) * chr(self.size - len(s) % self.size)
 
     def encrypt(self, content, iv):
+        """
+            Encrypts the content
+        """
         cryptor = AES.new(self.key, self.mode, iv)
         encrypted = cryptor.encrypt(str.encode(self.pad(content)))
         return base64.b64encode(encrypted)
 
     def decrypt(self, content, iv):
+        """
+            Decrypts the content with no padding
+        """
         cryptor = AES.new(self.key, self.mode, iv)
         content += (len(content) % 4) * '='
         content = base64.b64decode(content)
@@ -33,6 +42,9 @@ class AesCbc:
 
 
 def crypto_handler(data_value, iv, secret_key, encrypt=True):
+    """
+        Handles the cryptic stuff
+    """
     secret_key = str.encode(secret_key)
     iv = str.encode(iv)
     thingy = AesCbc(key=secret_key)
@@ -45,12 +57,18 @@ def crypto_handler(data_value, iv, secret_key, encrypt=True):
 
 
 def substring_after(string: str, sub: str):
+    """
+        Gets the substring after string
+    """
     string = string.split(sub)[1:]
     string = sub.join(string)
     return string
 
 
 async def get_values(url):
+    """
+        Gets the different values needed for getting the stream url
+    """
     resp = await client.get(url)  # gets the episode document
     resp.raise_for_status()
     soup = bs4.BeautifulSoup(resp.content, features='lxml')  # soup
@@ -79,6 +97,9 @@ async def get_values(url):
 
 
 async def video_from_url(url):
+    """
+        Gets the stream url to an anime from the GogoAnime website
+    """
     player, iv, secret_key, decryption_key, encrypt_ajax_params = await get_values(url)
 
     http_url = urllib.parse.urlparse(player)

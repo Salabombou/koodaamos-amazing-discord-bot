@@ -7,6 +7,9 @@ get_url = 'https://line.1010diy.com/web/free-mp3-finder/detail?url=%s&phonydata=
 
 
 async def get_raw_url(url):
+    """
+        Gets the raw url of the video from TikTok
+    """
     url = urllib.parse.quote(url)
     resp = await client.get(get_url % url)
     resp.raise_for_status()

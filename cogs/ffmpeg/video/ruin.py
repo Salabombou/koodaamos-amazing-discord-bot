@@ -7,6 +7,9 @@ from utility.cog.command import ffmpeg_cog
 
 
 class ruin(commands.Cog, ffmpeg_cog):
+    """
+        Ruins the video or audio completely by making its bitrate very small
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Ruins the quality of an image, video or audio'

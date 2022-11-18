@@ -2,6 +2,9 @@ from discord.ext import commands
 
 
 def command_check(ctx: commands.Context):
+    """
+        Default checks for voice chat commands
+    """
     if ctx.author.voice == None:
         return False  # if the user is not connected to a voice channel
     if ctx.me.voice == None:
@@ -12,6 +15,9 @@ def command_check(ctx: commands.Context):
 
 
 async def join(ctx: commands.Context):
+    """
+        Joins the same voice chat the user is in
+    """
     if ctx.author.voice == None:
         return
     if ctx.me.voice == None:
@@ -20,6 +26,9 @@ async def join(ctx: commands.Context):
 
 
 async def leave(ctx: commands.Context):
+    """
+        Leaves the voice chat
+    """
     if ctx.author.voice == None or ctx.me.voice == None:
         return
     if ctx.author.voice.channel != ctx.me.voice.channel:
@@ -29,6 +38,9 @@ async def leave(ctx: commands.Context):
 
 
 async def stop(ctx: commands.Context):
+    """
+        Stops the bot from playing audio
+    """
     if ctx.voice_client == None or ctx.me.voice == None:
         return
     if ctx.author.voice == None or not ctx.voice_client.is_playing():
@@ -38,6 +50,9 @@ async def stop(ctx: commands.Context):
 
 
 async def resume(ctx: commands.Context):
+    """
+        Resumes the playing of audio
+    """
     if ctx.voice_client == None or ctx.me.voice == None:
         return
     if ctx.author.voice == None or not ctx.voice_client.is_paused():
@@ -47,6 +62,9 @@ async def resume(ctx: commands.Context):
 
 
 async def pause(ctx: commands.Context):
+    """
+        Pauses the playing of audio
+    """
     if ctx.voice_client == None or ctx.me.voice == None:
         return
     if ctx.author.voice == None or not ctx.voice_client.is_playing():

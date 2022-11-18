@@ -150,16 +150,18 @@ class music_tools:
         self.playlist[server][0].insert(0, temp)
 
     @decorators.Async.get_server
-    async def play_song(self, ctx: commands.Context, songs=[], playnext=False, *, server: str = None): # plays a song in voice chat
+    async def play_song(self, ctx: commands.Context, songs=[], playnext=False, next_song=False, *, server: str = None): # plays a song in voice chat
         if ctx.voice_client == None:
             return
 
         self.append_songs(ctx, playnext, songs)
         
         await asyncio.sleep(1)
-        ready = not ctx.voice_client.is_playing() and self.playlist[server][0] != [] # bot is ready to play the next song
        
-        if not ready:
+        if ctx.voice_client.is_playing() and not next_song:
+            return
+        
+        if self.playlist[server][0] != []:
             return
             
         song: YouTube.Video = self.playlist[server][0][0]
@@ -178,10 +180,10 @@ class music_tools:
                 source,
                 volume=0.75
             ),
-            after=lambda _: self.next_song(ctx, message)
+            after=lambda error: self.next_song(ctx, message, error)
         )
     @decorators.Sync.get_server
-    def next_song(self, ctx: commands.Context, message: discord.Message, *, server: str = None):
+    def next_song(self, ctx: commands.Context, message: discord.Message, error=None, *, server: str = None):
         try:
             asyncio.run_coroutine_threadsafe(
                 message.delete(),
@@ -198,7 +200,7 @@ class music_tools:
             self.playlist[server][1].append(self.playlist[server][0][0]) # adds the currently playing song to the end of the playlist
         self.playlist[server][0].pop(0)
         asyncio.run_coroutine_threadsafe(
-            self.play_song(ctx),
+            self.play_song(ctx, error),
             self.loop
         )
     @decorators.Async.get_server

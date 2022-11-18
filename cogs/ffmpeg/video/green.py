@@ -9,6 +9,9 @@ from utility.cog.command import ffmpeg_cog
 
 
 class green(commands.Cog, ffmpeg_cog):
+    """
+        Puts a greenscreen YouTube video on top of an image or a video
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Overlays a greenscreen video on top of an image or a video'

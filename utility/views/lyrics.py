@@ -6,6 +6,9 @@ from utility.discord import message_config
 import asyncio
 
 class lyrics_view(discord.ui.View):
+    """
+        View for lyrics search results
+    """
     def __init__(self, message: discord.Message, results: GeniusSearchResults):
         super().__init__(timeout=30)
         self.embeds = self.create_embeds(results.song_results)
@@ -36,18 +39,27 @@ class lyrics_view(discord.ui.View):
     
     @discord.ui.button(label='◀', style=discord.ButtonStyle.gray)
     async def backward_callback(self, button, interaction: discord.Interaction):
+        """
+            Go backward
+        """
         self.index -= 1
         self.update_index()
         await interaction.response.edit_message(embed=self.embeds[self.index])
     
     @discord.ui.button(label='▶', style=discord.ButtonStyle.gray)
     async def forward_callback(self, button, interaction: discord.Interaction):
+        """
+            Go forward
+        """
         self.index += 1
         self.update_index()
         await interaction.response.edit_message(embed=self.embeds[self.index])
     
     @discord.ui.button(emoji='👆', style=discord.ButtonStyle.gray)
     async def select_lyrics_callback(self, button, interaction: discord.Interaction):
+        """
+            Responds with the lyrics and deletes the view from the message
+        """
         lyrics = await self.results.song_results[self.index].GetLyrics()
         if len(lyrics) + 6 > message_config.max_length:
             raise LyricsTooLong()
