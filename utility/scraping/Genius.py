@@ -1,7 +1,6 @@
 from urllib.parse import quote
 import httpx
-import json
-import asyncio
+import numpy as np
 import bs4
 from utility.common.errors import GeniusSongsNotFound
 
@@ -59,7 +58,7 @@ class GeniusSearchResults:
                 
                 if not isinstance(content, bs4.element.Tag):
                     continue
-                
+
                 if content.string != None:
                     results.append(content.text)
                 else:
@@ -74,15 +73,13 @@ class GeniusSearchResults:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(self.url)
                 resp.raise_for_status()
-            with open('website.html', 'wb') as file:
-                file.write(resp.content)
             soup = bs4.BeautifulSoup(resp.content, features='lxml')
             divs = soup.select('div[data-lyrics-container="true"]')
+            
+            contents = [self.__parse_results(div.contents) for div in divs]
+            contents = list(np.hstack(contents))
+            
             lyrics = ''
-
-            contents = []
-            for div in divs:
-                contents += self.__parse_results(div.contents)
             lyrics += '\n\n'.join(contents) + '\n\n'
             self.lyrics = lyrics
             return lyrics
