@@ -6,9 +6,8 @@ from utility.cog.command import command_cog
 from utility.common import decorators
 from utility.common.errors import SauceNotFound
 from utility.discord import target as discordutil
-from utility.tools import sauce_tools
 from utility.views.sauce import sauce_view
-
+from utility.common.command import respond
 
 class sauce(commands.Cog, command_cog):
     """
@@ -52,7 +51,5 @@ class sauce(commands.Cog, command_cog):
             url = await discordutil.get_target(ctx, no_aud=True, no_vid=True)
             url = url.proxy_url
         results, hidden = await self.get_sauce(url)
-        embed = sauce_tools.create_embed(results[0], url, hidden=hidden)
-        message = await ctx.reply(embed=embed, mention_author=False)
-        await message.edit(view=sauce_view(results=results, url=url, hidden=hidden))
-        await message.edit(view=sauce_view(results=results, url=url, hidden=hidden))
+        message = await respond(ctx, content='loading...')
+        await message.edit(view=sauce_view(message, results, url, hidden))
