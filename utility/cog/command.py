@@ -4,14 +4,19 @@ import httpx
 from utility.scraping.YouTube import YT_Extractor
 
 class command_cog:
+    """
+        Default parent class is every cog
+    """
     def __init__(self, bot: commands.Bot, tokens: dict, *args, **kwargs) -> None:
-        #super().__init__(**kwargs)
         self.bot = bot
         self.tokens = tokens
         self.client = httpx.AsyncClient()
 
 
 class ffmpeg_cog:
+    """
+        Parent cog for ffmpeg commands
+    """
     def __init__(self, bot: commands.Bot, tokens: dict, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.bot = bot

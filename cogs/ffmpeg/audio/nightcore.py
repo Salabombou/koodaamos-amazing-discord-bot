@@ -7,6 +7,9 @@ from utility.cog.command import ffmpeg_cog
 
 
 class nightcore(commands.Cog, ffmpeg_cog):
+    """
+        Makes video and its audio faster and more high pitched
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'makes the audio nightcore'

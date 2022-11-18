@@ -6,12 +6,18 @@ import bs4
 from utility.common.errors import GeniusSongsNotFound
 
 class GeniusSearchResults:
+    """
+        A class object for genius search results
+    """
     def __init__(self, results: dict) -> None:
         self.json = results
         self.song_results = [self.SongResult(**result['result']) for result in results['hits'] if result['type'] == 'song']
         self.best_song_result = self.song_results[0]
 
     class SongResult:
+        """
+            A class object for invidual songs from the results
+        """
         def __init__(
             self, *,
             api_path: str,
@@ -46,6 +52,9 @@ class GeniusSearchResults:
             self.lyrics = None
 
         async def GetLyrics(self) -> str:
+            """
+                Gets the lyrics from the song
+            """
             async with httpx.AsyncClient() as client:
                 resp = await client.get(self.url)
                 resp.raise_for_status()
@@ -59,11 +68,17 @@ class GeniusSearchResults:
 
 
 class Genius:
+    """
+        Used to get the lyrics from the genius website
+    """
     def __init__(self, access_token: str) -> None:
         self.access_token = access_token
         self.search_url = f'https://api.genius.com/search?access_token={access_token}&q='
     
     async def Search(self, query: str) -> GeniusSearchResults:
+        """
+            Searches for lyrics from genius api
+        """
         async with httpx.AsyncClient() as client:
             resp = await client.get(self.search_url + quote(query))
             resp.raise_for_status()

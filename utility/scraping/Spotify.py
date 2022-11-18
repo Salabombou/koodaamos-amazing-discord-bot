@@ -7,6 +7,9 @@ class Spotify_Extractor: # WIP
         self.loop = loop
 
 async def get_raw_url(url):
+    """
+        Gets the raw url of the song from spotify
+    """
     async with httpx.AsyncClient(timeout=300) as client:
         resp = await client.post(
             url='https://api.spotify-downloader.com/',

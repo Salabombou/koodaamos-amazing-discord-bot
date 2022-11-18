@@ -12,6 +12,9 @@ import concurrent.futures
 from utility.common import embed_config
 
 class dalle(commands.Cog, command_cog):
+    """
+        Creates a 3x3 collage from ai generated images from a prompt
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Creates an image collage from images produced by an AI with a prompt'

@@ -6,6 +6,9 @@ client = httpx.AsyncClient(timeout=10)
 
 
 async def get_raw_url(url: str) -> str:
+    """
+        Gets the raw url of the file from Reddit
+    """
     url = urllib.parse.quote(url)
     redditsave_url = 'https://redditsave.com/info?url=' + url
     resp = await client.get(redditsave_url)

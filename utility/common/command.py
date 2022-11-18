@@ -4,6 +4,9 @@ from discord.ext.commands.context import Message
 from discord import NotFound
 
 async def respond(ctx: commands.Context | ApplicationContext, /, *, mention_author=False, **kwargs) -> Message | None:
+    """
+        Safely respond to commands
+    """
     if isinstance(ctx, ApplicationContext):
         return await ctx.respond(
             mention_author=mention_author,

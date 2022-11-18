@@ -7,6 +7,9 @@ from utility.cog.command import ffmpeg_cog
 
 
 class earrape(commands.Cog, ffmpeg_cog):
+    """
+        Ruins the audio in the video and makes it very loud
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Makes the audio earrape'

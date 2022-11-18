@@ -23,6 +23,9 @@ THE ORDER WHERE TO LOOK FOR FILES
 
 
 class Target(FfprobeFormat):
+    """
+        The class object for targeted files in discord
+    """
     def __init__(self, loop: AbstractEventLoop, target: Embed | Attachment | StickerItem) -> None: 
         self.loop = loop
         self.ffprober = Ffprober(loop)
@@ -61,6 +64,9 @@ class Target(FfprobeFormat):
 
     @staticmethod
     def get_embed_proxy(target: Embed):
+        """
+            Gets the proxy url from the embed
+        """
         if isinstance(target.video.proxy_url, str):
             return target.video
         if isinstance(target.image.proxy_url, str):
@@ -69,7 +75,10 @@ class Target(FfprobeFormat):
             return target.thumbnail
 
     @staticmethod
-    def get_factor(measurement) -> int:
+    def get_factor(measurement: str) -> int:
+        """
+            Gets the right factor from str
+        """
         if measurement == 'byte':
             return 1
         if measurement == 'Kibyte':
@@ -79,12 +88,18 @@ class Target(FfprobeFormat):
         raise TargetError('File size invalid')
 
     def get_bytes(self) -> None:
+        """
+            Gets the size of the file in bytes
+        """
         digit, measurement = self.size.split()
         factor = self.get_factor(measurement)
         size_bytes = float(digit) * factor
         self.size_bytes = round(size_bytes)
 
-    async def probe(self) -> None:  # probes the target using ffprobe
+    async def probe(self) -> None:
+        """
+            Probes the target using ffprobes
+        """
         result = await self.ffprober.get_format(self.proxy_url)
         for key, value in result.items():
             result[key] = None if value == 'N/A' else value
@@ -97,6 +112,9 @@ class Target(FfprobeFormat):
 
 
 class target_fetcher:
+    """
+        Fetcher used to fetch target from discord
+    """
     def __init__(self, no_aud=False, no_vid=False, no_img=False) -> None:
         self.aud = not no_aud
         self.vid = not no_vid
@@ -108,6 +126,9 @@ class target_fetcher:
             c == 'image' and self.img)
 
     def get_file(self, embeds: list[Embed], attachments: list[Attachment], stickers: list[StickerItem]) -> Embed | Attachment | StickerItem:
+        """
+            Gets the targeted file
+        """
         for sticker in stickers:
             return sticker
         for attachment in [a for a in attachments if a.content_type != None]:
@@ -123,6 +144,9 @@ class target_fetcher:
 
 
 async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=False) -> Target:
+    """
+        Gets the target from the discord chat
+    """
     history = await ctx.channel.history(limit=100).flatten()
     fetcher = target_fetcher(no_aud, no_vid, no_img)
     stickers = ctx.message.stickers

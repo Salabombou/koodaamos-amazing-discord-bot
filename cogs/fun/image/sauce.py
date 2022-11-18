@@ -11,6 +11,9 @@ from utility.views.sauce import sauce_view
 
 
 class sauce(commands.Cog, command_cog):
+    """
+        Finds the sauce (origin) from an image
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Finds the sauce from an image'

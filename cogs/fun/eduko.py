@@ -7,8 +7,12 @@ from utility.common.command import respond
 from utility.common import decorators
 from utility.cog.command import command_cog
 from utility.common import embed_config
-from utility.common.string import zero_width_space
+
+
 class eduko(commands.Cog, command_cog):
+    """
+        Gets the Eduko's menu
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Gets the Eduko diner menu for the week(s)'

@@ -8,7 +8,10 @@ import tempfile
 class Async:
 
     @staticmethod
-    def typing(func):  # shows the bot typing when running a command
+    def typing(func):
+        """
+            Shows the bot typing when running a command
+        """
         @functools.wraps(func)
         async def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
             async with ctx.typing():
@@ -16,7 +19,10 @@ class Async:
         return wrapper
 
     @staticmethod
-    def add_reaction(func):  # adds a reaction to the message at the end
+    def add_reaction(func):
+        """
+            Adds a reaction to the message at the end
+        """
         @functools.wraps(func)
         async def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
             if isinstance(ctx, commands.Context):
@@ -28,6 +34,9 @@ class Async:
 
     @staticmethod
     def delete_after(func):
+        """
+            Deletes the message five seconds after responding
+        """
         @functools.wraps(func)
         async def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
             value = await func(self, ctx, *args, **kwargs)
@@ -43,6 +52,9 @@ class Async:
     
         @staticmethod
         def create_dir(func):
+            """
+                Creates a temporary directory for files in ffmpeg. Gets automatically deleted once the command has responded
+            """
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
                 with tempfile.TemporaryDirectory() as dir:  # create a temp dir, deletes itself and its content after use
@@ -52,6 +64,9 @@ class Async:
 
     @staticmethod
     def update_playlist(func):
+        """
+            Updates the playlist in the music bot commands
+        """
         @functools.wraps(func)
         async def wrapper(self, ctx: commands.Context, *args, **kwargs):
             server = str(ctx.guild.id)
@@ -64,6 +79,9 @@ class Async:
 
     @staticmethod
     def get_server(func):  # passes the server id as a string since its needed to access some dicts
+        """
+            Gets the server id as str and passes it as a keyword arguement
+        """
         @functools.wraps(func)
         async def wrapper(self, ctx: commands.Context | ApplicationContext | discord.Message, *args, **kwargs):
             kwargs['server'] = str(ctx.guild.id)
@@ -74,6 +92,9 @@ class Sync: # synchronous versions for synchronous functions
 
     @staticmethod
     def update_playlist(func):
+        """
+            Updates the playlist in the music bot commands
+        """
         @functools.wraps(func)
         def wrapper(self, ctx: commands.Context, *args, **kwargs):
             server = str(ctx.guild.id)
@@ -86,6 +107,9 @@ class Sync: # synchronous versions for synchronous functions
 
     @staticmethod
     def get_server(func):  # passes the server id as a string since its needed to access some dicts
+        """
+            Gets the server id as str and passes it as a keyword arguement
+        """
         @functools.wraps(func)
         def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
             kwargs['server'] = str(ctx.guild.id)

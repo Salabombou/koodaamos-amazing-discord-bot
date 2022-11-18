@@ -6,6 +6,9 @@ client = httpx.AsyncClient(timeout=300)
 
 
 async def upload(file: bytes, ext: str) -> str:
+    """
+        Uploads the file to pomf.cat to be hosted from
+    """
     fields = {
         'files[]': (f'file.{ext}', file, 'application/octet-stream')
     }

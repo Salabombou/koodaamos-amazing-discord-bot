@@ -10,6 +10,17 @@ from utility.scraping import download as downl
 
 
 class download(commands.Cog, command_cog):
+    """
+        Downloads a video, image or audio from multiple sources
+        Supported sites:
+            - Youtube
+            - Reddit
+            - TikTok
+            - Spotify
+        TBA:
+            - Twitter
+            - Twitch (clips)
+    """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Downloads an video, image or audio from multiple sources'

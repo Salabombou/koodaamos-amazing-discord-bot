@@ -15,7 +15,10 @@ import re
 import concurrent.futures
 from utility.common.string import zero_width_space as zws
 
-class VideoDummie: # dummie version used as a placeholder
+class VideoDummie:
+    """
+        A dummie version used as a placeholder
+    """
     title = zws
     description = zws
     channel = zws
@@ -24,7 +27,10 @@ class VideoDummie: # dummie version used as a placeholder
     channelId = zws
     other = zws
 
-class Video:  # for the video info
+class Video:
+    """
+        A class object for the YouTube video info
+    """
     def __init__(
         self, /,
         title: str,
@@ -44,6 +50,9 @@ class Video:  # for the video info
 
 
 def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:
+    """
+        Parses the data from the results
+    """
     snippet = data['snippet']
     
     channelId = snippet['channelId']
@@ -66,6 +75,9 @@ def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:
     return Video(**parsed)
 
 class YT_Extractor:
+    """
+        Extractor for extracting data from YouTube
+    """
     def __init__(self, loop: AbstractEventLoop, yt_api_key: str=None) -> None:
         self.loop = loop
         self.youtube = None
@@ -76,10 +88,16 @@ class YT_Extractor:
         self.client = httpx.AsyncClient()
 
     async def get_raw_url(self, url: str, video: bool = False, max_duration: int = None):
+        """
+            Gets the raw url of the video / audio from YouTube
+        """
         info = await self.get_info(url=url, video=video, max_duration=max_duration)
         return info['url']
 
     async def get_info(self, url: str = None, id: str = None, video: bool = False, max_duration: int = None) -> dict:
+        """
+            Gets the info from the YouTube video
+        """
         if id != None:
             url = f'https://www.youtube.com/watch?v={id}'
         if not validators.url(url):
@@ -116,6 +134,9 @@ class YT_Extractor:
     
     @staticmethod
     def __get_results(ytInitialData: dict) -> dict:
+        """
+            Gets the results from the search
+        """
         results = ytInitialData['contents']['twoColumnSearchResultsRenderer']
         results = results['primaryContents']['sectionListRenderer']  
         results = results['contents'][0]
@@ -124,6 +145,9 @@ class YT_Extractor:
     
     @staticmethod
     def __get_initial_data(content: str) -> dict:
+        """
+            Gets the initial data from a js variable in the document
+        """
         # gets the variable that contains the search results
         ytInitialData = re.findall('var ytInitialData = .*};', content)
         # removes the variable declaration itself
@@ -137,6 +161,9 @@ class YT_Extractor:
 
     # youtube api searches are expensive so webscraping it is
     async def fetch_from_search(self, query: str) -> Video:
+        """
+            Scrapes the Youtube search results page for videos
+        """
         urlsafe_quote = urllib.parse.quote(query)
         url = 'https://www.youtube.com/results?search_query=' + urlsafe_quote
         resp = await self.client.get(url)
@@ -155,6 +182,9 @@ class YT_Extractor:
 
 
     async def fetch_from_video(self, videoId: str) -> list[Video]:
+        """
+            Fetches the data from a video
+        """
         request = self.youtube.videos().list(
             part='snippet',
             id=videoId
@@ -175,6 +205,9 @@ class YT_Extractor:
 
 
     async def fetch_from_playlist(self, playlistId: str) -> list[Video]:
+        """
+            Fetches the data from a playlist
+        """
         request = self.youtube.playlistItems().list(
             part='snippet',
             playlistId=playlistId,
@@ -199,6 +232,9 @@ class YT_Extractor:
 
 
     async def fetch_channel_icon(self, channelId) -> str:
+        """
+            Fetches the channel icon 
+        """
         request = self.youtube.channels().list(
             part='snippet',
             id=channelId
@@ -211,6 +247,9 @@ class YT_Extractor:
         return icon
 
 async def get_raw_url(url): # scraping instead of using yt_dlp for async
+    """
+        Gets the raw url to a YouTube video
+    """
     query = parse_qs(urlparse(url).query, keep_blank_values=True)
     url = urllib.parse.quote('https://www.youtube.com/watch?v=' + query['v'][0])
     async with httpx.AsyncClient() as client:

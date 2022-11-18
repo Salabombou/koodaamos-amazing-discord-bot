@@ -9,6 +9,10 @@ from utility.common import decorators
 
 
 class gogo(commands.Cog):
+    """
+        *NOT IN USE*
+        Gets the anime's stream url from GogoAnime
+    """
     def __init__(self, bot, tokens):
         self.bot = bot
 

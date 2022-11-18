@@ -6,6 +6,9 @@ client = httpx.AsyncClient()
 
 
 async def fetch_avatar(ctx: commands.Context) -> bytes:
+    """
+        Gets the bot's avatar from url
+    """
     bot: commands.Bot = ctx.bot
     url = bot.user.avatar.url
     url = url.split('?')[0]
@@ -15,6 +18,9 @@ async def fetch_avatar(ctx: commands.Context) -> bytes:
 
 
 async def fetch_webhook(ctx: commands.Context) -> Webhook:
+    """
+        Gets the webhook from channel that is created by the bot. If it doesn't exists, creates one
+    """
     webhooks = await ctx.message.channel.webhooks()
     for webhook in webhooks:
         if webhook.user.id == ctx.me.id:
@@ -23,5 +29,8 @@ async def fetch_webhook(ctx: commands.Context) -> Webhook:
 
 
 async def send_message(ctx, embeds: list[Embed], files: list[File] = None):
+    """
+        Sends a message using webhooks
+    """
     webhook = await fetch_webhook(ctx)
     await webhook.send(embeds=embeds, files=files)
