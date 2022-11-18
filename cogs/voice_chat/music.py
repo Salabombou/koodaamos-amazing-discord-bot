@@ -1,11 +1,11 @@
 from discord.ext import commands
 import asyncio
 from utility.common.command import respond
-from utility.common.errors import LyricsTooLong
 from utility.discord import voice_chat
 from utility.tools.music_tools import music_tools
 from utility.common import decorators
 from utility.views.music import music_view
+from utility.views.lyrics import lyrics_view
 from utility.cog.command import command_cog
 from utility.scraping import Genius
 import concurrent.futures
@@ -49,8 +49,7 @@ class music(commands.Cog, command_cog):
     async def list(self, ctx: commands.Context):
         embed = self.tools.create_embed(ctx, page_num=0)
         message = await respond(ctx, embed=embed)
-        ctx = await self.bot.get_context(message)
-        await message.edit(view=music_view(music_self=self, ctx=ctx))
+        await message.edit(view=music_view(music_self=self, ctx=await self.bot.get_context(message)))
 
     @commands.command(help='disconnects from the voice channel')
     @commands.guild_only()
@@ -68,7 +67,9 @@ class music(commands.Cog, command_cog):
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
     async def resume(self, ctx: commands.Context):
-        await voice_chat.resume(ctx)
+        if ctx.voice_client.is_paused(): # why is it undefined pycord fix it
+            return await voice_chat.resume(ctx)
+        await voice_chat.pause(ctx)
 
     @commands.command(help='pauses the currently playing song')
     @commands.guild_only()
@@ -76,6 +77,8 @@ class music(commands.Cog, command_cog):
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
     async def pause(self, ctx: commands.Context):
+        if ctx.voice_client.is_paused():
+            return await voice_chat.resume(ctx)
         await voice_chat.pause(ctx)
 
     @commands.command(help='skips the currently playing song')
@@ -150,8 +153,5 @@ class music(commands.Cog, command_cog):
     @decorators.Async.typing
     async def lyrics(self, ctx: commands.Context, *, query: str):
         results = await self.genius.Search(query)
-        result = results.best_song_result
-        lyrics = await result.GetLyrics()
-        if len(lyrics) > 4096:
-            raise LyricsTooLong()
-        await respond(ctx, content=f'```{lyrics}```')
+        message = await respond(ctx, content='loading...')
+        await message.edit(view=lyrics_view(message, results))

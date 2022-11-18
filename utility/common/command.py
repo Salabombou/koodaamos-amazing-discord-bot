@@ -3,7 +3,7 @@ from discord.commands.context import ApplicationContext
 from discord.ext.commands.context import Message
 from discord import NotFound
 
-async def respond(ctx: commands.Context | ApplicationContext, /, *, mention_author=False, **kwargs) -> Message:
+async def respond(ctx: commands.Context | ApplicationContext, /, *, mention_author=False, **kwargs) -> Message | None:
     if isinstance(ctx, ApplicationContext):
         return await ctx.respond(
             mention_author=mention_author,

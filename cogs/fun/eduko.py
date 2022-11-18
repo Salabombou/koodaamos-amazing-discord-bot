@@ -6,14 +6,15 @@ import bs4
 from utility.common.command import respond
 from utility.common import decorators
 from utility.cog.command import command_cog
-
-
+from utility.common import embed_config
+from utility.common.string import zero_width_space
 class eduko(commands.Cog, command_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Gets the Eduko diner menu for the week(s)'
         self.embeds = []
         self.last_sync = 0
+        self.foodlist_url = 'https://www.eduko.fi/eduko/ruokalistat/'
 
     class Food:
         def __init__(self, p: bs4.BeautifulSoup):
@@ -38,8 +39,7 @@ class eduko(commands.Cog, command_cog):
     def section_filter(self):
         sections = self.soup.select('section')
         for section in sections:
-            divs = section.select(
-                'div .elementor-container.elementor-column-gap-narrow')
+            divs = section.select('div .elementor-container.elementor-column-gap-narrow')
             if 'data-settings' in section or divs == []:
                 sections.remove(section)
         sections = sections[6:-2]
@@ -50,9 +50,7 @@ class eduko(commands.Cog, command_cog):
         for section in self.sections:
             for p in section.select('p'):
                 foods.append(self.Food(p))
-        for food in foods:
-            if food.header == None:
-                foods.remove(food)
+        foods = [food for food in foods if food.header != None]
         return foods
 
     def create_embeds(self):
@@ -60,7 +58,7 @@ class eduko(commands.Cog, command_cog):
         weeks = self.splice_list(self.foods, 5)
         for week in weeks:
             embed = discord.Embed(
-                color=0xC9EDBE,
+                color=embed_config.color,
                 fields=[],
                 title='VIIKKO ' + self.week_nums[0]
             )
@@ -76,7 +74,7 @@ class eduko(commands.Cog, command_cog):
             del self.week_nums[0]
         return embeds
 
-    def splice_list(self, arr, index):
+    def splice_list(self, arr, index) -> list[list[Food]]:
         spliced = []
         length = math.ceil(len(arr) / index)
         for _ in range(0, length):
@@ -86,17 +84,17 @@ class eduko(commands.Cog, command_cog):
 
     def get_week_nums(self):
         week_nums = []
-        h2s = self.soup.select(
+        h2_s = self.soup.select(
             'div .elementor-widget-container h2.elementor-heading-title.elementor-size-default'
         )
-        for h2 in h2s:
+        for h2 in h2_s:
             text = str(h2.contents[0])
             if text.startswith('Viikko '):
                 week_nums.append(text[7:])
         return week_nums
 
     async def update_food_embeds(self):
-        resp = await self.client.get('https://www.eduko.fi/eduko/ruokalistat/')
+        resp = await self.client.get(self.foodlist_url)
         resp.raise_for_status()
 
         self.soup = bs4.BeautifulSoup(resp.content, features='lxml')

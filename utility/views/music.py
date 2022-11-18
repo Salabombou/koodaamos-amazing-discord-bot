@@ -4,7 +4,6 @@ from utility.discord import voice_chat
 from utility.tools import music_tools
 from discord.ext import commands
 import math
-import numpy as np
 import asyncio
 import concurrent.futures
 
@@ -15,18 +14,12 @@ class music_view(discord.ui.View):
         super().__init__(timeout=None)
         self.tools: music_tools.music_tools = music_self.tools
         self.bot: commands.Bot = music_self.bot
-        self.ctx = ctx
         self.embed = None
         self.index = 0
         self.server = str(ctx.guild.id)
-        self.children[0].options = self.tools.create_options(ctx)
+        self.ctx = ctx
         self.update_buttons()
-
-    async def on_error(self, error, button, interaction):
-        if isinstance(error, NotFound):
-            return
-        raise error
-
+    
     async def interaction_check(self, interaction) -> bool:
         if interaction.user.bot:
             return False  # if the user is bot
@@ -37,21 +30,6 @@ class music_view(discord.ui.View):
         if interaction.user.voice.channel == interaction.message.author.voice.channel:
             return True  # if the bot and the user are in the same voice channel
         return False
-
-    async def on_error(self, error, item, interaction):
-        if isinstance(error, NotFound):
-            return
-        embed = discord.Embed(
-            color=0xFF0000,
-            fields=[],
-            title='Something went wrong!'
-        )
-        embed.description = f'```{error}```'
-        embed.set_thumbnail(
-            url='https://cdn.discordapp.com/emojis/992830317733871636.gif'
-        )
-        await self.ctx.reply(embed=embed)
-        await interaction.response.edit_message(view=self)
 
     def update_buttons(self):  # holy fuck
         self.children[0].options = self.tools.create_options(self.ctx)
@@ -137,7 +115,7 @@ class music_view(discord.ui.View):
         with concurrent.futures.ThreadPoolExecutor() as pool:
             await self.bot.loop.run_in_executor(
                 pool,
-                self.tools.shuffle_playlist, str(interaction.guild.id)
+                self.tools.shuffle_playlist, self.server
             )
         self.update_embed()
         self.update_buttons()

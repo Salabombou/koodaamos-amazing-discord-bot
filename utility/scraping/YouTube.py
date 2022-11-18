@@ -145,11 +145,10 @@ class YT_Extractor:
         try:    
             ytInitialData = self.__get_initial_data(content)
             results = self.__get_results(ytInitialData) # the videos
-            for result in results:
-                if 'videoRenderer' in result:
-                    videoId = result['videoRenderer']['videoId']
-                    result = await self.fetch_from_video(videoId)
-                    return result
+            for result in [result for result in results if 'videoRenderer' in result]:
+                videoId = result['videoRenderer']['videoId']
+                result = await self.fetch_from_video(videoId)
+                return result
             raise VideoSearchNotFound(query)
         except VideoSearchNotFound:
             raise VideoSearchNotFound(query)

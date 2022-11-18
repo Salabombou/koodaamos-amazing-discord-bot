@@ -11,8 +11,8 @@ client = httpx.AsyncClient(timeout=10)
 async def get_host():  # gets the best server that is online to be used to compress the video
     website = await client.get('https://8mb.video/')
     webpage_source = website.content.decode('utf-8')
-    hosts_online = re.findall('var hosts_online = .*"];', webpage_source)[
-        0].replace('var hosts_online = ', '')[:-1]
+    hosts_online: str = re.findall('var hosts_online = .*"];', webpage_source)[0]
+    hosts_online = hosts_online.replace('var hosts_online = ', '')[:-1]
     hosts_online = json.loads(hosts_online)
     host = 'https://' + hosts_online[0]
     return host

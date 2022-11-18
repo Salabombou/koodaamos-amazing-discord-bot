@@ -10,14 +10,9 @@ from utility.discord.listeners import Listeners
 # imports all the used cogs
 from cogs import *
 
-import logging
-
-logger = logging.getLogger('discord')
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
-
+from utility.logging import StderrLogger, logger
+import sys
+    
 # Setup the bot
 bot = commands.Bot(
     command_prefix='.',
@@ -61,4 +56,5 @@ for func in listeners:
 bot.add_check(func=check.command_checker(bot).check)
 
 if __name__ == '__main__':
+    sys.stderr = StderrLogger(logger) # program now writes errors to a log file instead of writing to the terminal
     bot.run(tokens['discord'])

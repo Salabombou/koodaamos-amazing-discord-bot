@@ -9,7 +9,7 @@ import json
 import io
 from utility.cog.command import command_cog
 import concurrent.futures
-
+from utility.common import embed_config
 
 class dalle(commands.Cog, command_cog):
     def __init__(self, bot: commands.Bot, tokens):
@@ -59,7 +59,7 @@ class dalle(commands.Cog, command_cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.Async.typing
     async def dalle(self, ctx: commands.Context, *, prompt="a cute kitten"):
-        embed = discord.Embed(color=0xC9EDBE, fields=[], title=prompt)
+        embed = discord.Embed(color=embed_config.color, fields=[], title=prompt)
         embed.set_image(url="attachment://unknown.png")
         image = await self.DallE_Collage(self.bot.loop, prompt)
         file = discord.File(fp=image, filename="unknown.png")

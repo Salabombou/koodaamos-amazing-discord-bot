@@ -4,7 +4,6 @@ from utility.scraping.YouTube import YT_Extractor
 from utility.common.requests import get_redirect_url
 from discord.ext import commands
 from urllib.parse import parse_qs, urlparse
-import isodate
 import discord
 import math
 import asyncio
@@ -12,6 +11,7 @@ from asyncio import AbstractEventLoop
 import validators
 import numpy as np
 from utility.common import decorators
+from utility.common import embed_config
 
 ffmpeg_options = {
     'options': '-vn',
@@ -41,21 +41,6 @@ class music_tools:
         self.playlist[server][0] += self.playlist[server][1][:1000 - length]
         del self.playlist[server][1][:1000 - length]
 
-    def get_duration(self, videoId):  # youtube api v3 needs a v4
-        request = self.youtube.videos().list(
-            part='contentDetails',
-            id=videoId
-        )
-        r = request.execute()
-        duration = 'PT2S'
-        try:
-            duration = r['items'][0]['contentDetails']['duration']
-        except:
-            pass
-        duration = isodate.parse_duration(duration)
-        # returns the duration of the song that was not included in the snippet for some reason
-        return duration.seconds
-
     def serialize_songs(self, server):
         songs = []
         for i, song in enumerate(self.playlist[server][0]):
@@ -78,7 +63,7 @@ class music_tools:
             title='PLAYLIST',
             description='',
             fields=[],
-            color=0xC4FFBD
+            color=embed_config.color
         )
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[server][0]) / 50)
@@ -97,7 +82,7 @@ class music_tools:
         )  # bigggggg
         return embed
     @decorators.Sync.get_server
-    def create_options(self, ctx: commands.Context, *, server: str = None):  # create the options for the dropdown select menu
+    def create_options(self, ctx: commands.Context | discord.Message, *, server: str = None):  # create the options for the dropdown select menu
         page_amount = math.ceil(len(self.playlist[server][0]) / 50)
         options = [
             discord.SelectOption(
@@ -127,7 +112,7 @@ class music_tools:
             title=song.title,
             description=song.description,
             fields=[],
-            color=0xC4FFBD
+            color=embed_config.color
         )
 
         embed.set_image(url=song.thumbnail)

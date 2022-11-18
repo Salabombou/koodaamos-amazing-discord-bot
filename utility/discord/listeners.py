@@ -5,7 +5,7 @@ from discord.ext import commands
 from utility.common.command import respond
 from utility.common.errors import NaughtyError
 import os
-
+import logging
 
 def create_error_embed(error):
     embed = discord.Embed(
@@ -19,7 +19,6 @@ def create_error_embed(error):
         text=type(error).__name__
     )
     return embed
-
 
 class Listeners:
     def __init__(self, bot) -> None:
