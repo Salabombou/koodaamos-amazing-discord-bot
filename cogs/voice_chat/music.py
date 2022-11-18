@@ -67,7 +67,7 @@ class music(commands.Cog, command_cog):
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
     async def resume(self, ctx: commands.Context):
-        if ctx.voice_client.is_paused():
+        if ctx.voice_client.is_paused(): # why is it undefined pycord fix it
             return await voice_chat.resume(ctx)
         await voice_chat.pause(ctx)
 

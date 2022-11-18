@@ -7,7 +7,7 @@ from utility.common.command import respond
 from utility.common import decorators
 from utility.cog.command import command_cog
 from utility.common import embed_config
-
+from utility.common.string import zero_width_space
 class eduko(commands.Cog, command_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
@@ -39,8 +39,7 @@ class eduko(commands.Cog, command_cog):
     def section_filter(self):
         sections = self.soup.select('section')
         for section in sections:
-            divs = section.select(
-                'div .elementor-container.elementor-column-gap-narrow')
+            divs = section.select('div .elementor-container.elementor-column-gap-narrow')
             if 'data-settings' in section or divs == []:
                 sections.remove(section)
         sections = sections[6:-2]
@@ -51,9 +50,7 @@ class eduko(commands.Cog, command_cog):
         for section in self.sections:
             for p in section.select('p'):
                 foods.append(self.Food(p))
-        for food in foods:
-            if food.header == None:
-                foods.remove(food)
+        foods = [food for food in foods if food.header != None]
         return foods
 
     def create_embeds(self):
@@ -77,7 +74,7 @@ class eduko(commands.Cog, command_cog):
             del self.week_nums[0]
         return embeds
 
-    def splice_list(self, arr, index):
+    def splice_list(self, arr, index) -> list[list[Food]]:
         spliced = []
         length = math.ceil(len(arr) / index)
         for _ in range(0, length):
