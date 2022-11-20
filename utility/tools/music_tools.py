@@ -40,7 +40,9 @@ class music_tools:
             del self.playlist[server][0][-len(songs):]
         else:
             self.playlist[server][1] += songs
+            
         length = len(self.playlist[server][0])
+        
         # limits the visible playlist to go to upto 1000 song at once
         self.playlist[server][0] += self.playlist[server][1][:1000 - length]
         del self.playlist[server][1][:1000 - length]
