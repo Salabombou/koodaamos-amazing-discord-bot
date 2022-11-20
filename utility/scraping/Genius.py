@@ -2,7 +2,7 @@ from urllib.parse import quote
 import httpx
 import numpy as np
 import bs4
-from utility.common.errors import GeniusSongsNotFound
+from utility.common.errors import GeniusSongsNotFound, GeniusApiError
 
 class GeniusSearchResults:
     """
@@ -97,11 +97,13 @@ class Genius:
         """
             Searches for lyrics from genius api
         """
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(self.search_url + quote(query))
-            resp.raise_for_status()
-        response = resp.json()['response']
-
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(self.search_url + quote(query))
+                resp.raise_for_status()
+            response = resp.json()['response']
+        except:
+            raise GeniusApiError()
         if response['hits'] == []:
             raise GeniusSongsNotFound(query)
 

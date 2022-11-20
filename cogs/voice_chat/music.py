@@ -47,8 +47,8 @@ class music(commands.Cog, command_cog):
             Same as play, except inserts the songs to the playlist so that they are to be played next
         """
         await voice_chat.join(ctx)
-        songs = await self.tools.fetch_songs(ctx, arg, True)
-        await self.tools.play_song(ctx, songs, True)
+        songs = await self.tools.fetch_songs(ctx, arg)
+        await self.tools.play_song(ctx, songs, playnext=True)
 
     @commands.command(help='lists the bot\'s playlist')
     @commands.guild_only()

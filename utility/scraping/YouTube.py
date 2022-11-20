@@ -9,7 +9,7 @@ import urllib.parse
 from urllib.parse import urlparse, parse_qs
 from utility.common.requests import get_redirect_url
 import validators
-from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable
+from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable, YoutubeApiError
 import httpx
 import re
 import concurrent.futures
@@ -85,6 +85,7 @@ class YT_Extractor:
             self.youtube = googleapiclient.discovery.build(
                 'youtube', 'v3', developerKey=yt_api_key
             )
+        self.channel_icons = {}
         self.client = httpx.AsyncClient()
 
     async def get_raw_url(self, url: str, video: bool = False, max_duration: int = None):
@@ -189,10 +190,13 @@ class YT_Extractor:
             part='snippet',
             id=videoId
         )
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            r = await self.loop.run_in_executor(
-                pool, request.execute
-            )
+        try:
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                r = await self.loop.run_in_executor(
+                    pool, request.execute
+                )
+        except:
+            raise YoutubeApiError()
         if r['items'] != []:
             result = _parse_data(
                 data=r['items'][0],
@@ -202,6 +206,7 @@ class YT_Extractor:
             return result
         else:
             raise VideoUnavailable()
+
 
 
     async def fetch_from_playlist(self, playlistId: str) -> list[Video]:
@@ -214,27 +219,34 @@ class YT_Extractor:
             maxResults=1000
         )
         items = []
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            while request != None:
-                r = await self.loop.run_in_executor(
-                    pool, request.execute
-                )
-                items += r['items']
-                request = self.youtube.playlistItems().list_next(request, r)
-        songs = [
-            _parse_data(
-                data=song,
-                videoId=song['snippet']['resourceId']['videoId'],
-                from_playlist=True
-            ) for song in items
-        ]
-        return songs
+        try:
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                while request != None:
+                    r = await self.loop.run_in_executor(
+                        pool, request.execute
+                    )
+                    items += r['items']
+                    request = self.youtube.playlistItems().list_next(request, r)
+            songs = [
+                _parse_data(
+                    data=song,
+                    videoId=song['snippet']['resourceId']['videoId'],
+                    from_playlist=True
+                ) for song in items
+            ]
+            return songs
+        except:
+            raise YoutubeApiError()
 
 
-    async def fetch_channel_icon(self, channelId) -> str:
+    async def fetch_channel_icon(self, channelId: str) -> str:
         """
             Fetches the channel icon 
         """
+        key = channelId
+        if key in self.channel_icons:
+            return self.channel_icons[key]
+        
         request = self.youtube.channels().list(
             part='snippet',
             id=channelId
@@ -244,6 +256,7 @@ class YT_Extractor:
                 pool, request.execute
             )
         icon = r['items'][0]['snippet']['thumbnails']['default']['url']
+        self.channel_icons[key] = icon
         return icon
 
 async def get_raw_url(url): # scraping instead of using yt_dlp for async

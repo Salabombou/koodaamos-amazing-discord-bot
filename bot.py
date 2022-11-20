@@ -37,7 +37,7 @@ cogs = (
     nightcore, flanger,
     eduko, sauce,
     earrape, owner,
-    bait
+    bait, reverse
     #removebg
 )
 for cog in cogs:
