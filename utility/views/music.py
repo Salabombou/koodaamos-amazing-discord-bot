@@ -10,6 +10,9 @@ import concurrent.futures
 
 
 class music_view(discord.ui.View):
+    """
+        View for the music bot playlist
+    """
     def __init__(self, music_self, ctx: commands.Context):
         super().__init__(timeout=None)
         self.tools: music_tools.music_tools = music_self.tools
@@ -21,6 +24,9 @@ class music_view(discord.ui.View):
         self.update_buttons()
     
     async def interaction_check(self, interaction) -> bool:
+        """
+            Checks if the user can execute these commands
+        """
         if interaction.user.bot:
             return False  # if the user is bot
         if interaction.user.voice == None:
@@ -32,6 +38,9 @@ class music_view(discord.ui.View):
         return False
 
     def update_buttons(self):  # holy fuck
+        """
+            Updates the buttons accordingly
+        """
         self.children[0].options = self.tools.create_options(self.ctx)
         playlist_length = math.ceil(len(self.tools.playlist[self.server][0]) / 50)
 
@@ -51,6 +60,9 @@ class music_view(discord.ui.View):
             self.index = 0
 
     def update_embed(self):
+        """
+            Updates the list embed to match the playlist
+        """
         for _ in range(0, self.index + 1):
             self.embed = self.tools.create_embed(self.ctx, self.index)
             if self.embed.description != '':
@@ -59,6 +71,9 @@ class music_view(discord.ui.View):
 
     @discord.ui.select(placeholder='Choose page...', min_values=0, row=0)
     async def select_callback(self, select: discord.ui.Select, interaction: Interaction):
+        """
+            Select the page
+        """
         value = int(select.values[0])
         self.index = value
         self.update_embed()
@@ -67,6 +82,9 @@ class music_view(discord.ui.View):
 
     @discord.ui.button(label='FIRST PAGE', emoji='⏪', style=discord.ButtonStyle.red, row=1, disabled=True)
     async def super_backward_callback(self, button, interaction: Interaction):
+        """
+            Move back to the first page
+        """
         self.index = 0
         self.update_embed()
         self.update_buttons()
@@ -74,6 +92,9 @@ class music_view(discord.ui.View):
 
     @discord.ui.button(label='PREVIOUS PAGE', emoji='◀️', style=discord.ButtonStyle.red, row=1, disabled=True)
     async def backward_callback(self, button, interaction: Interaction):
+        """
+            Go back one page
+        """
         self.index -= 1
         self.update_embed()
         self.update_buttons()
@@ -81,12 +102,18 @@ class music_view(discord.ui.View):
 
     @discord.ui.button(label='REFRESH', emoji='🔄', style=discord.ButtonStyle.red, row=1)
     async def refresh_callback(self, button, interaction: Interaction):
+        """
+            Refresh the list
+        """
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='NEXT PAGE', emoji='▶️', style=discord.ButtonStyle.red, row=1)
     async def forward_callback(self, button, interaction: Interaction):
+        """
+            Go forward one page
+        """
         self.index += 1
         self.update_embed()
         self.update_buttons()
@@ -94,6 +121,9 @@ class music_view(discord.ui.View):
 
     @discord.ui.button(label='LAST PAGE', emoji='⏩', style=discord.ButtonStyle.red, row=1)
     async def super_forward_callback(self, button, interaction: Interaction):
+        """
+            Go to the last page
+        """
         self.index = math.ceil(len(self.tools.playlist[self.server][0]) / 50) - 1
         self.update_embed()
         self.update_buttons()
@@ -101,6 +131,9 @@ class music_view(discord.ui.View):
 
     @discord.ui.button(label='SKIP', emoji='⏭️', style=discord.ButtonStyle.red, row=2)
     async def skip_callback(self, button, interaction: Interaction):
+        """
+            Skips the currently playing song
+        """
         await voice_chat.resume(self.ctx)
         await voice_chat.stop(self.ctx)
         await asyncio.sleep(0.5)
@@ -110,6 +143,9 @@ class music_view(discord.ui.View):
 
     @discord.ui.button(label='SHUFFLE', emoji='🔀', style=discord.ButtonStyle.red, row=2)
     async def shuffle_callback(self, button, interaction: Interaction):
+        """
+            Shuffles the playlist
+        """
         if self.tools.playlist[self.server][0] == []:
             return
         with concurrent.futures.ThreadPoolExecutor() as pool:
@@ -123,12 +159,18 @@ class music_view(discord.ui.View):
 
     @discord.ui.button(label='LOOP', emoji='🔁', style=discord.ButtonStyle.red, row=2)
     async def loop_callback(self, button, interaction: Interaction):
+        """
+            Enable / disable looping
+        """
         self.tools.looping[self.server] = not self.tools.looping[self.server]
         await interaction.response.edit_message(view=self)
         await self.tools.looping_response(self.ctx)
 
     @discord.ui.button(label='PAUSE/RESUME', emoji='⏯️', style=discord.ButtonStyle.red, row=2)
     async def pauseresume_callback(self, button, interaction: Interaction):
+        """
+            Pause / resume playing
+        """
         if self.ctx.voice_client == None:
             return
         if not self.ctx.voice_client.is_paused():

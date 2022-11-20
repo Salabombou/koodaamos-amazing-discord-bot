@@ -25,6 +25,9 @@ class lyrics_view(discord.ui.View):
 
     @staticmethod
     def create_embeds(song_results: list[GeniusSearchResults.SongResult]) -> list[discord.Embed]:
+        """
+            Creates the embeds from the lyrics
+        """
         embeds = []
         for result in song_results:
             embed = discord.Embed(color=embed_config.color, title=result.title)
@@ -35,6 +38,9 @@ class lyrics_view(discord.ui.View):
         return embeds
     
     def update_index(self):
+        """
+            Updates the index of the embeds
+        """
         self.index = -1 if self.index + 1 > len(self.results.song_results) - 1 else self.index
     
     @discord.ui.button(label='◀', style=discord.ButtonStyle.gray)

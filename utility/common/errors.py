@@ -138,3 +138,11 @@ class PlaylistEmpty(Exception):
 class LyricsTooLong(Exception):
     def __str__(self) -> str:
         return 'Lyrics are too long to be posted in chat'
+
+class YoutubeApiError(Exception):
+    def __str__(self) -> str:
+        return 'Failed to fetch data'
+
+class GeniusApiError(Exception):
+    def __str__(self) -> str:
+        return 'Failed to fetch data'

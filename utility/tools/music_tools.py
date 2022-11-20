@@ -13,10 +13,13 @@ import numpy as np
 from utility.common import decorators
 from utility.common import embed_config
 
+
 ffmpeg_options = {
     'options': '-vn',
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
 }
+
+
 
 class music_tools:
     def __init__(self, loop: AbstractEventLoop, yt_api_key: str) -> None:
@@ -29,9 +32,10 @@ class music_tools:
 
     # appends songs to the playlist
     @decorators.Sync.get_server
-    def append_songs(self, ctx, playnext=False, songs=[], *, server: str = None):
+    def append_songs(self, ctx, /, playnext=False, songs=[], *, server: str = None):
         if playnext and songs != []:
-            self.playlist[server][0].insert(1, songs)
+            for song in songs[::-1]:
+                self.playlist[server][0].insert(1, song)
             self.playlist[server][1] += self.playlist[server][0][-len(songs):][::-1]
             del self.playlist[server][0][-len(songs):]
         else:
@@ -150,18 +154,23 @@ class music_tools:
         self.playlist[server][0].insert(0, temp)
 
     @decorators.Async.get_server
-    async def play_song(self, ctx: commands.Context, songs=[], playnext=False, next_song=False, *, server: str = None): # plays a song in voice chat
+    async def play_song(self, ctx: commands.Context, songs=[], playnext=False, next_song=False, server: str = None): # plays a song in voice chat
         if ctx.voice_client == None:
             return
-
-        self.append_songs(ctx, playnext, songs)
+        
+        self.append_songs(ctx, songs=songs, playnext=playnext)
         
         await asyncio.sleep(1)
        
         if ctx.voice_client.is_playing() and not next_song:
             return
         
-        if self.playlist[server][0] != []:
+        if next_song and ctx.voice_client.is_playing():
+            return await self.play_song(ctx, playnext, songs, next_song=next_song)
+        
+        
+        
+        if self.playlist[server][0] == []:
             return
             
         song: YouTube.Video = self.playlist[server][0][0]
@@ -180,10 +189,10 @@ class music_tools:
                 source,
                 volume=0.75
             ),
-            after=lambda error: self.next_song(ctx, message, error)
+            after=lambda _: self.next_song(ctx, message)
         )
     @decorators.Sync.get_server
-    def next_song(self, ctx: commands.Context, message: discord.Message, error=None, *, server: str = None):
+    def next_song(self, ctx: commands.Context, message: discord.Message, *, server: str = None):
         try:
             asyncio.run_coroutine_threadsafe(
                 message.delete(),
@@ -200,7 +209,7 @@ class music_tools:
             self.playlist[server][1].append(self.playlist[server][0][0]) # adds the currently playing song to the end of the playlist
         self.playlist[server][0].pop(0)
         asyncio.run_coroutine_threadsafe(
-            self.play_song(ctx, error),
+            self.play_song(ctx, next_song=True),
             self.loop
         )
     @decorators.Async.get_server
