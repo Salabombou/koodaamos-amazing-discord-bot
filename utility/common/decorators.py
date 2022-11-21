@@ -4,8 +4,10 @@ import functools
 from discord.ext import commands
 from discord.commands.context import ApplicationContext
 import tempfile
-from utility.logging import logger
+from utility.logging import level, handler
 import time
+import logging
+
 
 class Async:
 
@@ -60,17 +62,18 @@ class Async:
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
                 func_name = func.__qualname__
-                log = logger
-                log.name = f'{log.name}.{func_name}'
-                log.info('starting')
+                logger = logging.getLogger(func_name)
+                logger.setLevel(level)
+                logger.addHandler(handler)
+                logger.info('starting')
                 start = time.perf_counter()
                 try:
                     value = await func(*args, **kwargs)
                 except Exception as e:
-                    log.exception(f'ended with exception {type(e).__name__}')
+                    logger.exception(f'ended with exception {type(e).__name__}')
                     raise e
                 end = time.perf_counter()
-                log.info(f'ended with a time of {end-start:.2f} seconds')
+                logger.info(f'ended with a time of {end-start:.2f} seconds')
                 return value
             return wrapper
     
@@ -152,16 +155,17 @@ class Sync: # synchronous versions for synchronous functions
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 func_name = func.__qualname__
-                log = logger
-                log.name = f'{log.name}.{func_name}'
-                log.info('starting')
+                logger = logging.getLogger(func_name)
+                logger.setLevel(level)
+                logger.addHandler(handler)
+                logger.info('starting')
                 start = time.perf_counter()
                 try:
                     value = func(*args, **kwargs)
                 except Exception as e:
-                    log.exception(f'ended with exception {type(e).__name__}')
+                    logger.exception(f'ended with exception {type(e).__name__}')
                     raise e
                 end = time.perf_counter()
-                log.info(f'ended with a time of {end-start:.2f} seconds')
+                logger.info(f'ended with a time of {end-start:.2f} seconds')
                 return value
             return wrapper
