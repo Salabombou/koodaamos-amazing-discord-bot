@@ -113,7 +113,6 @@ class eduko(commands.Cog, command_cog):
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @decorators.Async.logging.log
     @decorators.Async.typing
     async def food(self, ctx):
         current_time = time.time()

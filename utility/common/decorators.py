@@ -60,15 +60,17 @@ class Async:
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
                 func_name = func.__qualname__
-                logger.info(f'Starting {func_name}')
+                log = logger
+                log.name = f'{log.name}.{func_name}'
+                log.info('starting')
                 start = time.perf_counter()
                 try:
                     value = await func(*args, **kwargs)
                 except Exception as e:
-                    logger.exception(f'{func_name} ended with exception {type(e).__name__}: {str(e)}')
+                    log.exception(f'ended with exception {type(e).__name__}')
                     raise e
                 end = time.perf_counter()
-                logger.info(f'{func_name} ended with a time of {end-start:.3f} seconds')
+                log.info(f'ended with a time of {end-start:.2f} seconds')
                 return value
             return wrapper
     
@@ -150,14 +152,16 @@ class Sync: # synchronous versions for synchronous functions
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 func_name = func.__qualname__
-                logger.info(f'Starting {func_name}')
+                log = logger
+                log.name = f'{log.name}.{func_name}'
+                log.info('starting')
                 start = time.perf_counter()
                 try:
                     value = func(*args, **kwargs)
                 except Exception as e:
-                    logger.exception(f'{func_name} ended with exception {type(e).__name__}: {str(e)}')
+                    log.exception(f'ended with exception {type(e).__name__}')
                     raise e
                 end = time.perf_counter()
-                logger.info(f'{func_name} ended with a time of {end-start:.3f} seconds')
+                log.info(f'ended with a time of {end-start:.2f} seconds')
                 return value
             return wrapper

@@ -33,7 +33,6 @@ class music_tools:
         self.yt_error_vid_id = 'J3lXjYWPoys'
 
     # appends songs to the playlist
-    @decorators.Sync.logging.log
     @decorators.Sync.get_server
     def append_songs(self, ctx, /, playnext=False, songs=[], *, server: str = None):
         if playnext and songs != []:
@@ -50,7 +49,6 @@ class music_tools:
         self.playlist[server][0] += self.playlist[server][1][:1000 - length]
         del self.playlist[server][1][:1000 - length]
         
-    @decorators.Sync.logging.log
     def serialize_songs(self, server):
         songs = []
         for i, song in enumerate(self.playlist[server][0]):
@@ -67,7 +65,6 @@ class music_tools:
         songs.pop(0)
         return songs
     
-    @decorators.Sync.logging.log
     @decorators.Sync.get_server
     def create_embed(self, ctx: commands.Context, page_num: int, *, server: str = None):  # todo add timestamp
         embed = discord.Embed(
@@ -92,8 +89,7 @@ class music_tools:
             text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(self.playlist[server][0])} song(s) in the queue'
         )  # bigggggg
         return embed
-    
-    @decorators.Sync.logging.log
+
     @decorators.Sync.get_server
     def create_options(self, ctx: commands.Context | discord.Message, *, server: str = None):  # create the options for the dropdown select menu
         page_amount = math.ceil(len(self.playlist[server][0]) / 50)
@@ -164,8 +160,8 @@ class music_tools:
         self.playlist[server][0].insert(0, temp)
 
     
-    @decorators.Async.get_server
     @decorators.Async.logging.log
+    @decorators.Async.get_server
     async def play_song(self, ctx: commands.Context, songs=[], playnext=False, next_song=False, server: str = None): # plays a song in voice chat
         if ctx.voice_client == None:
             return
@@ -205,8 +201,9 @@ class music_tools:
             after=lambda _: self.next_song(ctx, message)
         )
         
-    @decorators.Sync.get_server
+    
     @decorators.Sync.logging.log
+    @decorators.Sync.get_server
     def next_song(self, ctx: commands.Context, message: discord.Message, *, server: str = None):
         try:
             asyncio.run_coroutine_threadsafe(
@@ -227,7 +224,8 @@ class music_tools:
             self.play_song(ctx, next_song=True),
             self.loop
         )
-        
+    
+    @decorators.Async.logging.log
     @decorators.Async.get_server
     async def looping_response(self, ctx: commands.Context, *, server: str = None) -> discord.Message:
         return await ctx.send('LOOPING' if self.looping[server] else 'NOT LOOPING', delete_after=10)

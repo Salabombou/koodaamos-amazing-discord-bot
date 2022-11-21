@@ -1,4 +1,5 @@
 from discord.ext import commands
+from utility.common import decorators
 
 
 def command_check(ctx: commands.Context):
@@ -13,7 +14,7 @@ def command_check(ctx: commands.Context):
         return True  # if the bot and the user are in the same voice channel
     return False
 
-
+@decorators.Async.logging.log
 async def join(ctx: commands.Context):
     """
         Joins the same voice chat the user is in
@@ -24,7 +25,7 @@ async def join(ctx: commands.Context):
         channel = ctx.author.voice.channel
         await channel.connect()
 
-
+@decorators.Async.logging.log
 async def leave(ctx: commands.Context):
     """
         Leaves the voice chat
@@ -36,8 +37,8 @@ async def leave(ctx: commands.Context):
     if ctx.voice_client != None:
         await ctx.voice_client.disconnect()
 
-
-async def stop(ctx: commands.Context):
+@decorators.Sync.logging.log
+def stop(ctx: commands.Context):
     """
         Stops the bot from playing audio
     """
@@ -48,8 +49,8 @@ async def stop(ctx: commands.Context):
     if ctx.author.voice.channel == ctx.me.voice.channel:
         ctx.voice_client.stop()
 
-
-async def resume(ctx: commands.Context):
+@decorators.Sync.logging.log
+def resume(ctx: commands.Context):
     """
         Resumes the playing of audio
     """
@@ -60,8 +61,8 @@ async def resume(ctx: commands.Context):
     if ctx.author.voice.channel == ctx.me.voice.channel:
         ctx.voice_client.resume()
 
-
-async def pause(ctx: commands.Context):
+@decorators.Sync.logging.log
+def pause(ctx: commands.Context):
     """
         Pauses the playing of audio
     """

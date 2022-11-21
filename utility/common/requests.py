@@ -2,10 +2,10 @@ import asyncio
 import urllib.request
 import concurrent.futures
 from utility.common.errors import UrlRedirectError
-
+from utility.common import decorators
 loop = asyncio.get_event_loop()
 
-
+@decorators.Async.logging.log
 async def get_redirect_url(url: str):
     """
         Gets the redirect url from url

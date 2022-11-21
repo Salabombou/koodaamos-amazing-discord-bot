@@ -26,7 +26,6 @@ class music(commands.Cog, command_cog):
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
-    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -34,7 +33,7 @@ class music(commands.Cog, command_cog):
         """
             Starts the music bot and adds the songs to the playlist
         """
-        await voice_chat.join(ctx)
+        voice_chat.join(ctx)
         songs = await self.tools.fetch_songs(ctx, arg)
         await self.tools.play_song(ctx, songs)
 
@@ -42,7 +41,6 @@ class music(commands.Cog, command_cog):
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
-    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -50,7 +48,7 @@ class music(commands.Cog, command_cog):
         """
             Same as play, except inserts the songs to the playlist so that they are to be played next
         """
-        await voice_chat.join(ctx)
+        voice_chat.join(ctx)
         songs = await self.tools.fetch_songs(ctx, arg)
         await self.tools.play_song(ctx, songs, playnext=True)
 
@@ -58,7 +56,6 @@ class music(commands.Cog, command_cog):
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
-    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     async def list(self, ctx: commands.Context):
         """
@@ -71,7 +68,6 @@ class music(commands.Cog, command_cog):
     @commands.command(help='disconnects from the voice channel', aliases=['leave'])
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
-    @decorators.Async.logging.log
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
     @decorators.Async.get_server
@@ -80,7 +76,7 @@ class music(commands.Cog, command_cog):
             Leaves the voice channel and empties the playlist
         """
         self.tools.playlist[server] = [[], []]
-        await voice_chat.leave(ctx)
+        voice_chat.leave(ctx)
 
     @commands.command(help='pauses / resumes the currently playing song', aliases=['resume'])
     @commands.guild_only()
@@ -92,13 +88,12 @@ class music(commands.Cog, command_cog):
             Pauses / resumes the currently playing song
         """
         if ctx.voice_client.is_paused():
-            return await voice_chat.resume(ctx)
-        await voice_chat.pause(ctx)
+            return voice_chat.resume(ctx)
+        voice_chat.pause(ctx)
 
     @commands.command(help='skips the currently playing song')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
-    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -112,14 +107,13 @@ class music(commands.Cog, command_cog):
             self.tools.playlist[server][1] += self.tools.playlist[server][0][1:amount][::-1]
         del self.tools.playlist[server][0][1:amount]
         self.tools.append_songs(ctx)
-        await voice_chat.resume(ctx)
-        await voice_chat.stop(ctx)  # skips one song
+        voice_chat.resume(ctx)
+        voice_chat.stop(ctx)  # skips one song
         await asyncio.sleep(0.5)
 
     @commands.command(help='shuffles the playlist')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
-    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -139,7 +133,6 @@ class music(commands.Cog, command_cog):
     @commands.command(help='Loops the currently playing song until stopped')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
-    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -155,7 +148,6 @@ class music(commands.Cog, command_cog):
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
-    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.get_server
     async def info(self, ctx, number=0, /, *, server: str = None):
@@ -169,7 +161,6 @@ class music(commands.Cog, command_cog):
     @commands.command(help='replays the current song')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
-    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -180,11 +171,10 @@ class music(commands.Cog, command_cog):
         """
         if self.tools.playlist[server][0] != []:
             self.tools.playlist[server][0].insert(0, self.tools.playlist[server][0][0])
-            await voice_chat.stop(ctx)
+            voice_chat.stop(ctx)
 
     @commands.command(help='replies with the lyrics from query')
     @commands.cooldown(1, 60, commands.BucketType.user)
-    @decorators.Async.logging.log
     @decorators.Async.typing
     async def lyrics(self, ctx: commands.Context, *, query: str):
         """

@@ -1,6 +1,7 @@
 import os
 from urllib.parse import urlparse
 
+from utility.common import decorators
 from utility.common.errors import DownloadFailure, UnsupportedUrl
 from utility.common.requests import get_redirect_url
 from utility.scraping import Reddit, Spotify, TikTok, YouTube
@@ -23,7 +24,7 @@ async def __fetch_url(url: str, get_raw_url, ext):
     except DownloadFailure:
         raise DownloadFailure()
 
-
+@decorators.Async.logging.log
 async def from_url(url):
     """
         Gets the raw url to the file to be downloaded

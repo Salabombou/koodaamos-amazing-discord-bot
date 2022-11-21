@@ -40,7 +40,6 @@ class audio(commands.Cog, ffmpeg_cog):
     @commands.command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
-    @decorators.Async.logging.log
     @decorators.Async.typing
     async def audio(self, ctx: commands.Context, url="https://youtu.be/NOaSdO5H91M"):
         file, pomf_url = await self.create_output(ctx, url)

@@ -1,10 +1,12 @@
 import httpx
 from requests_toolbelt import MultipartEncoder
 from utility.common.errors import PomfUploadFail
+from utility.common import decorators
+
 
 client = httpx.AsyncClient(timeout=300)
 
-
+@decorators.Async.logging.log
 async def upload(file: bytes, ext: str) -> str:
     """
         Uploads the file to pomf.cat to be hosted from

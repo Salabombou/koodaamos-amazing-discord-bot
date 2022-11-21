@@ -1,10 +1,12 @@
 import httpx
 import bs4
 import urllib.parse
+from utility.common import decorators
+
 
 client = httpx.AsyncClient(timeout=10)
 
-
+@decorators.Async.logging.log
 async def get_raw_url(url: str) -> str:
     """
         Gets the raw url of the file from Reddit

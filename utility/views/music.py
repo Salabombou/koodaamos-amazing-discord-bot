@@ -134,8 +134,8 @@ class music_view(discord.ui.View):
         """
             Skips the currently playing song
         """
-        await voice_chat.resume(self.ctx)
-        await voice_chat.stop(self.ctx)
+        voice_chat.resume(self.ctx)
+        voice_chat.stop(self.ctx)
         await asyncio.sleep(0.5)
         self.update_embed()
         self.update_buttons()
@@ -174,7 +174,7 @@ class music_view(discord.ui.View):
         if self.ctx.voice_client == None:
             return
         if not self.ctx.voice_client.is_paused():
-            await voice_chat.pause(self.ctx)
+            voice_chat.pause(self.ctx)
         else:
-            await voice_chat.resume(self.ctx)
+            voice_chat.resume(self.ctx)
         await interaction.response.edit_message(view=self)

@@ -17,7 +17,9 @@ class gpt3(commands.Cog, command_cog):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Outputs a response from a chat bot ai from the specified prompt'
         openai.api_key = self.tokens['openai']
-
+        
+    
+    @decorators.Sync.logging.log
     def create_text(self, prompt):
         response = openai.Completion.create(
             engine='text-davinci-002',
@@ -35,7 +37,6 @@ class gpt3(commands.Cog, command_cog):
     @commands.command(aliases=['text', 'ai'], help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    @decorators.Async.logging.log
     @decorators.Async.typing
     async def gpt3(self, ctx: commands.Context, *, prompt='make up a 4chan greentext post'):
         embed = discord.Embed(color=embed_config.color, fields=[], title=prompt)

@@ -26,6 +26,7 @@ class sauce(commands.Cog, command_cog):
         accepted_dbs = [str(db) for db in range(0, 44 + 1) if db not in rejected_dbs]
         self.fields += [['dbs[]', db] for db in accepted_dbs]
 
+    @decorators.Async.logging.log
     async def get_sauce(self, url):
         try:
             fields = self.fields
@@ -45,7 +46,6 @@ class sauce(commands.Cog, command_cog):
 
     @commands.command(help='url: optionally specify the url to the image')
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @decorators.Async.logging.log
     @decorators.Async.typing
     async def sauce(self, ctx: commands.Context, url=None):
         if url == None:

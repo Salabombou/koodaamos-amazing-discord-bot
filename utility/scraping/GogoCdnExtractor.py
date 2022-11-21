@@ -7,6 +7,8 @@ from Crypto.Cipher import AES  # pycryptodome
 import base64
 import re
 import httpx
+from utility.common import decorators
+
 
 client = httpx.AsyncClient()
 
@@ -95,7 +97,7 @@ async def get_values(url):
 
     return player, iv, secret_key, decryption_key, encrypt_ajax_params
 
-
+@decorators.Async.logging.log
 async def video_from_url(url):
     """
         Gets the stream url to an anime from the GogoAnime website

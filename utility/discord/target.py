@@ -4,7 +4,7 @@ from utility.common.errors import TargetNotFound, TargetError
 from discord.ext import commands
 from discord import StickerItem, Embed, Attachment
 from utility.ffprobe import FfprobeFormat, Ffprober
-from utility.common import convert
+from utility.common import convert, decorators
 
 """
 THE ORDER FOR THE FILES
@@ -142,7 +142,7 @@ class target_fetcher:
             if isinstance(embed.thumbnail.proxy_url, str) and self.img:
                 return embed
 
-
+@decorators.Async.logging.log
 async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=False) -> Target:
     """
         Gets the target from the discord chat
