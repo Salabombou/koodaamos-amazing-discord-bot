@@ -1,4 +1,5 @@
 import random
+from utility.cog.command import command_cog
 from aiohttp import ClientSession
 from discord.ext import commands
 import asyncio
@@ -8,22 +9,21 @@ import atexit
 
 sessions = []
 
-class cat(commands.Cog):
-    def __init__(self, bot, tokens=None):
+class cat(commands.Cog,command_cog):
+    def __init__(self, bot: commands.Bot, tokens):
+        super().__init__(bot=bot, tokens=tokens)
         self.reddit_id_file = open("./files/id_list", "r+")
         self.reddit_id_file_content = self.reddit_id_file.read().split("\n")
         self.bot = bot
-        reddit_api_file = open("./files/reddit_api.api", "r")
-        reddit_file_content = reddit_api_file.readlines()
 
-        self.catAPI = tokens[4]
+        self.catAPI =  tokens['cat']
         sessions.append(ClientSession(trust_env=True))
 
         self.reddit = asyncpraw.Reddit(
-            client_id=reddit_file_content[0].strip(),
-            client_secret=reddit_file_content[1].strip(),
+            client_id=tokens['reddit_id'],
+            client_secret=tokens['reddit_secret'],
             requestor_kwargs={"session": sessions[-1]},  # pass Session
-            user_agent=reddit_file_content[3].strip()
+            user_agent=tokens['reddit_agent']
         )
     
     @commands.command()
@@ -59,7 +59,6 @@ async def getSecretCatUrl(self):
         print("fuck")
     self.reddit_id_file_content.append(submission.id)
     open("./files/id_list", "a").write(str(submission.id) + "\n")
-    print(self.reddit_id_file_content)
     
     if hasattr(submission, "is_gallery"):
         gallery = []
