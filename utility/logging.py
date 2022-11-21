@@ -13,7 +13,7 @@ class StderrLogger(object):
        self.logger = logger
 
     def write(self, buf: str):
-       self.logger.exception(buf)
+       self.logger.debug(buf)
 
     def flush(self):
         pass

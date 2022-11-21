@@ -9,21 +9,24 @@ from utility.views.lyrics import lyrics_view
 from utility.cog.command import command_cog
 from utility.scraping import Genius
 import concurrent.futures
+import logging
+
 
 class music(commands.Cog, command_cog):
     """
         Music bot that joins the voice channel and plays music from playlist
     """
-    def __init__(self, bot: commands.Bot, tokens):
-        super().__init__(bot=bot, tokens=tokens,  yt_api_key=tokens['youtube_v3'], loop=bot.loop)
+    def __init__(self, bot: commands.Bot, tokens: dict[str]):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Plays songs from a playlist to a discord voice channel'
-        self.tools = music_tools(bot.loop, tokens['youtube_v3'])
+        self.tools = music_tools(bot, bot.loop, tokens['youtube_v3'])
         self.genius = Genius.Genius(access_token=tokens['genius'])
 
     @commands.command(help='url: YouTube url to a song / playlist')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -39,6 +42,7 @@ class music(commands.Cog, command_cog):
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -54,6 +58,7 @@ class music(commands.Cog, command_cog):
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     async def list(self, ctx: commands.Context):
         """
@@ -66,6 +71,7 @@ class music(commands.Cog, command_cog):
     @commands.command(help='disconnects from the voice channel', aliases=['leave'])
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.logging.log
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
     @decorators.Async.get_server
@@ -92,6 +98,7 @@ class music(commands.Cog, command_cog):
     @commands.command(help='skips the currently playing song')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -112,6 +119,7 @@ class music(commands.Cog, command_cog):
     @commands.command(help='shuffles the playlist')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -131,6 +139,7 @@ class music(commands.Cog, command_cog):
     @commands.command(help='Loops the currently playing song until stopped')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -146,6 +155,7 @@ class music(commands.Cog, command_cog):
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.get_server
     async def info(self, ctx, number=0, /, *, server: str = None):
@@ -159,6 +169,7 @@ class music(commands.Cog, command_cog):
     @commands.command(help='replays the current song')
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.logging.log
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -173,6 +184,7 @@ class music(commands.Cog, command_cog):
 
     @commands.command(help='replies with the lyrics from query')
     @commands.cooldown(1, 60, commands.BucketType.user)
+    @decorators.Async.logging.log
     @decorators.Async.typing
     async def lyrics(self, ctx: commands.Context, *, query: str):
         """

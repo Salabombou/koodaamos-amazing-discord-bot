@@ -6,16 +6,16 @@ import functools
 from utility.common import decorators
 from utility.common import embed_config
 import concurrent.futures
+from utility.cog.command import command_cog
 
 
-class gpt3(commands.Cog):
+class gpt3(commands.Cog, command_cog):
     """
         An ai chatbot that can respond to different questions and tasks
     """
-    def __init__(self, bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens: dict[str]):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Outputs a response from a chat bot ai from the specified prompt'
-        self.bot = bot
-        self.tokens = tokens
         openai.api_key = self.tokens['openai']
 
     def create_text(self, prompt):
@@ -35,6 +35,7 @@ class gpt3(commands.Cog):
     @commands.command(aliases=['text', 'ai'], help='prompt: the message to be sent to the ai')
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.logging.log
     @decorators.Async.typing
     async def gpt3(self, ctx: commands.Context, *, prompt='make up a 4chan greentext post'):
         embed = discord.Embed(color=embed_config.color, fields=[], title=prompt)

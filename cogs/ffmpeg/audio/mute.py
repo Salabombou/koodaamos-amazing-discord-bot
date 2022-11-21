@@ -32,6 +32,7 @@ class mute(commands.Cog, ffmpeg_cog):
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
+    @decorators.Async.logging.log
     @decorators.Async.typing
     async def mute(self, ctx: commands.Context):
         file, pomf_url = await self.create_output_video(ctx)

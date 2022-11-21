@@ -45,6 +45,7 @@ class sauce(commands.Cog, command_cog):
 
     @commands.command(help='url: optionally specify the url to the image')
     @commands.cooldown(1, 30, commands.BucketType.user)
+    @decorators.Async.logging.log
     @decorators.Async.typing
     async def sauce(self, ctx: commands.Context, url=None):
         if url == None:

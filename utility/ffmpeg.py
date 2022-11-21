@@ -160,7 +160,8 @@ class Videofier:
 
         scale = '%s:%s' % args
         return scale
-    
+
+    @decorators.Async.logging.log
     @decorators.Async.ffmpeg.create_dir
     async def videofy(self, target: target.Target, duration: int | float = None, borderless: bool = False, _dir: str = None) -> Videofied:
         if duration == None:

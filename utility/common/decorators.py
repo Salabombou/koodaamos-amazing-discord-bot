@@ -4,6 +4,8 @@ import functools
 from discord.ext import commands
 from discord.commands.context import ApplicationContext
 import tempfile
+from utility.logging import logger
+import time
 
 class Async:
 
@@ -47,6 +49,28 @@ class Async:
                 await ctx.delete()
             return value
         return wrapper
+    
+    class logging:
+        
+        @staticmethod
+        def log(func):
+            """
+                Logs the function start and end
+            """
+            @functools.wraps(func)
+            async def wrapper(*args, **kwargs):
+                func_name = func.__qualname__
+                logger.info(f'Starting {func_name}')
+                start = time.perf_counter()
+                try:
+                    value = await func(*args, **kwargs)
+                except Exception as e:
+                    logger.exception(f'{func_name} ended with exception {type(e).__name__}: {str(e)}')
+                    raise e
+                end = time.perf_counter()
+                logger.info(f'{func_name} ended with a time of {end-start:.3f} seconds')
+                return value
+            return wrapper
     
     class ffmpeg:
     
@@ -115,3 +139,25 @@ class Sync: # synchronous versions for synchronous functions
             kwargs['server'] = str(ctx.guild.id)
             return func(self, ctx, *args, **kwargs)
         return wrapper
+    
+    class logging:
+        
+        @staticmethod
+        def log(func):
+            """
+                Logs the function start and end
+            """
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                func_name = func.__qualname__
+                logger.info(f'Starting {func_name}')
+                start = time.perf_counter()
+                try:
+                    value = func(*args, **kwargs)
+                except Exception as e:
+                    logger.exception(f'{func_name} ended with exception {type(e).__name__}: {str(e)}')
+                    raise e
+                end = time.perf_counter()
+                logger.info(f'{func_name} ended with a time of {end-start:.3f} seconds')
+                return value
+            return wrapper

@@ -12,6 +12,7 @@ import validators
 import numpy as np
 from utility.common import decorators
 from utility.common import embed_config
+import logging
 
 
 ffmpeg_options = {
@@ -22,7 +23,8 @@ ffmpeg_options = {
 
 
 class music_tools:
-    def __init__(self, loop: AbstractEventLoop, yt_api_key: str) -> None:
+    def __init__(self, bot: commands.Bot, loop: AbstractEventLoop, yt_api_key: str) -> None:
+        self.bot = bot
         self.loop = loop
         self.yt_extractor = YT_Extractor(loop, yt_api_key)
         self.playlist: dict[list[list, list]] = {}
@@ -31,6 +33,7 @@ class music_tools:
         self.yt_error_vid_id = 'J3lXjYWPoys'
 
     # appends songs to the playlist
+    @decorators.Sync.logging.log
     @decorators.Sync.get_server
     def append_songs(self, ctx, /, playnext=False, songs=[], *, server: str = None):
         if playnext and songs != []:
@@ -46,7 +49,8 @@ class music_tools:
         # limits the visible playlist to go to upto 1000 song at once
         self.playlist[server][0] += self.playlist[server][1][:1000 - length]
         del self.playlist[server][1][:1000 - length]
-
+        
+    @decorators.Sync.logging.log
     def serialize_songs(self, server):
         songs = []
         for i, song in enumerate(self.playlist[server][0]):
@@ -62,7 +66,8 @@ class music_tools:
             return ['']
         songs.pop(0)
         return songs
-
+    
+    @decorators.Sync.logging.log
     @decorators.Sync.get_server
     def create_embed(self, ctx: commands.Context, page_num: int, *, server: str = None):  # todo add timestamp
         embed = discord.Embed(
@@ -87,6 +92,8 @@ class music_tools:
             text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(self.playlist[server][0])} song(s) in the queue'
         )  # bigggggg
         return embed
+    
+    @decorators.Sync.logging.log
     @decorators.Sync.get_server
     def create_options(self, ctx: commands.Context | discord.Message, *, server: str = None):  # create the options for the dropdown select menu
         page_amount = math.ceil(len(self.playlist[server][0]) / 50)
@@ -129,7 +136,8 @@ class music_tools:
         icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
         embed.set_footer(text=song.channel, icon_url=icon)
         return embed
-
+    
+    @decorators.Async.logging.log
     async def fetch_songs(self, ctx: commands.Context, url, no_playlists=False):
         if not validators.url(url):  # if url is invalid (implying for a search)
             # searches for the video and returns the url to it
@@ -155,22 +163,22 @@ class music_tools:
         np.random.shuffle(self.playlist[server][1])
         self.playlist[server][0].insert(0, temp)
 
+    
     @decorators.Async.get_server
+    @decorators.Async.logging.log
     async def play_song(self, ctx: commands.Context, songs=[], playnext=False, next_song=False, server: str = None): # plays a song in voice chat
         if ctx.voice_client == None:
             return
         
         self.append_songs(ctx, songs=songs, playnext=playnext)
         
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.2)
        
         if ctx.voice_client.is_playing() and not next_song:
             return
         
         if next_song and ctx.voice_client.is_playing():
-            return await self.play_song(ctx, playnext, songs, next_song=next_song)
-        
-        
+            return await self.play_song(ctx, next_song=True)
         
         if self.playlist[server][0] == []:
             return
@@ -183,9 +191,12 @@ class music_tools:
             info = await self.yt_extractor.get_info(id=self.yt_error_vid_id)
 
         source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
-        embed = await self.create_info_embed(ctx)
-        message = await ctx.send('Now playing:', embed=embed)
-
+        
+        try:
+            embed = await self.create_info_embed(ctx)
+            message = await ctx.send('Now playing:', embed=embed)
+            ctx = await self.bot.get_context(message)
+        except: pass
         ctx.voice_client.play(
             discord.PCMVolumeTransformer(
                 source,
@@ -193,7 +204,9 @@ class music_tools:
             ),
             after=lambda _: self.next_song(ctx, message)
         )
+        
     @decorators.Sync.get_server
+    @decorators.Sync.logging.log
     def next_song(self, ctx: commands.Context, message: discord.Message, *, server: str = None):
         try:
             asyncio.run_coroutine_threadsafe(
@@ -214,6 +227,7 @@ class music_tools:
             self.play_song(ctx, next_song=True),
             self.loop
         )
+        
     @decorators.Async.get_server
     async def looping_response(self, ctx: commands.Context, *, server: str = None) -> discord.Message:
         return await ctx.send('LOOPING' if self.looping[server] else 'NOT LOOPING', delete_after=10)
