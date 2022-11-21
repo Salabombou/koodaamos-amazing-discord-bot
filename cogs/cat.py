@@ -25,7 +25,7 @@ class cat(commands.Cog,command_cog):
             user_agent=tokens['reddit_agent']
         )
     
-    @commands.command(help='number: number of the song in the playlist')
+    @commands.command(help='Get a picture from the cat api')
     @commands.is_nsfw()
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.user)
