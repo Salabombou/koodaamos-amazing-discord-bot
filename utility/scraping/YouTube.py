@@ -227,16 +227,17 @@ class YT_Extractor:
                     )
                     items += r['items']
                     request = self.youtube.playlistItems().list_next(request, r)
-            songs = [
-                _parse_data(
-                    data=song,
-                    videoId=song['snippet']['resourceId']['videoId'],
-                    from_playlist=True
-                ) for song in items
-            ]
-            return songs
         except:
             raise YoutubeApiError()
+        songs = [
+            _parse_data(
+                data=song,
+                videoId=song['snippet']['resourceId']['videoId'],
+                from_playlist=True
+            ) for song in items
+        ]
+        return songs
+
 
 
     async def fetch_channel_icon(self, channelId: str) -> str:
@@ -251,10 +252,13 @@ class YT_Extractor:
             part='snippet',
             id=channelId
         )
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            r = await self.loop.run_in_executor(
-                pool, request.execute
-            )
+        try:
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                r = await self.loop.run_in_executor(
+                    pool, request.execute
+                )
+        except:
+            raise YoutubeApiError()
         icon = r['items'][0]['snippet']['thumbnails']['default']['url']
         self.channel_icons[key] = icon
         return icon
