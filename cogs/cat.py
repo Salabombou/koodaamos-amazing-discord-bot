@@ -1,19 +1,18 @@
 import random
-from utility.cog.command import command_cog
 from aiohttp import ClientSession
 from discord.ext import commands
 import asyncio
 import discord
 import asyncpraw
 import atexit
+from utility.cog.command import command_cog
+from utility.common import decorators
 
 sessions = []
 
 class cat(commands.Cog,command_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.reddit_id_file = open("./files/id_list", "r+")
-        self.reddit_id_file_content = self.reddit_id_file.read().split("\n")
         self.bot = bot
 
         self.catAPI =  tokens['cat']
@@ -26,8 +25,12 @@ class cat(commands.Cog,command_cog):
             user_agent=tokens['reddit_agent']
         )
     
-    @commands.command()
+    @commands.command(help='number: number of the song in the playlist')
     @commands.is_nsfw()
+    @commands.guild_only()
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.typing
+    @decorators.Async.add_reaction
     async def cat(self, ctx, *args):
         random.seed(a=None, version=2)
 
@@ -54,11 +57,9 @@ async def async_exit_handler():
 async def getSecretCatUrl(self):
     subreddit = await self.reddit.subreddit("eroonigiri")
     submission = await subreddit.random()
-    while submission.stickied or submission.is_self or submission.id in self.reddit_id_file_content:
+    while submission.stickied or submission.is_self:
         submission = await subreddit.random()
-        print("fuck")
-    self.reddit_id_file_content.append(submission.id)
-    open("./files/id_list", "a").write(str(submission.id) + "\n")
+
     
     if hasattr(submission, "is_gallery"):
         gallery = []
@@ -67,7 +68,3 @@ async def getSecretCatUrl(self):
             gallery.append(url)
         return gallery[random.randrange(0,len(gallery))]
     return submission.url
-
-
-def setup(client, tokens):
-    client.add_cog(cat(client, tokens))
