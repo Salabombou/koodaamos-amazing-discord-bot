@@ -98,7 +98,7 @@ class Async:
         """
         @functools.wraps(func)
         async def wrapper(self, ctx: commands.Context, *args, **kwargs):
-            server = str(ctx.guild.id)
+            server = ctx.guild.id
             if not server in self.tools.playlist:
                 self.tools.playlist[server] = [[], []]
             if server not in self.tools.looping:
@@ -126,7 +126,7 @@ class Sync: # synchronous versions for synchronous functions
         """
         @functools.wraps(func)
         def wrapper(self, ctx: commands.Context, *args, **kwargs):
-            server = str(ctx.guild.id)
+            server = ctx.guild.id
             if not server in self.tools.playlist:
                 self.tools.playlist[server] = [[], []]
             if server not in self.tools.looping:

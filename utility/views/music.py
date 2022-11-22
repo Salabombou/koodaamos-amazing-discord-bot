@@ -19,7 +19,7 @@ class music_view(discord.ui.View):
         self.bot: commands.Bot = music_self.bot
         self.embed = None
         self.index = 0
-        self.server = str(ctx.guild.id)
+        self.server = ctx.guild.id
         self.ctx = ctx
         self.update_buttons()
     
@@ -173,8 +173,11 @@ class music_view(discord.ui.View):
         """
         if self.ctx.voice_client == None:
             return
-        if not self.ctx.voice_client.is_paused():
-            voice_chat.pause(self.ctx)
-        else:
-            voice_chat.resume(self.ctx)
+        
         await interaction.response.edit_message(view=self)
+        
+        if self.ctx.voice_client.is_paused():
+            return voice_chat.resume(self.ctx)
+        elif self.tools.playlist[0] != [] and not self.ctx.voice_client.is_playing():
+            return await self.tools.play_song(self.ctx)
+        voice_chat.pause(self.ctx)
