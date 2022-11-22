@@ -106,16 +106,6 @@ class Async:
             return await func(self, ctx, *args, **kwargs)
         return wrapper
 
-    @staticmethod
-    def get_server(func):  # passes the server id as a string since its needed to access some dicts
-        """
-            Gets the server id as str and passes it as a keyword arguement
-        """
-        @functools.wraps(func)
-        async def wrapper(self, ctx: commands.Context | ApplicationContext | discord.Message, *args, **kwargs):
-            kwargs['server'] = str(ctx.guild.id)
-            return await func(self, ctx, *args, **kwargs)
-        return wrapper
 
 class Sync: # synchronous versions for synchronous functions
 
@@ -133,17 +123,7 @@ class Sync: # synchronous versions for synchronous functions
                 self.tools.looping[server] = False
             return func(self, ctx, *args, **kwargs)
         return wrapper
-
-    @staticmethod
-    def get_server(func):  # passes the server id as a string since its needed to access some dicts
-        """
-            Gets the server id as str and passes it as a keyword arguement
-        """
-        @functools.wraps(func)
-        def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
-            kwargs['server'] = str(ctx.guild.id)
-            return func(self, ctx, *args, **kwargs)
-        return wrapper
+    
     
     class logging:
         
