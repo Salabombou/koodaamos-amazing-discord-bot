@@ -74,7 +74,7 @@ class CommandRunner:
                 *command,
                 '-loglevel', 'error',  # logs only errors
                 '-pix_fmt', 'yuv420p',  # pixel format
-                '-b:v', '1024k',  # video bitrate
+                '-b:v', '256k',  # video bitrate
                 '-b:a', '128k',  # audio bitrate
                 '-c:v', 'libx264',  # video codec
                 '-movflags', 'frag_keyframe+empty_moov+faststart',  # 100% fragmented
