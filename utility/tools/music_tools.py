@@ -125,7 +125,10 @@ class music_tools:
             name='LINKS:',
             value=self.link_values(song)
         )
-        icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
+        try:
+            icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
+        except:
+            icon = None
         embed.set_footer(text=song.channel, icon_url=icon)
         return embed
     
@@ -159,7 +162,7 @@ class music_tools:
     async def send_song_unavailable(self, ctx: commands.Context, next_song: bool):
         try:
             message = await ctx.send('Song unavailable, moving to next one')
-            self.playlist[str(ctx.guild.id)][0].pop(0)
+            self.playlist[ctx.guild.id][0].pop(0)
             await self.play_song(ctx, next_song=next_song)
             return await message.delete()
         except:

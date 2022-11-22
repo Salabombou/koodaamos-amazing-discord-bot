@@ -35,7 +35,7 @@ class music(commands.Cog, command_cog):
         """
         voice_client = await voice_chat.join(ctx)
         if voice_client != None:
-            self.tools.voice_client.update({str(ctx.guild.id): voice_client})
+            self.tools.voice_client.update({ctx.guild.id: voice_client})
         songs = await self.tools.fetch_songs(ctx, arg)
         await self.tools.play_song(ctx, songs)
 
@@ -52,7 +52,7 @@ class music(commands.Cog, command_cog):
         """
         voice_client = await voice_chat.join(ctx)
         if voice_client != None:
-            self.tools.voice_client.update({str(ctx.guild.id): voice_client})
+            self.tools.voice_client.update({ctx.guild.id: voice_client})
         songs = await self.tools.fetch_songs(ctx, arg)
         await self.tools.play_song(ctx, songs, playnext=True)
 

@@ -62,7 +62,7 @@ class Async:
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
                 func_name = func.__qualname__
-                logger = logging.getLogger(func_name)
+                logger = logging.getLogger(f'self.{func_name}')
                 logger.setLevel(level)
                 logger.addHandler(handler)
                 logger.info('starting')
@@ -135,7 +135,7 @@ class Sync: # synchronous versions for synchronous functions
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 func_name = func.__qualname__
-                logger = logging.getLogger(func_name)
+                logger = logging.getLogger(f'self.{func_name}')
                 logger.setLevel(level)
                 logger.addHandler(handler)
                 logger.info('starting')
