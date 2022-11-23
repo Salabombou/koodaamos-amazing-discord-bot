@@ -172,7 +172,7 @@ async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=F
     if file != None:
         target = Target(ctx.bot.loop, file)
         await target.probe()
-        if target.size_bytes > 50_000_000:
+        if target.size_bytes > 8_000_000: # change to whatever you are comfortable with or what your pc would be win
             raise TargetError('File size too large')
         return target
     raise TargetNotFound()

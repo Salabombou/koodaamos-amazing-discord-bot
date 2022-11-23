@@ -7,7 +7,7 @@ import tempfile
 from utility.logging import level, handler
 import time
 import logging
-
+import inspect
 
 class Async:
 
@@ -61,11 +61,12 @@ class Async:
             """
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
+                caller = inspect.stack()[1].function
                 func_name = func.__qualname__
                 logger = logging.getLogger(f'self.{func_name}')
                 logger.setLevel(level)
                 logger.addHandler(handler)
-                logger.info('starting')
+                logger.info(f'Starting. Called by {caller}')
                 start = time.perf_counter()
                 try:
                     value = await func(*args, **kwargs)
@@ -76,7 +77,7 @@ class Async:
                 logger.info(f'ended with a time of {end-start:.2f} seconds')
                 return value
             return wrapper
-    
+
     class ffmpeg:
     
         @staticmethod
@@ -134,11 +135,13 @@ class Sync: # synchronous versions for synchronous functions
             """
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
+                caller = inspect.stack()[1].function
                 func_name = func.__qualname__
                 logger = logging.getLogger(f'self.{func_name}')
                 logger.setLevel(level)
                 logger.addHandler(handler)
                 logger.info('starting')
+                logger.info(f'Starting. Called by {caller}')
                 start = time.perf_counter()
                 try:
                     value = func(*args, **kwargs)

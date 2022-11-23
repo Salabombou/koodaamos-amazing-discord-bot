@@ -81,7 +81,7 @@ class music(commands.Cog, command_cog):
         self.tools.playlist[ctx.guild.id] = [[], []]
         await voice_chat.leave(ctx)
 
-    @commands.command(help='pauses / resumes the currently playing song', aliases=['resume'])
+    @commands.command(help='pauses / resumes the currently playing song', aliases=['resume', 'stop'])
     @commands.guild_only()
     @commands.check(voice_chat.command_check)
     @decorators.Async.add_reaction

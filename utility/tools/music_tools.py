@@ -128,7 +128,7 @@ class music_tools:
         try:
             icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
         except:
-            icon = None
+            icon = song.thumbnail
         embed.set_footer(text=song.channel, icon_url=icon)
         return embed
     

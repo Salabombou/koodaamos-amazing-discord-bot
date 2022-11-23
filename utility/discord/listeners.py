@@ -6,6 +6,18 @@ from utility.common.command import respond
 from utility.common.errors import NaughtyError
 import os
 import logging
+import json
+from urllib.parse import quote, quote_plus
+
+
+with open('tokens.json') as file:
+    tokens: dict = json.loads(file.read())
+
+def _parse_text(text: str) -> str:
+    for value in tokens.values():
+        for value in [value, quote(value), quote_plus(value)]:
+            text = text.replace(value, '<API_KEY>')
+    return text
 
 def create_error_embed(error):
     embed = discord.Embed(
@@ -13,7 +25,8 @@ def create_error_embed(error):
         fields=[],
         title='Something went wrong!'
     )
-    embed.description = f'```{str(error)[:4090]}```'
+    error_text = _parse_text(str(error))
+    embed.description = f'```{error_text[:4090]}```'
     embed.set_footer(
         icon_url='https://cdn.discordapp.com/emojis/992830317733871636.gif',
         text=type(error).__name__
