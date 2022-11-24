@@ -54,7 +54,7 @@ Reverses the video and the audio
 Ruins the video and the audio completely by making its bitrate very small
 ##### [Mute](./cogs/ffmpeg/audio/mute.py)
 Silences the video
-##### [Earrape](./cogs/ffmpeg/audio/earrape.py)
+##### [Earrape](./cogs/ffmpeg/audio/reverse.py)
 Ruins the audio in the video by making it very loud
 
 ### [Fun](./cogs/fun/)
@@ -62,7 +62,7 @@ Fun commands to play around with
 
 ##### [Gpt3](./cogs/fun/gpt3.py)
 An AI chatbot that responds to different questions and tasks
-##### [Dalle](./cogs/fun/dalle.py)
+##### [Dalle](./cogs/fun/eduko.py)
 Creates a 3x3 collage from AI generated images from a prompt
 
 ## [Tools](./cogs/tools/)
@@ -130,4 +130,72 @@ Gets the song lyrics from search
 ## [Utility](./cogs/utility/)
 Utility contains different scripts used by different commands
 
-TBA
+### [Ffmpeg](./cogs/utility/ffmpeg.py)
+Contains tools to create videos with ffmpeg
+
+### [Ffprobe](./cogs/utility/ffprobe.py)
+Contains tools to get info about different files with ffprobe
+
+### [Logging](./cogs/utility/logging.py)
+Logging related config
+
+
+## [Common](./cogs/utility/commmon/)
+
+### [Command](./cogs/utility/commmon/command.py)
+
+### [Convert](./cogs/utility/commmon/convert.py)
+
+### [Decorators](./cogs/utility/commmon/decorators.py)
+
+### [Config](./cogs/utility/commmon/config.py)
+
+### [Errors](./cogs/utility/commmon/errors.py)
+
+### [File Management](./cogs/utility/commmon/file_management.py)
+
+### [Requests](./cogs/utility/commmon/requests.py)
+
+## [Discord](./cogs/utility/discord/)
+
+### [Check](./cogs/utility/discord/check.py)
+
+### [Help](./cogs/utility/discord/help.py)
+
+### [Listeners](./cogs/utility/discord/listeners.py)
+
+### [Target](./cogs/utility/discord/target.py)
+
+### [Voice Chat](./cogs/utility/discord/voice_chat.py)
+
+### [Webhook](./cogs/utility/discord/webhook.py)
+
+## [Scraping](./cogs/utility/scraping/)
+
+### [Compress](./cogs/utility/scraping/compress.py)
+
+### [Download](./cogs/utility/scraping/download.py)
+
+### [Genius](./cogs/utility/scraping/genius.py)
+
+### [Pomf](./cogs/utility/scraping/pomf.py)
+
+### [Reddit](./cogs/utility/scraping/Reddit.py)
+
+### [Spotify](./cogs/utility/scraping/Spotify.py)
+
+### [TikTok](./cogs/utility/scraping/TikTok.py)
+
+### [YouTube](./cogs/utility/scraping/YouTube.py)
+
+## [Tools](./cogs/utility/tools/)
+
+### [Music Tools](./cogs/utility/scraping/music_tools.py)
+
+### [Sauce Tools](./cogs/utility/scraping/sauce_tools.py)
+
+## [Views](./cogs/utility/views/)
+
+### [Music](./cogs/utility/views/music.py)
+
+### [Sauce](./cogs/utility/views/sauce.py)
