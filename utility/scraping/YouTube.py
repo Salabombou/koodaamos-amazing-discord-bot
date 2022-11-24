@@ -13,8 +13,10 @@ from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound,
 import httpx
 import re
 import concurrent.futures
-from utility.common.string import zero_width_space as zws
+from utility.common.config import string
 from utility.common import decorators
+
+zws = string.zero_width_space
 
 class VideoDummie:
     """
@@ -38,14 +40,15 @@ class Video:
         description: str,
         channelId: str,
         channelTitle: str,
-        videoId,
+        videoId: str,
+        thumbnail: str,
         **kwargs
     ) -> None:
         self.title = title
         self.description = description
         self.channel = channelTitle
         self.id = videoId
-        self.thumbnail = f'https://i.ytimg.com/vi/{self.id}/mqdefault.jpg'
+        self.thumbnail = thumbnail
         self.channelId = channelId
         self.other = kwargs
 
@@ -64,13 +67,22 @@ def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:
             channelTitle = snippet['videoOwnerChannelTitle']
     except KeyError:
         channelTitle = '???'
-
+    
+    thumbnails = snippet['thumbnails']
+    thumbnail_key = 'maxres' if 'maxres' in thumbnails else 'high'# if 'high' in thumbnails else 'medium'
+    
+    try:
+        thumbnail = thumbnails[thumbnail_key]['url']
+    except KeyError: # no thumbnails
+        thumbnail = f'https://i.ytimg.com/vi/{videoId}/mqdefault.jpg'
+        
     parsed = {
         'title': snippet['title'],
         'description': snippet['description'],
         'channelId': channelId,
         'channelTitle': channelTitle,
         'videoId': videoId,
+        'thumbnail': thumbnail
     }
 
     return Video(**parsed)
@@ -119,21 +131,21 @@ class YT_Extractor:
         }
         if video:
             ydl_opts['format'] = 'best'
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                info = await self.loop.run_in_executor(
-                    pool, functools.partial(
-                        ydl.extract_info, url,
-                        download=False
-                    )
+        ydl = yt_dlp.YoutubeDL(ydl_opts)
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            info = await self.loop.run_in_executor(
+                pool, functools.partial(
+                    ydl.extract_info, url,
+                    download=False
                 )
-            info['url'] = await get_redirect_url(info['url'])
-            if max_duration != None:
-                if info['duration'] < max_duration:
-                    return info
-            else:
-                return info
+            )
+        info['url'] = await get_redirect_url(info['url'])
+        
+        max_duration = info['duration'] if max_duration == None else max_duration
+        if info['duration'] > max_duration:
             raise VideoTooLong(max_duration)
+        return info
+
     
     @staticmethod
     def __get_results(ytInitialData: dict) -> dict:
@@ -266,22 +278,32 @@ class YT_Extractor:
         self.channel_icons[key] = icon
         return icon
 
-async def get_raw_url(url): # scraping instead of using yt_dlp for async
+async def get_raw_url(url, format='best'):
     """
         Gets the raw url to a YouTube video
     """
-    query = parse_qs(urlparse(url).query, keep_blank_values=True)
-    url = urllib.parse.quote('https://www.youtube.com/watch?v=' + query['v'][0])
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(f'https://loader.to/ajax/download.php?format=1080&url={url}')
-        resp.raise_for_status()
-        resp_json = resp.json()
-        ID = resp_json['id']
-        condition = True
-        while condition:
-            await asyncio.sleep(1)
-            resp = await client.get(f'https://loader.to/ajax/progress.php?id={ID}')
-            resp.raise_for_status()
-            resp_json = resp.json()
-            condition = resp_json['success'] == 0
-    return resp_json['download_url']
+    loop = asyncio.get_running_loop()
+    
+    ydl_opts = {
+       'format': format,
+       'restrictfilenames': True,
+       'noplaylist': True,
+       'nocheckcertificate': True,
+       'ignoreerrors': False,
+       'logtostderr': False,
+       'quiet': True,
+       'no_warnings': True,
+       'default_search': 'auto'
+    }
+    ydl = yt_dlp.YoutubeDL(ydl_opts)
+    with concurrent.futures.ThreadPoolExecutor() as pool:
+        info = await loop.run_in_executor(
+            pool,
+            functools.partial(
+                ydl.extract_info, url,
+                download=False
+            )
+        )
+    raw_url = info['url']
+    raw_url = await get_redirect_url(raw_url)
+    return raw_url

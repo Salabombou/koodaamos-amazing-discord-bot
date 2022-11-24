@@ -6,7 +6,7 @@ import bs4
 from utility.common.command import respond
 from utility.common import decorators
 from utility.cog.command import command_cog
-from utility.common import embed_config
+from utility.common import config
 
 
 class eduko(commands.Cog, command_cog):
@@ -62,7 +62,7 @@ class eduko(commands.Cog, command_cog):
         weeks = self.splice_list(self.foods, 5)
         for week in weeks:
             embed = discord.Embed(
-                color=embed_config.color,
+                color=config.embed.color,
                 fields=[],
                 title='VIIKKO ' + self.week_nums[0]
             )
