@@ -140,21 +140,21 @@ Contains tools to get info about different files with ffprobe
 Logging related config
 
 
-## [Common](./utility/commmon/)
+## [Common](./utility/common/)
 
-### [Command](./utility/commmon/command.py)
+### [Command](./utility/common/command.py)
 
-### [Convert](./utility/commmon/convert.py)
+### [Convert](./utility/common/convert.py)
 
-### [Decorators](./utility/commmon/decorators.py)
+### [Decorators](./utility/common/decorators.py)
 
-### [Config](./utility/commmon/config.py)
+### [Config](./utility/common/config.py)
 
-### [Errors](./utility/commmon/errors.py)
+### [Errors](./utility/common/errors.py)
 
-### [File Management](./utility/commmon/file_management.py)
+### [File Management](./utility/common/file_management.py)
 
-### [Requests](./utility/commmon/requests.py)
+### [Requests](./utility/common/requests.py)
 
 ## [Discord](./utility/discord/)
 
@@ -190,9 +190,9 @@ Logging related config
 
 ## [Tools](./utility/tools/)
 
-### [Music Tools](./utility/scraping/music_tools.py)
+### [Music Tools](./utility/tools/music_tools.py)
 
-### [Sauce Tools](./utility/scraping/sauce_tools.py)
+### [Sauce Tools](./utility/tools/sauce_tools.py)
 
 ## [Views](./utility/views/)
 
