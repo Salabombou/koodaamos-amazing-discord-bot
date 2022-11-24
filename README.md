@@ -54,7 +54,7 @@ Reverses the video and the audio
 Ruins the video and the audio completely by making its bitrate very small
 ##### [Mute](./cogs/ffmpeg/audio/mute.py)
 Silences the video
-##### [Earrape](./cogs/ffmpeg/audio/reverse.py)
+##### [Earrape](./cogs/ffmpeg/audio/earrape.py)
 Ruins the audio in the video by making it very loud
 
 ### [Fun](./cogs/fun/)
@@ -62,7 +62,7 @@ Fun commands to play around with
 
 ##### [Gpt3](./cogs/fun/gpt3.py)
 An AI chatbot that responds to different questions and tasks
-##### [Dalle](./cogs/fun/eduko.py)
+##### [Dalle](./cogs/fun/dalle.py)
 Creates a 3x3 collage from AI generated images from a prompt
 
 ## [Tools](./cogs/tools/)
