@@ -11,7 +11,7 @@ from asyncio import AbstractEventLoop
 import validators
 import numpy as np
 from utility.common import decorators
-from utility.common import embed_config
+from utility.common import config
 
 
 ffmpeg_options = {
@@ -68,7 +68,7 @@ class music_tools:
             title='PLAYLIST',
             description='',
             fields=[],
-            color=embed_config.color
+            color=config.embed.color
         )
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[ctx.guild.id][0]) / 50)
@@ -117,7 +117,7 @@ class music_tools:
             title=song.title,
             description=song.description,
             fields=[],
-            color=embed_config.color
+            color=config.embed.color
         )
 
         embed.set_image(url=song.thumbnail)
@@ -151,7 +151,7 @@ class music_tools:
             return songs
         raise UrlInvalid()
 
-    def shuffle_playlist(self, ID):
+    def shuffle_playlist(self, ID: int):
         temp = self.playlist[ID][0][0]
         self.playlist[ID][0].pop(0)
         np.random.shuffle(self.playlist[ID][0])
@@ -164,10 +164,11 @@ class music_tools:
             message = await ctx.send('Song unavailable, moving to next one')
             self.playlist[ctx.guild.id][0].pop(0)
             await self.play_song(ctx, next_song=next_song)
-            return await message.delete()
+            return await message.delete(delay=1)
         except:
             return
-        
+    
+    # making sure this wont ever raise an exception and thus stop the music from playing
     @decorators.Async.logging.log
     async def play_song(self, ctx: commands.Context, songs=[], playnext=False, next_song=False):
         """

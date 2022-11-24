@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import utility.common.string
+from utility.common import config
 
 
 class help_command(commands.HelpCommand):
@@ -44,7 +44,7 @@ class help_command(commands.HelpCommand):
             for command in filtered_commands:
                 signature = self.get_command_signature(command)
                 embed.add_field(
-                    name=signature, value=command.help or utility.common.string.zero_width_space)
+                    name=signature, value=command.help or config.string.zero_width_space)
 
         await self.get_destination().send(embed=embed)
 

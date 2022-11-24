@@ -148,11 +148,7 @@ class music_view(discord.ui.View):
         """
         if self.tools.playlist[self.server][0] == []:
             return
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            await self.bot.loop.run_in_executor(
-                pool,
-                self.tools.shuffle_playlist, self.server
-            )
+        self.tools.shuffle_playlist(self.ctx.guild.id)
         self.update_embed()
         self.update_buttons()
         return await interaction.response.edit_message(embed=self.embed, view=self)

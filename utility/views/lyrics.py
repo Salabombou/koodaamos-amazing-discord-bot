@@ -1,8 +1,7 @@
 import discord
 from utility.scraping.Genius import GeniusSearchResults
 from utility.common.errors import LyricsTooLong
-from utility.common import embed_config
-from utility.discord import message_config
+from utility.common import config
 import asyncio
 
 class lyrics_view(discord.ui.View):
@@ -30,7 +29,7 @@ class lyrics_view(discord.ui.View):
         """
         embeds = []
         for result in song_results:
-            embed = discord.Embed(color=embed_config.color, title=result.title)
+            embed = discord.Embed(color=config.embed.color, title=result.title)
             embed.set_image(url=result.thumbnail)
             embed.set_footer(icon_url=result.artist_icon, text=result.artist_names)
             embed.description = f'URL: {result.url}'
@@ -67,7 +66,7 @@ class lyrics_view(discord.ui.View):
             Responds with the lyrics and deletes the view from the message
         """
         lyrics = await self.results.song_results[self.index].GetLyrics()
-        if len(lyrics) + 6 > message_config.max_length:
+        if len(lyrics) + 6 > config.message.max_length:
             raise LyricsTooLong()
         await self.message.edit(view=None)
         await interaction.response.send_message(content=f'```{lyrics}```')

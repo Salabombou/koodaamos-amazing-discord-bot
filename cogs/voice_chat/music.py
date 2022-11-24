@@ -117,6 +117,7 @@ class music(commands.Cog, command_cog):
 
     @commands.command(help='shuffles the playlist')
     @commands.guild_only()
+    @commands.cooldown(1, 2, commands.BucketType.user)
     @commands.check(voice_chat.command_check)
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
@@ -127,11 +128,7 @@ class music(commands.Cog, command_cog):
         """
         if self.tools.playlist[ctx.guild.id] == [[], []]:
             return
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            await self.bot.loop.run_in_executor(
-                pool,
-                self.tools.shuffle_playlist, ctx.guild.id
-            )
+        self.tools.shuffle_playlist(ctx.guild.id)
 
     @commands.command(help='Loops the currently playing song until stopped')
     @commands.guild_only()
@@ -151,13 +148,14 @@ class music(commands.Cog, command_cog):
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @decorators.Async.update_playlist
-    async def info(self, ctx, number=0):
+    async def info(self, ctx: commands.Context, number=0):
         """
             Gets the info from the selected song from the playlist. Defaults to currently playing song
         """
-        if self.tools.playlist[ctx.guild.id][0] != []:
-            embed = self.tools.create_info_embed(ctx, number=number)
-            await respond(ctx, embed=embed, mention_author=False)
+        if self.tools.playlist[ctx.guild.id][0] == []:
+            return
+        embed = await self.tools.create_info_embed(ctx, number=number)
+        await respond(ctx, embed=embed, mention_author=False)
 
     @commands.command(help='replays the current song')
     @commands.guild_only()
@@ -169,9 +167,10 @@ class music(commands.Cog, command_cog):
         """
             Replays the currently playing song
         """
-        if self.tools.playlist[ctx.guild.id][0] != []:
-            self.tools.playlist[ctx.guild.id][0].insert(0, self.tools.playlist[ctx.guild.id][0][0])
-            voice_chat.stop(ctx)
+        if self.tools.playlist[ctx.guild.id][0] == []:
+            return
+        self.tools.playlist[ctx.guild.id][0].insert(0, self.tools.playlist[ctx.guild.id][0][0])
+        voice_chat.stop(ctx)
 
     @commands.command(help='replies with the lyrics from query')
     @commands.cooldown(1, 60, commands.BucketType.user)

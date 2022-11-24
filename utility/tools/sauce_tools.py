@@ -1,8 +1,8 @@
 import bs4
 import discord
-import utility.common.string
+from utility.common import config
 from bs4 import BeautifulSoup
-from utility.common import embed_config
+from utility.common import config
 
 class parsed_result:
     """
@@ -49,7 +49,7 @@ class parsed_result:
         description = description[:-1]
         if description != '':
             return description
-        return utility.common.string.zero_width_space
+        return config.string.zero_width_space
 
 
 def create_embed(res: bs4.BeautifulSoup, url: str, hidden: bool):
@@ -60,7 +60,7 @@ def create_embed(res: bs4.BeautifulSoup, url: str, hidden: bool):
     embed = discord.Embed(
         title=result.title,
         fields=[],
-        color=embed_config.color,
+        color=config.embed.color,
         description=result.content
     )
     embed.set_image(url=result.image)

@@ -4,7 +4,7 @@ import discord
 import openai
 import functools
 from utility.common import decorators
-from utility.common import embed_config
+from utility.common import config
 import concurrent.futures
 from utility.cog.command import command_cog
 
@@ -39,7 +39,7 @@ class gpt3(commands.Cog, command_cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @decorators.Async.typing
     async def gpt3(self, ctx: commands.Context, *, prompt='make up a 4chan greentext post'):
-        embed = discord.Embed(color=embed_config.color, fields=[], title=prompt)
+        embed = discord.Embed(color=config.embed.color, fields=[], title=prompt)
         bot = ctx.bot
         loop: AbstractEventLoop = bot.loop
         with concurrent.futures.ThreadPoolExecutor() as pool:
