@@ -176,7 +176,7 @@ Logging related config
 
 ### [Download](./utility/scraping/download.py)
 
-### [Genius](./utility/scraping/genius.py)
+### [Genius](./utility/scraping/Genius.py)
 
 ### [Pomf](./utility/scraping/pomf.py)
 
