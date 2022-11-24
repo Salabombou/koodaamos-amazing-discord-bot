@@ -127,75 +127,75 @@ Replays the currently playing song
 #### [Lyrics](./cogs/voice_chat/music.py)
 Gets the song lyrics from search
 
-## [Utility](./cogs/utility/)
+## [Utility](./utility/)
 Utility contains different scripts used by different commands
 
-### [Ffmpeg](./cogs/utility/ffmpeg.py)
+### [Ffmpeg](./utility/ffmpeg.py)
 Contains tools to create videos with ffmpeg
 
-### [Ffprobe](./cogs/utility/ffprobe.py)
+### [Ffprobe](./utility/ffprobe.py)
 Contains tools to get info about different files with ffprobe
 
-### [Logging](./cogs/utility/logging.py)
+### [Logging](./utility/logging.py)
 Logging related config
 
 
-## [Common](./cogs/utility/commmon/)
+## [Common](./utility/commmon/)
 
-### [Command](./cogs/utility/commmon/command.py)
+### [Command](./utility/commmon/command.py)
 
-### [Convert](./cogs/utility/commmon/convert.py)
+### [Convert](./utility/commmon/convert.py)
 
-### [Decorators](./cogs/utility/commmon/decorators.py)
+### [Decorators](./utility/commmon/decorators.py)
 
-### [Config](./cogs/utility/commmon/config.py)
+### [Config](./utility/commmon/config.py)
 
-### [Errors](./cogs/utility/commmon/errors.py)
+### [Errors](./utility/commmon/errors.py)
 
-### [File Management](./cogs/utility/commmon/file_management.py)
+### [File Management](./utility/commmon/file_management.py)
 
-### [Requests](./cogs/utility/commmon/requests.py)
+### [Requests](./utility/commmon/requests.py)
 
-## [Discord](./cogs/utility/discord/)
+## [Discord](./utility/discord/)
 
-### [Check](./cogs/utility/discord/check.py)
+### [Check](./utility/discord/check.py)
 
-### [Help](./cogs/utility/discord/help.py)
+### [Help](./utility/discord/help.py)
 
-### [Listeners](./cogs/utility/discord/listeners.py)
+### [Listeners](./utility/discord/listeners.py)
 
-### [Target](./cogs/utility/discord/target.py)
+### [Target](./utility/discord/target.py)
 
-### [Voice Chat](./cogs/utility/discord/voice_chat.py)
+### [Voice Chat](./utility/discord/voice_chat.py)
 
-### [Webhook](./cogs/utility/discord/webhook.py)
+### [Webhook](./utility/discord/webhook.py)
 
-## [Scraping](./cogs/utility/scraping/)
+## [Scraping](./utility/scraping/)
 
-### [Compress](./cogs/utility/scraping/compress.py)
+### [Compress](./utility/scraping/compress.py)
 
-### [Download](./cogs/utility/scraping/download.py)
+### [Download](./utility/scraping/download.py)
 
-### [Genius](./cogs/utility/scraping/genius.py)
+### [Genius](./utility/scraping/genius.py)
 
-### [Pomf](./cogs/utility/scraping/pomf.py)
+### [Pomf](./utility/scraping/pomf.py)
 
-### [Reddit](./cogs/utility/scraping/Reddit.py)
+### [Reddit](./utility/scraping/Reddit.py)
 
-### [Spotify](./cogs/utility/scraping/Spotify.py)
+### [Spotify](./utility/scraping/Spotify.py)
 
-### [TikTok](./cogs/utility/scraping/TikTok.py)
+### [TikTok](./utility/scraping/TikTok.py)
 
-### [YouTube](./cogs/utility/scraping/YouTube.py)
+### [YouTube](./utility/scraping/YouTube.py)
 
-## [Tools](./cogs/utility/tools/)
+## [Tools](./utility/tools/)
 
-### [Music Tools](./cogs/utility/scraping/music_tools.py)
+### [Music Tools](./utility/scraping/music_tools.py)
 
-### [Sauce Tools](./cogs/utility/scraping/sauce_tools.py)
+### [Sauce Tools](./utility/scraping/sauce_tools.py)
 
-## [Views](./cogs/utility/views/)
+## [Views](./utility/views/)
 
-### [Music](./cogs/utility/views/music.py)
+### [Music](./utility/views/music.py)
 
-### [Sauce](./cogs/utility/views/sauce.py)
+### [Sauce](./utility/views/sauce.py)
