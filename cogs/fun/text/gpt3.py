@@ -6,18 +6,20 @@ import functools
 from utility.common import decorators
 from utility.common import embed_config
 import concurrent.futures
+from utility.cog.command import command_cog
 
 
-class gpt3(commands.Cog):
+class gpt3(commands.Cog, command_cog):
     """
         An ai chatbot that can respond to different questions and tasks
     """
-    def __init__(self, bot, tokens):
+    def __init__(self, bot: commands.Bot, tokens: dict[str]):
+        super().__init__(bot=bot, tokens=tokens)
         self.description = 'Outputs a response from a chat bot ai from the specified prompt'
-        self.bot = bot
-        self.tokens = tokens
         openai.api_key = self.tokens['openai']
-
+        
+    
+    @decorators.Sync.logging.log
     def create_text(self, prompt):
         response = openai.Completion.create(
             engine='text-davinci-002',

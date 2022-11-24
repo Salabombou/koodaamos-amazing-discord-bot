@@ -4,7 +4,7 @@ from utility.common.errors import TargetNotFound, TargetError
 from discord.ext import commands
 from discord import StickerItem, Embed, Attachment
 from utility.ffprobe import FfprobeFormat, Ffprober
-from utility.common import convert
+from utility.common import convert, decorators
 
 """
 THE ORDER FOR THE FILES
@@ -142,7 +142,7 @@ class target_fetcher:
             if isinstance(embed.thumbnail.proxy_url, str) and self.img:
                 return embed
 
-
+@decorators.Async.logging.log
 async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=False) -> Target:
     """
         Gets the target from the discord chat
@@ -172,7 +172,7 @@ async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=F
     if file != None:
         target = Target(ctx.bot.loop, file)
         await target.probe()
-        if target.size_bytes > 50_000_000:
+        if target.size_bytes > 8_000_000: # change to whatever you are comfortable with or what your pc would be win
             raise TargetError('File size too large')
         return target
     raise TargetNotFound()

@@ -56,7 +56,7 @@ class Ffprober:
             return f'{size / (1000_1000)} Mibyte'
         raise FfprobeError('File size could not be determined')
 
-    
+    @decorators.Async.logging.log
     @decorators.Async.ffmpeg.create_dir
     async def get_format(self, file : str | bytes, _dir: str = None) -> dict:
         command = 'ffprobe -show_format -pretty -loglevel error "%s"'

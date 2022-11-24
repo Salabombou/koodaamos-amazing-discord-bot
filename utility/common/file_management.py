@@ -6,11 +6,11 @@ import io
 import discord
 from utility.scraping import compress, pomf
 from discord.ext import commands
-
+from utility.common import decorators
 
 client = httpx.AsyncClient()
 
-
+@decorators.Async.logging.log
 async def get_bytes(file) -> bytes:  # returns the bytes of the file to be converted
     """
         Gets the bytes from a file or a url

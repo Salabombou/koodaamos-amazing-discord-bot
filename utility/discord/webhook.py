@@ -1,11 +1,13 @@
 import httpx
 from discord.ext import commands
 from discord import Embed, File, Webhook
+from utility.common import decorators
+
 
 client = httpx.AsyncClient()
 
 
-async def fetch_avatar(ctx: commands.Context) -> bytes:
+async def __fetch_avatar(ctx: commands.Context) -> bytes:
     """
         Gets the bot's avatar from url
     """
@@ -17,7 +19,7 @@ async def fetch_avatar(ctx: commands.Context) -> bytes:
     return resp.content
 
 
-async def fetch_webhook(ctx: commands.Context) -> Webhook:
+async def _fetch_webhook(ctx: commands.Context) -> Webhook:
     """
         Gets the webhook from channel that is created by the bot. If it doesn't exists, creates one
     """
@@ -25,12 +27,12 @@ async def fetch_webhook(ctx: commands.Context) -> Webhook:
     for webhook in webhooks:
         if webhook.user.id == ctx.me.id:
             return webhook
-    return await ctx.message.channel.create_webhook(name='サラボンボのすばらしいウエブフーック', avatar=await fetch_avatar(ctx))
+    return await ctx.message.channel.create_webhook(name='サラボンボのすばらしいウエブフーック', avatar=await __fetch_avatar(ctx))
 
-
+@decorators.Async.logging.log
 async def send_message(ctx, embeds: list[Embed], files: list[File] = None):
     """
         Sends a message using webhooks
     """
-    webhook = await fetch_webhook(ctx)
+    webhook = await _fetch_webhook(ctx)
     await webhook.send(embeds=embeds, files=files)

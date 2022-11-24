@@ -3,6 +3,8 @@ import httpx
 import numpy as np
 import bs4
 from utility.common.errors import GeniusSongsNotFound, GeniusApiError
+from utility.common import decorators
+
 
 class GeniusSearchResults:
     """
@@ -65,7 +67,8 @@ class GeniusSearchResults:
                     results += self.__parse_results(content.contents)
                     
             return results
-
+        
+        @decorators.Async.logging.log
         async def GetLyrics(self) -> str:
             """
                 Gets the lyrics from the song
@@ -93,6 +96,7 @@ class Genius:
         self.access_token = access_token
         self.search_url = f'https://api.genius.com/search?access_token={access_token}&q='
     
+    @decorators.Async.logging.log
     async def Search(self, query: str) -> GeniusSearchResults:
         """
             Searches for lyrics from genius api

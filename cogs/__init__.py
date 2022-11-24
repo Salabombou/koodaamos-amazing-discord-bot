@@ -7,7 +7,7 @@ from cogs.ffmpeg.video.green import green
 from cogs.ffmpeg.video.ruin import ruin
 from cogs.ffmpeg.video.bait import bait
 from cogs.ffmpeg.video.reverse import reverse
-from cogs.fun.eduko import eduko
+from cogs.fun.text.eduko import eduko
 from cogs.fun.image.dalle import dalle
 from cogs.fun.image.sauce import sauce
 from cogs.fun.text.gpt3 import gpt3

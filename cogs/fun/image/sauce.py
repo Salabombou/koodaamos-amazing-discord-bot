@@ -26,6 +26,7 @@ class sauce(commands.Cog, command_cog):
         accepted_dbs = [str(db) for db in range(0, 44 + 1) if db not in rejected_dbs]
         self.fields += [['dbs[]', db] for db in accepted_dbs]
 
+    @decorators.Async.logging.log
     async def get_sauce(self, url):
         try:
             fields = self.fields

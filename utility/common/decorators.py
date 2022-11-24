@@ -4,6 +4,10 @@ import functools
 from discord.ext import commands
 from discord.commands.context import ApplicationContext
 import tempfile
+from utility.logging import level, handler
+import time
+import logging
+import inspect
 
 class Async:
 
@@ -48,6 +52,32 @@ class Async:
             return value
         return wrapper
     
+    class logging:
+        
+        @staticmethod
+        def log(func):
+            """
+                Logs the function start and end
+            """
+            @functools.wraps(func)
+            async def wrapper(*args, **kwargs):
+                caller = inspect.stack()[1].function
+                func_name = func.__qualname__
+                logger = logging.getLogger(f'self.{func_name}')
+                logger.setLevel(level)
+                logger.addHandler(handler)
+                logger.info(f'Starting. Called by {caller}')
+                start = time.perf_counter()
+                try:
+                    value = await func(*args, **kwargs)
+                except Exception as e:
+                    logger.exception(f'ended with exception {type(e).__name__}')
+                    raise e
+                end = time.perf_counter()
+                logger.info(f'ended with a time of {end-start:.2f} seconds')
+                return value
+            return wrapper
+
     class ffmpeg:
     
         @staticmethod
@@ -69,7 +99,7 @@ class Async:
         """
         @functools.wraps(func)
         async def wrapper(self, ctx: commands.Context, *args, **kwargs):
-            server = str(ctx.guild.id)
+            server = ctx.guild.id
             if not server in self.tools.playlist:
                 self.tools.playlist[server] = [[], []]
             if server not in self.tools.looping:
@@ -77,16 +107,6 @@ class Async:
             return await func(self, ctx, *args, **kwargs)
         return wrapper
 
-    @staticmethod
-    def get_server(func):  # passes the server id as a string since its needed to access some dicts
-        """
-            Gets the server id as str and passes it as a keyword arguement
-        """
-        @functools.wraps(func)
-        async def wrapper(self, ctx: commands.Context | ApplicationContext | discord.Message, *args, **kwargs):
-            kwargs['server'] = str(ctx.guild.id)
-            return await func(self, ctx, *args, **kwargs)
-        return wrapper
 
 class Sync: # synchronous versions for synchronous functions
 
@@ -97,21 +117,38 @@ class Sync: # synchronous versions for synchronous functions
         """
         @functools.wraps(func)
         def wrapper(self, ctx: commands.Context, *args, **kwargs):
-            server = str(ctx.guild.id)
+            server = ctx.guild.id
             if not server in self.tools.playlist:
                 self.tools.playlist[server] = [[], []]
             if server not in self.tools.looping:
                 self.tools.looping[server] = False
             return func(self, ctx, *args, **kwargs)
         return wrapper
-
-    @staticmethod
-    def get_server(func):  # passes the server id as a string since its needed to access some dicts
-        """
-            Gets the server id as str and passes it as a keyword arguement
-        """
-        @functools.wraps(func)
-        def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
-            kwargs['server'] = str(ctx.guild.id)
-            return func(self, ctx, *args, **kwargs)
-        return wrapper
+    
+    
+    class logging:
+        
+        @staticmethod
+        def log(func):
+            """
+                Logs the function start and end
+            """
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                caller = inspect.stack()[1].function
+                func_name = func.__qualname__
+                logger = logging.getLogger(f'self.{func_name}')
+                logger.setLevel(level)
+                logger.addHandler(handler)
+                logger.info('starting')
+                logger.info(f'Starting. Called by {caller}')
+                start = time.perf_counter()
+                try:
+                    value = func(*args, **kwargs)
+                except Exception as e:
+                    logger.exception(f'ended with exception {type(e).__name__}')
+                    raise e
+                end = time.perf_counter()
+                logger.info(f'ended with a time of {end-start:.2f} seconds')
+                return value
+            return wrapper
