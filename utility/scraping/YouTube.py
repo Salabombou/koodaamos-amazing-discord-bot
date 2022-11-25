@@ -61,19 +61,19 @@ def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:
     
     channelId = snippet['channelId']
     channelTitle = snippet['channelTitle']
-    try:
-        if from_playlist:
-            channelId = snippet['videoOwnerChannelId']
-            channelTitle = snippet['videoOwnerChannelTitle']
-    except KeyError:
-        channelTitle = '???'
+    
+    if not from_playlist:
+        pass
+    elif'videoOwnerChannelId' in snippet and 'videoOwnerChannelTitle' in snippet:
+        channelId = snippet['videoOwnerChannelId']
+        channelTitle = snippet['videoOwnerChannelTitle']
     
     thumbnails = snippet['thumbnails']
-    thumbnail_key = 'maxres' if 'maxres' in thumbnails else 'high'# if 'high' in thumbnails else 'medium'
+    thumbnail_key = 'maxres' if 'maxres' in thumbnails else 'high'
     
-    try:
+    if thumbnail_key in thumbnails:
         thumbnail = thumbnails[thumbnail_key]['url']
-    except KeyError: # no thumbnails
+    else:
         thumbnail = f'https://i.ytimg.com/vi/{videoId}/mqdefault.jpg'
         
     parsed = {

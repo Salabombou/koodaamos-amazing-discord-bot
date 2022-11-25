@@ -30,7 +30,7 @@ async def _fetch_webhook(ctx: commands.Context) -> Webhook:
     return await ctx.message.channel.create_webhook(name='サラボンボのすばらしいウエブフーック', avatar=await __fetch_avatar(ctx))
 
 @decorators.Async.logging.log
-async def send_message(ctx, embeds: list[Embed], files: list[File] = None):
+async def send_message(ctx, /, *, embeds: list[Embed], files: list[File] = None):
     """
         Sends a message using webhooks
     """

@@ -29,7 +29,6 @@ class music_tools:
         self.looping = {}
         self.voice_client = {}
         self.link_values = lambda song: f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})'
-        self.yt_error_vid_id = 'J3lXjYWPoys'
 
     # appends songs to the playlist
     def append_songs(self, ctx: commands.Context, /, playnext=False, songs=[]):
