@@ -6,7 +6,7 @@ from utility.common import decorators
 loop = asyncio.get_event_loop()
 
 @decorators.Async.logging.log
-async def get_redirect_url(url: str):
+async def get_redirect_url(url: str) -> str:
     """
         Gets the redirect url from url
     """
