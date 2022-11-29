@@ -526,137 +526,31 @@ variables:
 
 ### [Errors](./utility/common/errors.py)
 
-Contains the bot's custom errors.
+Contains the bot's custom exceptions.
+
+Exception classes:
+* `class CommandTimeout(Exception)` External command timed out
+* `class SauceNotFound(Exception)` No sauce were found for the image
+* `class SongNotFound(Exception)` No songs found in the play
+* `class UrlInvalid(Exception)` Given url is malformed
+* `class VideoUnavailable(Exception)` Video is not available for download
+* `class VideoTooLong(Exception)` Video's duration exceeds the maximum allowed duration
+* `class UnsupportedUrl(Exception)` Url is not supported by the application
+* `class DownloadFailure(Exception)` File download failed
+* `class TargetNotFound(Exception)` Target file could not be found
+* `class FfmpegError(Exception)` Ffmpeg command did not complete successfully
+* `class FfprobeError(Exception)` Ffprobe command did not complete successfully
+* `class VideoSearchNotFound(Exception)` Could not find any videos with the said query
+* `class PomfUploadFail(Exception)` Uploading the file to pomf failed
+* `class TargetError(Exception)` Target is invalid in some way
+* `class UrlRedirectError(Exception)` Url redirected too many times
+* `class NaughtyError(Exception)` User is listed in the naughty list
+* `class GeniusSongsNotFound(Exception)` No songs were found from Genius with a query
+* `class PlaylistEmpty(Exception)` Playlist does not have any songs
+* `class LyricsTooLong(Exception)` Lyrics are over the allowed message length
+* `class YoutubeApiError(Exception)` YouTube api did not respond correctly
+* `class GeniusApiError(Exception)` Genius api did not respond correctly
 
-  
-
-classes:
-
-`class CommandTimeout(Exception)`
-
-External command timed out
-
-  
-
-`class SauceNotFound(Exception)`
-
-No sauce were found for the image
-
-  
-
-`class SongNotFound(Exception)`
-
-No songs found in the play
-
-  
-
-`class UrlInvalid(Exception)`
-
-Given url is malformed
-
-  
-
-`class VideoUnavailable(Exception)`
-
-Video is not available for download
-
-  
-
-`class VideoTooLong(Exception)`
-
-Video's duration exceeds the maximum allowed duration
-
-  
-
-`class UnsupportedUrl(Exception)`
-
-Url is not supported by the application
-
-  
-
-`class DownloadFailure(Exception)`
-
-File download failed
-
-  
-
-`class TargetNotFound(Exception)`
-
-Target file could not be found
-
-  
-
-`class FfmpegError(Exception)`
-
-Ffmpeg command did not complete successfully
-
-  
-
-`class FfprobeError(Exception)`
-
-Ffprobe command did not complete successfully
-
-  
-
-`class VideoSearchNotFound(Exception)`
-
-Could not find any videos with the said query
-
-  
-
-`class PomfUploadFail(Exception)`
-
-Uploading the file to pomf failed
-
-  
-
-`class TargetError(Exception)`
-
-Target is invalid in some way
-
-  
-
-`class UrlRedirectError(Exception)`
-
-Url redirected too many times
-
-  
-
-`class NaughtyError(Exception)`
-
-User is listed in the naughty list
-
-  
-
-`class GeniusSongsNotFound(Exception)`
-
-No songs were found from Genius with a query
-
-  
-
-`class PlaylistEmpty(Exception)`
-
-Playlist does not have any songs
-
-  
-
-`class LyricsTooLong(Exception)`
-
-Lyrics are over the allowed message length
-
-  
-
-`class YoutubeApiError(Exception)`
-
-YouTube api did not respond correctly
-
-  
-
-`class GeniusApiError(Exception)`
-
-Genius api did not respond correctly
-
-  
 
 ### [File Management](./utility/common/file_management.py)
 
@@ -1012,7 +906,7 @@ Extractor for extracting data from YouTube
 
 variables:
 
-* `loop` Event loop
+ * `loop` Event loop
 * `youtube` YouTube api libary's instance
 * `channel_icons` Contains the already fetched channel icons for memoization
 * `client` Httpx AsyncClient for requests
