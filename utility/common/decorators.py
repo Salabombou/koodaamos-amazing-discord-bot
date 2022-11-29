@@ -44,12 +44,13 @@ class Async:
         @functools.wraps(func)
         async def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
             value = await func(self, ctx, *args, **kwargs)
-            await asyncio.sleep(5)
-            if ctx.message != None:
-                await ctx.message.delete()
-            else:
-                await ctx.delete()
-            return value
+            try:
+                if ctx.message != None:
+                    await ctx.message.delete(delay=5)
+                else:
+                    await ctx.delete(delay=5)
+            finally:
+                return value
         return wrapper
     
     class logging:
