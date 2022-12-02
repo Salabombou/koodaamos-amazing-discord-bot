@@ -45,7 +45,9 @@ Commands range from web scraping to ffmpeg video editing
 
 - Install the needed packages with `py -m pip install -r requirements.txt`
 
-  
+
+- Insatll ffmpeg for the ffmpeg commands
+
 
 - Before starting the bot, add the needed api tokens to the [tokens.json](./tokens.json)
 
