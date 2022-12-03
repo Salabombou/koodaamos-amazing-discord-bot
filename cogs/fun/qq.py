@@ -37,10 +37,11 @@ class qq(commands.Cog, command_cog):
         resp_json = resp.json()
         if resp_json['code'] != 0 and 'extra' not in resp_json:
             raise AnimefierError(msg=resp_json['msg'])
-        return json.loads(resp_json['extra'])['img_urls']
+        extra =  json.loads(resp_json['extra'])
+        return extra['img_urls']
     
     @commands.command(help='Use it at your own risk!')
-    @commands.cooldown(1, 180, commands.BucketType.guild)
+    @commands.cooldown(1, 180, commands.BucketType.default)
     @decorators.Async.typing
     async def animefy(self, ctx: commands.Context):
         image = await target.get_target(ctx, no_aud=True, no_vid=True)
