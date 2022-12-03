@@ -21,7 +21,7 @@ class qq(commands.Cog, command_cog):
         self.url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
         self. image_to_base64 = lambda image: base64.b64encode(image).decode('utf-8')
     
-    async def get_animefied_images(self, image_url: str) -> list[str]:
+    async def get_animefied_images(self, ctx: commands.Context, /, *, image_url: str) -> list[str]:
         resp = await self.client.get(image_url)
         resp.raise_for_status()
         image = self.image_to_base64(resp.content)
@@ -36,6 +36,7 @@ class qq(commands.Cog, command_cog):
         resp.raise_for_status()
         resp_json = resp.json()
         if resp_json['code'] != 0 and 'extra' not in resp_json:
+            ctx.command.reset_cooldown(ctx)
             raise AnimefierError(msg=resp_json['msg'])
         extra =  json.loads(resp_json['extra'])
         return extra['img_urls']
@@ -45,7 +46,7 @@ class qq(commands.Cog, command_cog):
     @decorators.Async.typing
     async def animefy(self, ctx: commands.Context):
         image = await target.get_target(ctx, no_aud=True, no_vid=True)
-        animefied_images = await self.get_animefied_images(image_url=image.proxy_url)
+        animefied_images = await self.get_animefied_images(ctx, image_url=image.proxy_url)
         embed = discord.Embed(title='Animefied Image', fields=[], color=config.embed.color)
         embed.set_image(url=animefied_images[0])
         await respond(ctx, embed=embed)
