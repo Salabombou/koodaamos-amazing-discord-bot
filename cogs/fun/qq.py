@@ -46,8 +46,9 @@ class qq(commands.Cog, command_cog):
             resp = await client.post(url=self.url, data=json.dumps(payload), headers={'Content-Type': 'application/json'})
         resp.raise_for_status()
         resp_json = resp.json()
-        if resp_json['code'] != 0 and 'extra' not in resp_json:
+        if resp_json['code'] == 2111:
             ctx.command.reset_cooldown(ctx)
+        if resp_json['code'] != 0 and 'extra' not in resp_json:
             raise AnimefierError(msg=resp_json['msg'])
         extra =  json.loads(resp_json['extra'])
         return extra['img_urls']
