@@ -9,6 +9,9 @@ from utility.common.errors import AnimefierError
 import discord
 from utility.common import config
 from utility.common.command import respond
+from utility.common import file_management
+import io
+
 
 
 class qq(commands.Cog, command_cog):
@@ -21,10 +24,18 @@ class qq(commands.Cog, command_cog):
         self.url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
         self. image_to_base64 = lambda image: base64.b64encode(image).decode('utf-8')
     
+    async def get_image_bytes(self, images: list[str]):
+        if images == []:
+            return
+        try:
+            image = await file_management.get_bytes(images[0])
+        except:
+            return await self.get_image_bytes(images[1:])
+        return image
+    
     async def get_animefied_images(self, ctx: commands.Context, /, *, image_url: str) -> list[str]:
-        resp = await self.client.get(image_url)
-        resp.raise_for_status()
-        image = self.image_to_base64(resp.content)
+        image = await file_management.get_bytes(file=image_url)
+        image = self.image_to_base64(image)
         payload = {
             'busiId': 'ai_painting_anime_img_entry',
             'images': [
@@ -46,7 +57,13 @@ class qq(commands.Cog, command_cog):
     @decorators.Async.typing
     async def animefy(self, ctx: commands.Context):
         image = await target.get_target(ctx, no_aud=True, no_vid=True)
+        
         animefied_images = await self.get_animefied_images(ctx, image_url=image.proxy_url)
+        
         embed = discord.Embed(title='Animefied Image', fields=[], color=config.embed.color)
-        embed.set_image(url=animefied_images[0])
-        await respond(ctx, embed=embed)
+        embed.set_image(url='attachment://unknown.jpg')
+        
+        image = await self.get_image_bytes(images=animefied_images)
+        file = discord.File(fp=io.BytesIO(image), filename='unknown.jpg')
+        
+        await respond(ctx, embed=embed, file=file)
