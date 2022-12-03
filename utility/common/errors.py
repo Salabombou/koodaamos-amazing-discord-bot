@@ -146,3 +146,10 @@ class YoutubeApiError(Exception):
 class GeniusApiError(Exception):
     def __str__(self) -> str:
         return 'Failed to fetch data'
+    
+class AnimefierError(Exception):
+    def __init__(self, msg: str) -> None:
+        self.message = msg
+    
+    def __str__(self) -> str:
+        return self.message

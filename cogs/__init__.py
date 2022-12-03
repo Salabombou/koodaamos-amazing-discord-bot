@@ -15,5 +15,7 @@ from cogs.voice_chat.music import music
 from cogs.tools.download import download
 from cogs.tools.removebg import removebg
 from cogs.tools.owner import owner
+from cogs.fun.qq import qq
 
-__all__ = ['audio', 'earrape', 'flanger', 'mute', 'nightcore', 'green', 'ruin', 'eduko', 'dalle', 'sauce', 'gpt3', 'download', 'music', 'owner', 'removebg', 'bait', 'reverse']
+
+__all__ = ['audio', 'earrape', 'flanger', 'mute', 'nightcore', 'green', 'ruin', 'eduko', 'dalle', 'sauce', 'gpt3', 'download', 'music', 'owner', 'removebg', 'bait', 'reverse', 'qq']

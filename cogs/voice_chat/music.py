@@ -80,6 +80,7 @@ class music(commands.Cog, command_cog):
         """
         self.tools.playlist[ctx.guild.id] = [[], []]
         await voice_chat.leave(ctx)
+        
 
     @commands.command(help='pauses / resumes the currently playing song', aliases=['resume', 'stop'])
     @commands.guild_only()
@@ -92,7 +93,8 @@ class music(commands.Cog, command_cog):
         """
         if ctx.voice_client.is_paused():
             return voice_chat.resume(ctx)
-        elif self.tools.playlist[ctx.guild.id][0] != [] and not ctx.voice_client.is_playing():
+        is_playing = ctx.voice_client.is_playing() and not ctx.guild.me.voice.afk
+        if self.tools.playlist[ctx.guild.id][0] != [] and not is_playing:
             return await self.tools.play_song(ctx)
         voice_chat.pause(ctx)
 

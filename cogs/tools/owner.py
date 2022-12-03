@@ -33,11 +33,10 @@ class owner(commands.Cog, command_cog):
         await asyncio.sleep(1.5)
         try:
             dm = await self.bot.create_dm(mention)
-            while self.spamming:
+            if self.spamming:
                 await dm.send('WAKE UP')
-                await asyncio.sleep(1)
-        except Exception as e:
-            print(str(e))
+                return await self.spammy(mention)
+        except:
             self.spamming = False
 
     async def owner_in_guild(self, guild: discord.Guild) -> bool:

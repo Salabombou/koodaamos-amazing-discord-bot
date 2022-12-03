@@ -207,7 +207,7 @@ class music_tools:
         ctx.voice_client.play(
             discord.PCMVolumeTransformer(
                 source,
-                volume=0.75
+                volume=0.5
             ),
             after=lambda _: self.next_song(ctx, message)
         )

@@ -70,8 +70,8 @@ class eduko(commands.Cog, command_cog):
             for week in week_spliced:
                 for food in week:
                     embed.add_field(
-                        name=food.header,
-                        value=food.the_actual_food,
+                        name=config.string.zero_width_space + food.header,
+                        value=config.string.zero_width_space + food.the_actual_food,
                         inline=False
                     )
             embeds.append(embed)
