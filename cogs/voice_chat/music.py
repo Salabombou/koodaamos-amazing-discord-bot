@@ -4,13 +4,11 @@ from utility.common.command import respond
 from utility.discord import voice_chat
 from utility.tools.music_tools import music_tools
 from utility.common import decorators
-from utility.views.music import music_view
+from utility.views.music import list_view
 from utility.views.lyrics import lyrics_view
 from utility.cog.command import command_cog
 from utility.scraping import Genius
-import concurrent.futures
-import logging
-
+from utility.views.music import song_view
 
 class music(commands.Cog, command_cog):
     """
@@ -67,7 +65,7 @@ class music(commands.Cog, command_cog):
         """
         embed = self.tools.create_embed(ctx, page_num=0)
         message = await respond(ctx, embed=embed)
-        await message.edit(view=music_view(music_self=self, ctx=await self.bot.get_context(message)))
+        await message.edit(view=list_view(music_self=self, ctx=await self.bot.get_context(message)))
 
     @commands.command(help='disconnects from the voice channel', aliases=['leave'])
     @commands.guild_only()
@@ -156,8 +154,8 @@ class music(commands.Cog, command_cog):
         """
         if self.tools.playlist[ctx.guild.id][0] == []:
             return
-        embed = await self.tools.create_info_embed(ctx, number=number)
-        await respond(ctx, embed=embed, mention_author=False)
+        embed, view = await self.tools.create_info_embed(ctx, number=number)
+        await respond(ctx, embed=embed, view=view, mention_author=False)
 
     @commands.command(help='replays the current song')
     @commands.guild_only()

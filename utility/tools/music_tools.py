@@ -12,6 +12,7 @@ import validators
 import numpy as np
 from utility.common import decorators
 from utility.common import config
+from utility.views.music import song_view
 
 
 ffmpeg_options = {
@@ -28,7 +29,6 @@ class music_tools:
         self.playlist: dict[list[list, list]] = {}
         self.looping = {}
         self.voice_client = {}
-        self.link_values = lambda song: f'Video:\n[{song.title}](https://www.youtube.com/watch?v={song.id})\n\nChannel:\n[{song.channel}](https://www.youtube.com/channel/{song.channelId})'
 
     # appends songs to the playlist
     def append_songs(self, ctx: commands.Context, /, playnext=False, songs=[]):
@@ -105,7 +105,7 @@ class music_tools:
             )
         return options
     
-    async def create_info_embed(self, ctx: commands.Context, number=0, song: YouTube.Video = None):
+    async def create_info_embed(self, ctx: commands.Context, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
         if song == None:
             num = abs(number)
             if len(self.playlist[ctx.guild.id][0]) - 1 < num:
@@ -120,16 +120,13 @@ class music_tools:
         )
 
         embed.set_image(url=song.thumbnail)
-        embed.add_field(
-            name='LINKS:',
-            value=self.link_values(song)
-        )
         try:
             icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
         except:
             icon = song.thumbnail
         embed.set_footer(text=song.channel, icon_url=icon)
-        return embed
+        view = song_view(song)
+        return embed, view
     
     @decorators.Async.logging.log
     async def fetch_songs(self, ctx: commands.Context, url, no_playlists=False):
@@ -199,8 +196,8 @@ class music_tools:
         source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
         
         try:
-            embed = await self.create_info_embed(ctx)
-            message = await ctx.send('Now playing:', embed=embed)
+            embed, view = await self.create_info_embed(ctx)
+            message = await ctx.send('Now playing:', embed=embed, view=view)
         except:
             message = None
         

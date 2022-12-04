@@ -6,10 +6,10 @@ from discord.ext import commands
 import math
 import asyncio
 import concurrent.futures
+from utility.scraping import YouTube
 
 
-
-class music_view(discord.ui.View):
+class list_view(discord.ui.View):
     """
         View for the music bot playlist
     """
@@ -177,3 +177,23 @@ class music_view(discord.ui.View):
         elif self.tools.playlist[0] != [] and not self.ctx.voice_client.is_playing():
             return await self.tools.play_song(self.ctx)
         voice_chat.pause(self.ctx)
+
+
+class song_view(discord.ui.View):
+    def __init__(self, song: YouTube.Video):
+        super().__init__(timeout=None)
+        
+        song_link = discord.ui.Button(
+            label='Video',
+            style=discord.ButtonStyle.link,
+            url=f'https://www.youtube.com/watch?v={song.id}'
+            )
+        channel_link = discord.ui.Button(
+            label='Channel',
+            style=discord.ButtonStyle.link,
+            url=f'https://www.youtube.com/channel/{song.channelId}'
+            )
+        
+        self.add_item(song_link)
+        self.add_item(channel_link)
+        
