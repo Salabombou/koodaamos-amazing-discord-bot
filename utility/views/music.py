@@ -183,16 +183,16 @@ class song_view(discord.ui.View):
     def __init__(self, song: YouTube.Video):
         super().__init__(timeout=None)
         
-        song_link = discord.ui.Button(
+        song_link = discord.ui.Button( # link to the video itself
             label='Video',
             style=discord.ButtonStyle.link,
             url=f'https://www.youtube.com/watch?v={song.id}'
-            )
-        channel_link = discord.ui.Button(
+        )
+        channel_link = discord.ui.Button( # link to the video creator's chanel
             label='Channel',
             style=discord.ButtonStyle.link,
             url=f'https://www.youtube.com/channel/{song.channelId}'
-            )
+        )
         
         self.add_item(song_link)
         self.add_item(channel_link)
