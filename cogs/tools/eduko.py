@@ -102,7 +102,7 @@ class eduko(commands.Cog, command_cog):
         resp = await self.client.get(self.foodlist_url)
         resp.raise_for_status()
 
-        self.soup = bs4.BeautifulSoup(resp.content, features='lxml')
+        self.soup = bs4.BeautifulSoup(resp.content, features='html.parser')
 
         self.week_nums = self.get_week_nums()
         self.sections = self.section_filter()

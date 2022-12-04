@@ -53,7 +53,7 @@ class qq(commands.Cog, command_cog):
         return extra['img_urls']
     
     @commands.command(help='Use it at your own risk!')
-    @commands.cooldown(1, 180, commands.BucketType.default)
+    @commands.cooldown(1, 60, commands.BucketType.default)
     @decorators.Async.typing
     async def animefy(self, ctx: commands.Context):
         image = await target.get_target(ctx, no_aud=True, no_vid=True)

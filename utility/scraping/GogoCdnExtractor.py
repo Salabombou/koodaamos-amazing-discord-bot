@@ -73,7 +73,7 @@ async def get_values(url):
     """
     resp = await client.get(url)  # gets the episode document
     resp.raise_for_status()
-    soup = bs4.BeautifulSoup(resp.content, features='lxml')  # soup
+    soup = bs4.BeautifulSoup(resp.content, features='html.parser')  # soup
     # gets the div
     div = soup.find('div', {'class': 'anime_video_body_watch_items load'})
     div = div.find('div')  # gets the div inside the div
@@ -83,7 +83,7 @@ async def get_values(url):
 
     resp = await client.get(player)
     resp.raise_for_status()
-    soup = bs4.BeautifulSoup(resp.content, features='lxml')
+    soup = bs4.BeautifulSoup(resp.content, features='html.parser')
 
     iv = soup.select('div.wrapper')[0]['class'][1].split('container-')[1]
     secret_key = soup.select('body[class]')[
