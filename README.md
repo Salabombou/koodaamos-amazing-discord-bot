@@ -34,7 +34,7 @@ Commands range from web scraping to ffmpeg video editing
   
 
 - 3.10
-
+- 3.11
   
 
   
