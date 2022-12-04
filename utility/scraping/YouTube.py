@@ -6,7 +6,6 @@ import json
 import yt_dlp
 import urllib
 import urllib.parse
-from urllib.parse import urlparse, parse_qs
 from utility.common.requests import get_redirect_url
 import validators
 from utility.common.errors import UrlInvalid, VideoTooLong, VideoSearchNotFound, VideoUnavailable, YoutubeApiError
