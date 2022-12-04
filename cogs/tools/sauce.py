@@ -34,7 +34,7 @@ class sauce(commands.Cog, command_cog):
             data = MultipartEncoder(fields=fields)
             resp = await self.client.post(url='https://saucenao.com/search.php', data=data.to_string(), headers={'Content-Type': data.content_type})
             resp.raise_for_status()
-            soup = bs4.BeautifulSoup(resp.content, features='lxml')
+            soup = bs4.BeautifulSoup(resp.content, features='html.parser')
             hidden = soup.select('div #result-hidden-notification') != []
             results = soup.select('div.result') + soup.select('div.result.hidden')
             results = [result for result in results if 'onclick' not in result.attrs]

@@ -21,7 +21,7 @@ class removebg(commands.Cog, command_cog):
     async def get_csrf_token(self):
         resp = await self.client.get('https://www.remove.bg')
         resp.raise_for_status()
-        soup = bs4.BeautifulSoup(resp.content, features='lxml')
+        soup = bs4.BeautifulSoup(resp.content, features='html.parser')
         csrf_token = soup.select('meta[name="csrf-token"]')[0]['content']
         return csrf_token
         

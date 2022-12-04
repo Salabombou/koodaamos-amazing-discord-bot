@@ -15,6 +15,6 @@ async def get_raw_url(url: str) -> str:
     redditsave_url = 'https://redditsave.com/info?url=' + url
     resp = await client.get(redditsave_url)
     resp.raise_for_status()
-    soup = bs4.BeautifulSoup(resp.content, features='lxml')
+    soup = bs4.BeautifulSoup(resp.content, features='html.parser')
     soup = soup.find_all('a', class_='downloadbutton')[0]
     return soup['href']

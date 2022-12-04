@@ -76,7 +76,7 @@ class GeniusSearchResults:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(self.url)
                 resp.raise_for_status()
-            soup = bs4.BeautifulSoup(resp.content, features='lxml')
+            soup = bs4.BeautifulSoup(resp.content, features='html.parser')
             divs = soup.select('div[data-lyrics-container="true"]')
             
             contents = [self.__parse_results(div.contents) for div in divs]
