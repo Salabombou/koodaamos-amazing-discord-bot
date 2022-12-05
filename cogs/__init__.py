@@ -16,6 +16,6 @@ from cogs.tools.download import download
 from cogs.tools.removebg import removebg
 from cogs.tools.owner import owner
 from cogs.fun.qq import qq
+from cogs.tools.ping import ping
 
-
-__all__ = ['audio', 'earrape', 'flanger', 'mute', 'nightcore', 'green', 'ruin', 'eduko', 'dalle', 'sauce', 'gpt3', 'download', 'music', 'owner', 'removebg', 'bait', 'reverse', 'qq']
+__all__ = ['audio', 'earrape', 'flanger', 'mute', 'nightcore', 'green', 'ruin', 'eduko', 'dalle', 'sauce', 'gpt3', 'download', 'music', 'owner', 'removebg', 'bait', 'reverse', 'qq', 'ping']

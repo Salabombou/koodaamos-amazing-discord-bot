@@ -33,7 +33,7 @@ class qq(commands.Cog, command_cog):
             return await self.get_image_bytes(images[1:])
         return image
     
-    async def get_animefied_images(self, ctx: commands.Context, /, *, image_url: str) -> list[str]:
+    async def get_animefied_images(self, ctx: commands.Context, /, *, image_url: str) -> list[str] | None:
         image = await file_management.get_bytes(file=image_url)
         image = self.image_to_base64(image)
         payload = {
@@ -49,8 +49,9 @@ class qq(commands.Cog, command_cog):
         if resp_json['code'] != 0 and 'extra' not in resp_json:
             ctx.command.reset_cooldown(ctx)
             raise AnimefierError(msg=resp_json['msg'])
-        extra =  json.loads(resp_json['extra'])
-        return extra['img_urls']
+        elif 'extra' in resp_json:
+            extra =  json.loads(resp_json['extra'])
+            return extra['img_urls']
     
     @commands.command(help='Use it at your own risk!')
     @commands.cooldown(1, 60, commands.BucketType.default)

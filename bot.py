@@ -38,7 +38,7 @@ cogs = (
     eduko, sauce,
     earrape, owner,
     bait, reverse,
-    qq
+    qq, ping
     #removebg
 )
 for cog in cogs:
