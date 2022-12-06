@@ -5,7 +5,6 @@ from utility.tools import music_tools
 from discord.ext import commands
 import math
 import asyncio
-import concurrent.futures
 from utility.scraping import YouTube
 
 
@@ -27,6 +26,8 @@ class list_view(discord.ui.View):
         """
             Checks if the user can execute these commands
         """
+        if await self.bot.is_owner(interaction.user):
+            return True
         if interaction.user.bot:
             return False  # if the user is bot
         if interaction.user.voice == None:
@@ -188,7 +189,7 @@ class song_view(discord.ui.View):
             style=discord.ButtonStyle.link,
             url=f'https://www.youtube.com/watch?v={song.id}'
         )
-        channel_link = discord.ui.Button( # link to the video creator's chanel
+        channel_link = discord.ui.Button( # link to the video creator's channel
             label='Channel',
             style=discord.ButtonStyle.link,
             url=f'https://www.youtube.com/channel/{song.channelId}'

@@ -148,7 +148,7 @@ class music(commands.Cog, command_cog):
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @decorators.Async.update_playlist
-    async def info(self, ctx: commands.Context, number=0):
+    async def song(self, ctx: commands.Context, number=0):
         """
             Gets the info from the selected song from the playlist. Defaults to currently playing song
         """

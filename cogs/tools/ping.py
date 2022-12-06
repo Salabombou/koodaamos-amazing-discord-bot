@@ -13,7 +13,7 @@ class ping(commands.Cog, command_cog):
         
     @commands.command()
     @commands.cooldown(1, 1, commands.BucketType.user)
-    async def ping(self, ctx: commands.Context, *args):
+    async def ping(self, ctx: commands.Context):
         start = time.perf_counter()
         message = await ctx.send(f'Pong!')
         end = time.perf_counter()
