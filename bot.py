@@ -17,7 +17,7 @@ import sys
 bot = bridge.Bot(
     command_prefix='.',
     intents=discord.Intents.all(),
-    help_command=help.help_command(),
+    #help_command=help.help_command(),
     activity=Activity(  # watching you
         type=ActivityType.watching,
         name='you'

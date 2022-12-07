@@ -30,7 +30,7 @@ class music_tools:
         self.voice_client = {}
 
     # appends songs to the playlist
-    def append_songs(self, ctx: bridge.BridgeExtContext, /, playnext=False, songs=[]):
+    def append_songs(self, ctx: bridge.BridgeContext, /, playnext=False, songs=[]):
         if playnext and songs != []:
             for song in songs[::-1]:
                 self.playlist[ctx.guild.id][0].insert(1, song)
@@ -61,7 +61,7 @@ class music_tools:
         songs.pop(0)
         return songs
     
-    def create_embed(self, ctx: bridge.BridgeExtContext, page_num: int):  # todo add timestamp
+    def create_embed(self, ctx: bridge.BridgeContext, page_num: int):  # todo add timestamp
         embed = discord.Embed(
             title='PLAYLIST',
             description='',
@@ -85,7 +85,7 @@ class music_tools:
         )  # bigggggg
         return embed
 
-    def create_options(self, ctx: bridge.BridgeExtContext | discord.Message):  # create the options for the dropdown select menu
+    def create_options(self, ctx: bridge.BridgeContext | discord.Message):  # create the options for the dropdown select menu
         page_amount = math.ceil(len(self.playlist[ctx.guild.id][0]) / 50)
         options = [
             discord.SelectOption(
@@ -104,7 +104,7 @@ class music_tools:
             )
         return options
     
-    async def create_info_embed(self, ctx: bridge.BridgeExtContext, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
+    async def create_info_embed(self, ctx: bridge.BridgeContext, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
         if song == None:
             num = abs(number)
             if len(self.playlist[ctx.guild.id][0]) - 1 < num:
@@ -128,7 +128,7 @@ class music_tools:
         return embed, view
     
     @decorators.Async.logging.log
-    async def fetch_songs(self, ctx: bridge.BridgeExtContext, url, no_playlists=False):
+    async def fetch_songs(self, ctx: bridge.BridgeContext, url, no_playlists=False):
         if not validators.url(url):  # if url is invalid (implying for a search)
             # searches for the video and returns the url to it
             song = await self.yt_extractor.fetch_from_search(query=url)
@@ -154,7 +154,7 @@ class music_tools:
         self.playlist[ID][0].insert(0, temp)
 
     
-    async def send_song_unavailable(self, ctx: bridge.BridgeExtContext, next_song: bool):
+    async def send_song_unavailable(self, ctx: bridge.BridgeContext, next_song: bool):
         try:
             message = await ctx.respond('Song unavailable, moving to next one')
             self.playlist[ctx.guild.id][0].pop(0)
@@ -165,7 +165,7 @@ class music_tools:
     
     # making sure this wont ever raise an exception and thus stop the music from playing
     @decorators.Async.logging.log
-    async def play_song(self, ctx: bridge.BridgeExtContext, songs=[], playnext=False, next_song=False):
+    async def play_song(self, ctx: bridge.BridgeContext, songs=[], playnext=False, next_song=False):
         """
             Song player handler
         """
@@ -209,7 +209,7 @@ class music_tools:
         )
         
 
-    def next_song(self, ctx: bridge.BridgeExtContext, message: discord.Message):
+    def next_song(self, ctx: bridge.BridgeContext, message: discord.Message):
         """
             Function to be called after song id done playing from play_song
         """
@@ -235,5 +235,5 @@ class music_tools:
         )
     
     @decorators.Async.logging.log
-    async def looping_response(self, ctx: bridge.BridgeExtContext) -> discord.Message:
+    async def looping_response(self, ctx: bridge.BridgeContext) -> discord.Message:
         return await ctx.respond('LOOPING' if self.looping[ctx.guild.id] else 'NOT LOOPING', delete_after=10)

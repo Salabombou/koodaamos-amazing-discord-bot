@@ -14,7 +14,7 @@ class ping(commands.Cog, command_cog):
     @bridge.bridge_command()
     @commands.cooldown(1, 1, commands.BucketType.user)
     @decorators.Async.defer
-    async def ping(self, ctx: bridge.BridgeExtContext):
+    async def ping(self, ctx: bridge.BridgeContext):
         start = time.perf_counter()
         message = await ctx.respond(f'Pong!')
         end = time.perf_counter()

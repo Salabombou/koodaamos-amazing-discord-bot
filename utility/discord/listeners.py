@@ -40,7 +40,7 @@ class Listeners:
     def __init__(self, bot) -> None:
         self.bot = bot
 
-    async def on_command_error(self, ctx: bridge.BridgeExtContext, error):
+    async def on_command_error(self, ctx: bridge.BridgeContext, error):
         """
             When command raises an exception
         """
@@ -57,7 +57,7 @@ class Listeners:
         embed = create_error_embed(error)
         await ctx.respond(embed=embed)
 
-    async def on_application_command_error(self, ctx: bridge.BridgeExtContext, error):
+    async def on_application_command_error(self, ctx: bridge.BridgeContext, error):
         """
             When application command raises an exception
         """

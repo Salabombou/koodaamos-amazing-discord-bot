@@ -30,7 +30,7 @@ class download(commands.Cog, command_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def dl(self, ctx: bridge.BridgeExtContext, url):
+    async def dl(self, ctx: bridge.BridgeContext, url):
         if not validators.url(url):
             raise UrlInvalid()
         url = await get_redirect_url(url)

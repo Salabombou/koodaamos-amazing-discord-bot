@@ -49,7 +49,7 @@ class sauce(commands.Cog, command_cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.Async.typing
     @decorators.Async.defer
-    async def sauce(self, ctx: bridge.BridgeExtContext, url=None):
+    async def sauce(self, ctx: bridge.BridgeContext, url=None):
         if url == None:
             url = await discordutil.get_target(ctx, no_aud=True, no_vid=True)
             url = url.proxy_url

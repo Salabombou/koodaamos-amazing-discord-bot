@@ -20,7 +20,7 @@ class reverse(commands.Cog, ffmpeg_cog):
             '-af', 'areverse'
         ]
 
-    async def create_output_video(self, ctx: bridge.BridgeExtContext):
+    async def create_output_video(self, ctx: bridge.BridgeContext):
         target = await discordutil.get_target(ctx, no_img=True)
 
         videofied = await self.videofier.videofy(target, borderless=True)
@@ -36,6 +36,6 @@ class reverse(commands.Cog, ffmpeg_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def reverse(self, ctx: bridge.BridgeExtContext):
+    async def reverse(self, ctx: bridge.BridgeContext):
         file, pomf_url = await self.create_output_video(ctx)
         await ctx.respond(pomf_url, file=file)

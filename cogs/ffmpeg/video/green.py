@@ -63,6 +63,6 @@ class green(commands.Cog, ffmpeg_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def green(self, ctx: bridge.BridgeExtContext, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
+    async def green(self, ctx: bridge.BridgeContext, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
         file, pomf_url = await self.create_output_video(ctx, url, color)
         await ctx.respond(pomf_url, file=file)

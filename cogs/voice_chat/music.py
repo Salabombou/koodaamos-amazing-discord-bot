@@ -25,10 +25,11 @@ class music(commands.Cog, command_cog):
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.defer
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
-    async def play(self, ctx: bridge.BridgeExtContext, *, arg='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'):
+    async def play(self, ctx: bridge.BridgeContext, *, arg='https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'):
         """
             Starts the music bot and adds the songs to the playlist
         """
@@ -42,10 +43,11 @@ class music(commands.Cog, command_cog):
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.defer
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
-    async def playnext(self, ctx: bridge.BridgeExtContext, *, arg):
+    async def playnext(self, ctx: bridge.BridgeContext, *, arg):
         """
             Same as play, except inserts the songs to the playlist so that they are to be played next
         """
@@ -59,8 +61,9 @@ class music(commands.Cog, command_cog):
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.defer
     @decorators.Async.update_playlist
-    async def list(self, ctx: bridge.BridgeExtContext):
+    async def list(self, ctx: bridge.BridgeContext):
         """
             Lists the songs in the playlist with controls to control it
         """
@@ -71,9 +74,10 @@ class music(commands.Cog, command_cog):
     @bridge.bridge_command(help='disconnects from the voice channel', aliases=['leave'])
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.defer
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
-    async def disconnect(self, ctx: bridge.BridgeExtContext):
+    async def disconnect(self, ctx: bridge.BridgeContext):
         """
             Leaves the voice channel and empties the playlist
         """
@@ -84,9 +88,10 @@ class music(commands.Cog, command_cog):
     @bridge.bridge_command(help='pauses / resumes the currently playing song', aliases=['resume', 'stop'])
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.defer
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
-    async def pause(self, ctx: bridge.BridgeExtContext):
+    async def pause(self, ctx: bridge.BridgeContext):
         """
             Pauses / resumes the currently playing song
         """
@@ -100,6 +105,7 @@ class music(commands.Cog, command_cog):
     @bridge.bridge_command(help='skips the currently playing song')
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.defer
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
@@ -120,10 +126,11 @@ class music(commands.Cog, command_cog):
     @bridge.guild_only()
     @commands.cooldown(1, 2, commands.BucketType.user)
     @commands.check(voice_chat.command_check)
+    @decorators.Async.defer
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
-    async def shuffle(self, ctx: bridge.BridgeExtContext):
+    async def shuffle(self, ctx: bridge.BridgeContext):
         """
             Shuffles the playlist
         """
@@ -134,10 +141,11 @@ class music(commands.Cog, command_cog):
     @bridge.bridge_command(help='Loops the currently playing song until stopped')
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.defer
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
-    async def loop(self, ctx: bridge.BridgeExtContext):
+    async def loop(self, ctx: bridge.BridgeContext):
         """
             Enables / disables looping of the playlist
         """
@@ -148,8 +156,9 @@ class music(commands.Cog, command_cog):
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @decorators.Async.defer
     @decorators.Async.update_playlist
-    async def song(self, ctx: bridge.BridgeExtContext, number=0):
+    async def song(self, ctx: bridge.BridgeContext, number=0):
         """
             Gets the info from the selected song from the playlist. Defaults to currently playing song
         """
@@ -161,10 +170,11 @@ class music(commands.Cog, command_cog):
     @bridge.bridge_command(help='replays the current song')
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
+    @decorators.Async.defer
     @decorators.Async.update_playlist
     @decorators.Async.add_reaction
     @decorators.Async.delete_after
-    async def replay(self, ctx: bridge.BridgeExtContext):
+    async def replay(self, ctx: bridge.BridgeContext):
         """
             Replays the currently playing song
         """
@@ -175,9 +185,10 @@ class music(commands.Cog, command_cog):
 
     @bridge.bridge_command(help='replies with the lyrics from query')
     @commands.cooldown(1, 60, commands.BucketType.user)
+    @decorators.Async.defer
     @decorators.Async.typing
     @decorators.Async.defer
-    async def lyrics(self, ctx: bridge.BridgeExtContext, *, query: str):
+    async def lyrics(self, ctx: bridge.BridgeContext, *, query: str):
         """
             Gets the song lyrics from search
         """

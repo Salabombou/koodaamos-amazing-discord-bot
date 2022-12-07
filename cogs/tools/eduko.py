@@ -121,7 +121,7 @@ class eduko(commands.Cog, command_cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.Async.typing
     @decorators.Async.defer
-    async def food(self, ctx: bridge.BridgeExtContext):
+    async def food(self, ctx: bridge.BridgeContext):
         current_time = time.time()
         if current_time - self.last_sync > 1000:  # if it has been more than 1000 seconds since last sync
             await self.update_food_embeds()

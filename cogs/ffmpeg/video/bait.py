@@ -49,6 +49,6 @@ class bait(commands.Cog, ffmpeg_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def bait(self, ctx: bridge.BridgeExtContext, url='https://youtu.be/QCXmUplRd_M'):
+    async def bait(self, ctx: bridge.BridgeContext, url='https://youtu.be/QCXmUplRd_M'):
         file, pomf_url = await self.create_output_video(ctx, url)
         await ctx.respond(pomf_url, file=file)
