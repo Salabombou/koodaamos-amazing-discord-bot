@@ -1,7 +1,7 @@
 import base64
 import json
 import bs4
-from discord.ext import commands
+from discord.ext import commands, bridge
 import httpx
 from utility.common.command import respond
 from utility.discord import target as discordutil

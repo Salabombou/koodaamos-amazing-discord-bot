@@ -1,4 +1,4 @@
-from discord.ext import commands
+from discord.ext import commands, bridge
 from utility.common import decorators
 from utility.cog.command import command_cog
 import json
@@ -53,9 +53,10 @@ class qq(commands.Cog, command_cog):
             extra =  json.loads(resp_json['extra'])
             return extra['img_urls']
     
-    @commands.command(help='Use it at your own risk!')
+    @bridge.bridge_command(help='Use it at your own risk!')
     @commands.cooldown(1, 60, commands.BucketType.default)
     @decorators.Async.typing
+    @decorators.Async.defer
     async def animefy(self, ctx: commands.Context):
         image = await target.get_target(ctx, no_aud=True, no_vid=True)
         

@@ -6,3 +6,6 @@ class message:
     
 class string:
     zero_width_space = '\u200b'
+
+class emoji:
+    index_pointing_up = '\u261D'

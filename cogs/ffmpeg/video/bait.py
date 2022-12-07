@@ -1,5 +1,4 @@
-import math
-from discord.ext import commands
+from discord.ext import commands, bridge
 from utility.discord import target as discordutil
 from utility.common import decorators, file_management
 from utility.common.command import respond
@@ -45,10 +44,11 @@ class bait(commands.Cog, ffmpeg_cog):
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
 
-    @commands.command(help='url: a link to a YouTube video')
+    @bridge.bridge_command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @commands.guild_only()
+    @bridge.guild_only()
     @decorators.Async.typing
-    async def bait(self, ctx: commands.Context, url='https://youtu.be/QCXmUplRd_M'):
+    @decorators.Async.defer
+    async def bait(self, ctx: bridge.BridgeExtContext, url='https://youtu.be/QCXmUplRd_M'):
         file, pomf_url = await self.create_output_video(ctx, url)
-        await respond(ctx, content=pomf_url, file=file, mention_author=False)
+        await ctx.respond(pomf_url, file=file)

@@ -1,4 +1,4 @@
-from discord.ext import commands
+from discord.ext import commands, bridge
 from utility.discord import target as discordutil
 from utility.common.command import respond
 from utility.common import decorators, file_management
@@ -21,7 +21,7 @@ class audio(commands.Cog, ffmpeg_cog):
             '-map', '[a]',
         ]
 
-    async def create_output(self, ctx: commands.Context, url):
+    async def create_output(self, ctx: bridge.BridgeExtContext, url):
         target = await discordutil.get_target(ctx)
 
         audio = await self.yt_extractor.get_info(url, video=False, max_duration=300)
@@ -37,10 +37,11 @@ class audio(commands.Cog, ffmpeg_cog):
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
 
-    @commands.command(help='url: a link to a YouTube video')
+    @bridge.bridge_command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @commands.guild_only()
+    @bridge.guild_only()
     @decorators.Async.typing
-    async def audio(self, ctx: commands.Context, url="https://youtu.be/NOaSdO5H91M"):
+    @decorators.Async.defer
+    async def audio(self, ctx: bridge.BridgeExtContext, url="https://youtu.be/NOaSdO5H91M"):
         file, pomf_url = await self.create_output(ctx, url)
-        await respond(ctx, content=pomf_url, file=file, mention_author=False)
+        await ctx.respond(pomf_url, file=file)

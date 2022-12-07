@@ -1,7 +1,7 @@
 from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailure
 from discord import HTTPException, Forbidden, NotFound, ApplicationCommandInvokeError
 import discord
-from discord.ext import commands
+from discord.ext import commands, bridge
 from utility.common.command import respond
 from utility.common.errors import NaughtyError
 import os
@@ -40,7 +40,7 @@ class Listeners:
     def __init__(self, bot) -> None:
         self.bot = bot
 
-    async def on_command_error(self, ctx : commands.Context, error):
+    async def on_command_error(self, ctx: bridge.BridgeExtContext, error):
         """
             When command raises an exception
         """
@@ -55,9 +55,9 @@ class Listeners:
         if isinstance(error, NaughtyError):
             return
         embed = create_error_embed(error)
-        await respond(ctx, embed=embed)
+        await ctx.respond(embed=embed)
 
-    async def on_application_command_error(self, ctx: commands.Context, error):
+    async def on_application_command_error(self, ctx: bridge.BridgeExtContext, error):
         """
             When application command raises an exception
         """
@@ -70,7 +70,7 @@ class Listeners:
         if isinstance(error, NaughtyError):
             return
         embed = create_error_embed(error)
-        await ctx.send(embed=embed)
+        await ctx.respond(embed=embed)
 
     async def on_ready(self):
         """

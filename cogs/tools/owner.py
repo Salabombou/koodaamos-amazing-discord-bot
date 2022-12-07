@@ -5,7 +5,6 @@ import discord.utils
 from discord import CategoryChannel
 import functools
 import json
-from discord.ext import commands
 from utility.cog.command import command_cog
 
 

@@ -1,5 +1,5 @@
 from asyncio import AbstractEventLoop
-from discord.ext import commands
+from discord.ext import commands, bridge
 import discord
 import openai
 import functools
@@ -34,10 +34,11 @@ class gpt3(commands.Cog, command_cog):
         text = text.replace('\n\n', '\n')
         return text
 
-    @commands.command(aliases=['text', 'ai'], help='prompt: the message to be sent to the ai')
-    @commands.is_nsfw()
+    @bridge.bridge_command(aliases=['text', 'ai'], help='prompt: the message to be sent to the ai')
+    @bridge.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
     @decorators.Async.typing
+    @decorators.Async.defer
     async def gpt3(self, ctx: commands.Context, *, prompt='make up a 4chan greentext post'):
         embed = discord.Embed(color=config.embed.color, fields=[], title=prompt)
         bot = ctx.bot

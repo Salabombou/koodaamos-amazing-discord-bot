@@ -2,7 +2,7 @@ from utility.scraping import YouTube
 from utility.common.errors import UrlInvalid, SongNotFound
 from utility.scraping.YouTube import YT_Extractor
 from utility.common.requests import get_redirect_url
-from discord.ext import commands
+from discord.ext import commands, bridge
 from urllib.parse import parse_qs, urlparse
 import discord
 import math
@@ -20,7 +20,6 @@ ffmpeg_options = {
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
 }
 
-
 class music_tools:
     def __init__(self, bot: commands.Bot, loop: AbstractEventLoop, yt_api_key: str) -> None:
         self.bot = bot
@@ -31,7 +30,7 @@ class music_tools:
         self.voice_client = {}
 
     # appends songs to the playlist
-    def append_songs(self, ctx: commands.Context, /, playnext=False, songs=[]):
+    def append_songs(self, ctx: bridge.BridgeExtContext, /, playnext=False, songs=[]):
         if playnext and songs != []:
             for song in songs[::-1]:
                 self.playlist[ctx.guild.id][0].insert(1, song)
@@ -62,7 +61,7 @@ class music_tools:
         songs.pop(0)
         return songs
     
-    def create_embed(self, ctx: commands.Context, page_num: int):  # todo add timestamp
+    def create_embed(self, ctx: bridge.BridgeExtContext, page_num: int):  # todo add timestamp
         embed = discord.Embed(
             title='PLAYLIST',
             description='',
@@ -86,7 +85,7 @@ class music_tools:
         )  # bigggggg
         return embed
 
-    def create_options(self, ctx: commands.Context | discord.Message):  # create the options for the dropdown select menu
+    def create_options(self, ctx: bridge.BridgeExtContext | discord.Message):  # create the options for the dropdown select menu
         page_amount = math.ceil(len(self.playlist[ctx.guild.id][0]) / 50)
         options = [
             discord.SelectOption(
@@ -105,7 +104,7 @@ class music_tools:
             )
         return options
     
-    async def create_info_embed(self, ctx: commands.Context, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
+    async def create_info_embed(self, ctx: bridge.BridgeExtContext, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
         if song == None:
             num = abs(number)
             if len(self.playlist[ctx.guild.id][0]) - 1 < num:
@@ -129,11 +128,11 @@ class music_tools:
         return embed, view
     
     @decorators.Async.logging.log
-    async def fetch_songs(self, ctx: commands.Context, url, no_playlists=False):
+    async def fetch_songs(self, ctx: bridge.BridgeExtContext, url, no_playlists=False):
         if not validators.url(url):  # if url is invalid (implying for a search)
             # searches for the video and returns the url to it
             song = await self.yt_extractor.fetch_from_search(query=url)
-            await ctx.send(f"found a video with the query '{url}' with the title '{song.title}'.", delete_after=10, mention_author=False)
+            await ctx.respond(f"found a video with the query '{url}' with the title '{song.title}'.", delete_after=10, mention_author=False)
             return [song]
         url = await get_redirect_url(url)
         query = parse_qs(urlparse(url).query, keep_blank_values=True)
@@ -141,7 +140,7 @@ class music_tools:
             return [await self.yt_extractor.fetch_from_video(videoId=query['v'][0])]
         elif 'list' in query and not no_playlists:
             # fething from playlist takes time
-            message = await ctx.send('Fetching from playlist...')
+            message = await ctx.respond('Fetching from playlist...')
             songs = await self.yt_extractor.fetch_from_playlist(playlistId=query['list'][0])
             await message.delete()
             return songs
@@ -155,9 +154,9 @@ class music_tools:
         self.playlist[ID][0].insert(0, temp)
 
     
-    async def send_song_unavailable(self, ctx: commands.Context, next_song: bool):
+    async def send_song_unavailable(self, ctx: bridge.BridgeExtContext, next_song: bool):
         try:
-            message = await ctx.send('Song unavailable, moving to next one')
+            message = await ctx.respond('Song unavailable, moving to next one')
             self.playlist[ctx.guild.id][0].pop(0)
             await self.play_song(ctx, next_song=next_song)
             return await message.delete(delay=1)
@@ -166,7 +165,7 @@ class music_tools:
     
     # making sure this wont ever raise an exception and thus stop the music from playing
     @decorators.Async.logging.log
-    async def play_song(self, ctx: commands.Context, songs=[], playnext=False, next_song=False):
+    async def play_song(self, ctx: bridge.BridgeExtContext, songs=[], playnext=False, next_song=False):
         """
             Song player handler
         """
@@ -197,7 +196,7 @@ class music_tools:
         
         try:
             embed, view = await self.create_info_embed(ctx)
-            message = await ctx.send('Now playing:', embed=embed, view=view)
+            message = await ctx.respond('Now playing:', embed=embed, view=view)
         except:
             message = None
         
@@ -210,7 +209,7 @@ class music_tools:
         )
         
 
-    def next_song(self, ctx: commands.Context, message: discord.Message):
+    def next_song(self, ctx: bridge.BridgeExtContext, message: discord.Message):
         """
             Function to be called after song id done playing from play_song
         """
@@ -236,5 +235,5 @@ class music_tools:
         )
     
     @decorators.Async.logging.log
-    async def looping_response(self, ctx: commands.Context) -> discord.Message:
-        return await ctx.send('LOOPING' if self.looping[ctx.guild.id] else 'NOT LOOPING', delete_after=10)
+    async def looping_response(self, ctx: bridge.BridgeExtContext) -> discord.Message:
+        return await ctx.respond('LOOPING' if self.looping[ctx.guild.id] else 'NOT LOOPING', delete_after=10)

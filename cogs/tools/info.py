@@ -1,4 +1,4 @@
-from discord.ext import commands
+from discord.ext import commands, bridge
 from utility.cog.command import command_cog
 from utility.common import config
 import discord

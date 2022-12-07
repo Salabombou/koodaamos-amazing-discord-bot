@@ -1,5 +1,5 @@
 from utility.discord import help, check
-from discord.ext import commands
+from discord.ext import bridge
 from discord import Activity, ActivityType
 import discord
 import json
@@ -14,7 +14,7 @@ from utility.logging import StderrLogger, logger
 import sys
     
 # Setup the bot
-bot = commands.Bot(
+bot = bridge.Bot(
     command_prefix='.',
     intents=discord.Intents.all(),
     help_command=help.help_command(),
