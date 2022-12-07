@@ -1,4 +1,4 @@
-from discord.ext import commands
+from discord.ext import commands, bridge
 from utility.discord import target as discordutil
 from utility.ffmpeg import *
 from utility.common import decorators, file_management
@@ -18,7 +18,7 @@ class earrape(commands.Cog, ffmpeg_cog):
             '-af', 'acrusher=.1:1:64:0:log',
         ]
 
-    async def create_output_video(self, ctx: commands.Context):
+    async def create_output_video(self, ctx: bridge.BridgeContext):
         target = await discordutil.get_target(ctx, no_img=True)
 
         videofied = await self.videofier.videofy(target, borderless=True)
@@ -29,10 +29,11 @@ class earrape(commands.Cog, ffmpeg_cog):
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
 
-    @commands.command()
+    @bridge.bridge_command()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @commands.guild_only()
+    @bridge.guild_only()
     @decorators.Async.typing
-    async def er(self, ctx: commands.Context):
+    @decorators.Async.defer
+    async def er(self, ctx: bridge.BridgeContext):
         file, pomf_url = await self.create_output_video(ctx)
-        await respond(ctx, content=pomf_url, file=file, mention_author=False)
+        await ctx.respond(content=pomf_url, file=file)

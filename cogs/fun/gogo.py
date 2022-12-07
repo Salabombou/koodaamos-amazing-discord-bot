@@ -1,4 +1,4 @@
-from discord.ext import commands
+from discord.ext import commands, bridge
 import validators
 import urllib.request
 import urllib.parse

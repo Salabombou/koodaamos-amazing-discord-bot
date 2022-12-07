@@ -1,5 +1,5 @@
 from asyncio import AbstractEventLoop
-from discord.ext import commands
+from discord.ext import commands, bridge
 import httpx
 from utility.common import decorators
 from PIL import Image
@@ -58,13 +58,14 @@ class dalle(commands.Cog, command_cog):
         buf.seek(0)
         return buf
 
-    @commands.command(help='prompt: the message to be sent to the ai')
-    @commands.is_nsfw()
+    @bridge.bridge_command(help='prompt: the message to be sent to the ai')
+    @bridge.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.Async.typing
-    async def dalle(self, ctx: commands.Context, *, prompt="a cute kitten"):
+    @decorators.Async.defer
+    async def dalle(self, ctx: bridge.BridgeContext, *, prompt="a cute kitten"):
         embed = discord.Embed(color=config.embed.color, fields=[], title=prompt)
         embed.set_image(url="attachment://unknown.png")
         image = await self.DallE_Collage(self.bot.loop, prompt)
         file = discord.File(fp=image, filename="unknown.png")
-        await ctx.reply(embed=embed, file=file)
+        await ctx.respond(embed=embed, file=file)

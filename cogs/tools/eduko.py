@@ -1,6 +1,6 @@
 import math
 import time
-from discord.ext import commands
+from discord.ext import commands, bridge, pages
 import discord
 import bs4
 from utility.common.command import respond
@@ -17,6 +17,7 @@ class eduko(commands.Cog, command_cog):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Gets the Eduko diner menu for the week(s)'
         self.embeds = []
+        self.paginator = None
         self.last_sync = 0
         self.foodlist_url = 'https://www.eduko.fi/eduko/ruokalistat/'
 
@@ -109,13 +110,19 @@ class eduko(commands.Cog, command_cog):
         self.foods = self.get_food()
 
         self.embeds = self.create_embeds()
+        self.paginator = pages.Paginator(
+            pages=self.embeds,
+            disable_on_timeout=True,
+            loop_pages=True
+        )
         self.last_sync = time.time()  # update the latest sync to current local time
 
-    @commands.command()
+    @bridge.bridge_command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.Async.typing
-    async def food(self, ctx):
+    @decorators.Async.defer
+    async def food(self, ctx: bridge.BridgeContext):
         current_time = time.time()
         if current_time - self.last_sync > 1000:  # if it has been more than 1000 seconds since last sync
             await self.update_food_embeds()
-        await respond(ctx, embeds=self.embeds)
+        await self.paginator.respond(ctx)

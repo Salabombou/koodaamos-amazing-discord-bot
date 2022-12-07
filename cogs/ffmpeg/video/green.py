@@ -1,5 +1,4 @@
-import math
-from discord.ext import commands
+from discord.ext import commands, bridge
 from utility.discord import target as discordutil
 from utility.scraping import YouTube
 from utility.common import decorators, file_management
@@ -59,10 +58,11 @@ class green(commands.Cog, ffmpeg_cog):
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
 
-    @commands.command(help='url: a link to a YouTube video')
+    @bridge.bridge_command(help='url: a link to a YouTube video')
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @commands.guild_only()
+    @bridge.guild_only()
     @decorators.Async.typing
-    async def green(self, ctx: commands.Context, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
+    @decorators.Async.defer
+    async def green(self, ctx: bridge.BridgeContext, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
         file, pomf_url = await self.create_output_video(ctx, url, color)
-        await respond(ctx, content=pomf_url, file=file, mention_author=False)
+        await ctx.respond(pomf_url, file=file)

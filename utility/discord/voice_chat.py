@@ -37,7 +37,6 @@ async def leave(ctx: commands.Context) -> None:
         return
     if ctx.voice_client != None:
         await ctx.voice_client.disconnect()
-        ctx.voice_client.cleanup()
 
 @decorators.Sync.logging.log
 def stop(ctx: commands.Context) -> None:

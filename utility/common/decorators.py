@@ -1,7 +1,7 @@
 import asyncio
 import discord
 import functools
-from discord.ext import commands
+from discord.ext import commands, bridge
 from discord.commands.context import ApplicationContext
 import tempfile
 from utility.logging import level, handler
@@ -17,9 +17,20 @@ class Async:
             Shows the bot typing when running a command
         """
         @functools.wraps(func)
-        async def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
+        async def wrapper(self, ctx: bridge.BridgeContext, *args, **kwargs):
+            if isinstance(ctx, bridge.BridgeApplicationContext):
+                return await func(self, ctx, *args, **kwargs)
             async with ctx.typing():
                 return await func(self, ctx, *args, **kwargs)
+        return wrapper
+    
+    @staticmethod
+    def defer(func):
+        
+        @functools.wraps(func)
+        async def wrapper(self, ctx: bridge.BridgeContext, *args, **kwargs):
+            await ctx.defer()
+            return await func(self, ctx, *args, **kwargs)
         return wrapper
 
     @staticmethod

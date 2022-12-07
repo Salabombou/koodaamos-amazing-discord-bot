@@ -1,5 +1,5 @@
 import bs4
-from discord.ext import commands
+from discord.ext import commands, bridge, pages
 from requests_toolbelt import MultipartEncoder
 
 from utility.cog.command import command_cog
@@ -8,6 +8,7 @@ from utility.common.errors import SauceNotFound
 from utility.discord import target as discordutil
 from utility.views.sauce import sauce_view
 from utility.common.command import respond
+from utility.tools import sauce_tools
 
 class sauce(commands.Cog, command_cog):
     """
@@ -44,13 +45,19 @@ class sauce(commands.Cog, command_cog):
         except:
             raise SauceNotFound()
 
-    @commands.command(help='url: optionally specify the url to the image')
+    @bridge.bridge_command(help='url: optionally specify the url to the image')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.Async.typing
-    async def sauce(self, ctx: commands.Context, url=None):
+    @decorators.Async.defer
+    async def sauce(self, ctx: bridge.BridgeContext, url=None):
         if url == None:
             url = await discordutil.get_target(ctx, no_aud=True, no_vid=True)
             url = url.proxy_url
         results, hidden = await self.get_sauce(url)
-        message = await respond(ctx, content='loading...')
-        await message.edit(view=sauce_view(message, results, url, hidden))
+        embeds = [sauce_tools.create_embed(res, url, hidden) for res in results]
+        paginator = pages.Paginator(
+            pages=embeds,
+            loop_pages=True,
+            disable_on_timeout=True
+        )
+        return await paginator.respond(ctx, paginator)

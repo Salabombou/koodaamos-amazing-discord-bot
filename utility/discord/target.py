@@ -1,7 +1,7 @@
 from asyncio import AbstractEventLoop
 from math import ceil
 from utility.common.errors import TargetNotFound, TargetError
-from discord.ext import commands
+from discord.ext import bridge
 from discord import StickerItem, Embed, Attachment
 from utility.ffprobe import FfprobeFormat, Ffprober
 from utility.common import convert, decorators
@@ -143,17 +143,22 @@ class target_fetcher:
                 return embed
 
 @decorators.Async.logging.log
-async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=False) -> Target:
+async def get_target(ctx: bridge.BridgeContext, no_aud=False, no_vid=False, no_img=False) -> Target:
     """
         Gets the target from the discord chat
     """
     history = await ctx.channel.history(limit=100).flatten()
     fetcher = target_fetcher(no_aud, no_vid, no_img)
-    stickers = ctx.message.stickers
-    attachments = ctx.message.attachments
-    # if there are embeds or attachments in the command itself
-    file = fetcher.get_file([], attachments, stickers)
-
+    reference = None
+    file = None
+    
+    if ctx.message != None:
+        reference = ctx.message.reference
+        stickers = ctx.message.stickers
+        attachments = ctx.message.attachments
+        # if there are embeds or attachments in the command itself
+        file = fetcher.get_file([], attachments, stickers)
+        
     for message in history[1:]:  # first item in the list is likely the command
         if file != None:  # if the target has been aquired
             break
@@ -161,8 +166,8 @@ async def get_target(ctx: commands.Context, no_aud=False, no_vid=False, no_img=F
         attachments = message.attachments
         embeds = message.embeds
         file = fetcher.get_file(embeds, attachments, stickers)
-
-    if ctx.message.reference != None:  # if its a reply
+        
+    if reference != None:  # if its a reply
         reply = await ctx.channel.fetch_message(ctx.message.reference.message_id)
         embeds = reply.embeds
         attachments = reply.attachments
