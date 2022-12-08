@@ -38,7 +38,8 @@ cogs = (
     eduko, sauce,
     earrape, owner,
     bait, reverse,
-    qq, ping
+    qq, ping,
+    #gogo
     #removebg
 )
 for cog in cogs:
@@ -57,5 +58,5 @@ for func in listeners:
 bot.add_check(func=check.command_checker(bot).check)
 
 if __name__ == '__main__':
-    sys.stderr = StderrLogger(logger) # program now writes errors to a log file instead of writing to the terminal
+    #sys.stderr = StderrLogger(logger) # program now writes errors to a log file instead of writing to the terminal
     bot.run(tokens['discord'])

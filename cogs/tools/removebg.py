@@ -8,6 +8,8 @@ from utility.discord import target as discordutil
 from utility.common import decorators
 from utility.cog.command import command_cog
 from requests_toolbelt import MultipartEncoder
+from utility.common import config
+
 
 class removebg(commands.Cog, command_cog):
     """
@@ -21,7 +23,7 @@ class removebg(commands.Cog, command_cog):
     async def get_csrf_token(self):
         resp = await self.client.get('https://www.remove.bg')
         resp.raise_for_status()
-        soup = bs4.BeautifulSoup(resp.content, features='html.parser')
+        soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)
         csrf_token = soup.select('meta[name="csrf-token"]')[0]['content']
         return csrf_token
         

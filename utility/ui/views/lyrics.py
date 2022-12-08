@@ -19,7 +19,7 @@ class lyrics_view(discord.ui.View):
         return int(button.label.split('/')[0]) - 1
     
     @discord.ui.button(emoji='👆', style=discord.ButtonStyle.gray, row=0)
-    async def select_lyrics_callback(self, select, interaction: discord.Interaction):
+    async def select_lyrics_callback(self, button, interaction: discord.Interaction):
         """
             Responds with the lyrics and deletes the view from the message
         """

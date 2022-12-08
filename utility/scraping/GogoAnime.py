@@ -8,7 +8,9 @@ import base64
 import re
 import httpx
 from utility.common import decorators
-
+from utility.common import config
+from utility.common.requests import get_redirect_url
+from urllib.parse import quote
 
 client = httpx.AsyncClient()
 
@@ -21,8 +23,7 @@ class AesCbc:
         self.key = key
         self.mode = AES.MODE_CBC
         self.size = AES.block_size
-        self.pad = lambda s: s + (self.size - len(s) %
-                                  self.size) * chr(self.size - len(s) % self.size)
+        self.pad = lambda s: s + (self.size - len(s) % self.size) * chr(self.size - len(s) % self.size)
 
     def encrypt(self, content, iv):
         """
@@ -73,7 +74,7 @@ async def get_values(url):
     """
     resp = await client.get(url)  # gets the episode document
     resp.raise_for_status()
-    soup = bs4.BeautifulSoup(resp.content, features='html.parser')  # soup
+    soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)  # soup
     # gets the div
     div = soup.find('div', {'class': 'anime_video_body_watch_items load'})
     div = div.find('div')  # gets the div inside the div
@@ -83,7 +84,7 @@ async def get_values(url):
 
     resp = await client.get(player)
     resp.raise_for_status()
-    soup = bs4.BeautifulSoup(resp.content, features='html.parser')
+    soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)
 
     iv = soup.select('div.wrapper')[0]['class'][1].split('container-')[1]
     secret_key = soup.select('body[class]')[
@@ -122,3 +123,27 @@ async def video_from_url(url):
     file_url = source['file']
 
     return file_url
+
+class SearchItem:
+    def __init__(self, anime: bs4.BeautifulSoup) -> None:
+        self.title = anime.select_one('p.name a').attrs['title']
+        self.release = anime.select_one('p.released').text
+        self.path = anime.select_one('p.name a').attrs['href']
+        self.thumbnail = anime.select_one('div.img a img').attrs['src']
+
+def _parse_search_doc(doc: bytes) -> list[SearchItem]:
+    soup = bs4.BeautifulSoup(doc, features=config.bs4.parser)
+    animes = soup.select('ul.items li')
+    results = [SearchItem(anime) for anime in animes]
+    return results
+
+async def search(query: str) -> list[SearchItem]:
+    base_url = await get_redirect_url(config.gogo.base_url)
+    search_url = f'{base_url}/search.html?keyword={quote(query)}'
+    
+    resp = await client.get(search_url)
+    resp.raise_for_status()
+    
+    search_results = _parse_search_doc(doc=resp.content)
+        
+    return search_results

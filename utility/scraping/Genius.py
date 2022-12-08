@@ -4,7 +4,7 @@ import numpy as np
 import bs4
 from utility.common.errors import GeniusSongsNotFound, GeniusApiError
 from utility.common import decorators
-
+from utility.common import config
 
 class GeniusSearchResults:
     """
@@ -76,7 +76,7 @@ class GeniusSearchResults:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(self.url)
                 resp.raise_for_status()
-            soup = bs4.BeautifulSoup(resp.content, features='html.parser')
+            soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)
             divs = soup.select('div[data-lyrics-container="true"]')
             
             contents = [self.__parse_results(div.contents) for div in divs]

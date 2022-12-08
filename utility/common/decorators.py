@@ -2,6 +2,7 @@ import asyncio
 import discord
 import functools
 from discord.ext import commands, bridge
+from discord.ext.bridge import BridgeApplicationContext, BridgeExtContext, BridgeContext
 from discord.commands.context import ApplicationContext
 import tempfile
 from utility.logging import level, handler
@@ -17,8 +18,8 @@ class Async:
             Shows the bot typing when running a command
         """
         @functools.wraps(func)
-        async def wrapper(self, ctx: bridge.BridgeContext, *args, **kwargs):
-            if isinstance(ctx, bridge.BridgeApplicationContext):
+        async def wrapper(self, ctx: BridgeApplicationContext | BridgeExtContext, *args, **kwargs):
+            if isinstance(ctx, BridgeApplicationContext):
                 return await func(self, ctx, *args, **kwargs)
             async with ctx.typing():
                 return await func(self, ctx, *args, **kwargs)
@@ -39,8 +40,8 @@ class Async:
             Adds a reaction to the message at the end
         """
         @functools.wraps(func)
-        async def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
-            if isinstance(ctx, commands.Context):
+        async def wrapper(self, ctx: BridgeExtContext | BridgeApplicationContext, *args, **kwargs):
+            if isinstance(ctx, BridgeExtContext):
                 await ctx.message.add_reaction('👌')
             else:
                 await ctx.respond('👌')
@@ -53,10 +54,10 @@ class Async:
             Deletes the message five seconds after responding
         """
         @functools.wraps(func)
-        async def wrapper(self, ctx: commands.Context | ApplicationContext, *args, **kwargs):
+        async def wrapper(self, ctx: BridgeExtContext | BridgeApplicationContext, *args, **kwargs):
             value = await func(self, ctx, *args, **kwargs)
             try:
-                if ctx.message != None:
+                if isinstance(ctx, BridgeExtContext):
                     await ctx.message.delete(delay=5)
                 else:
                     await ctx.delete(delay=5)
@@ -110,7 +111,7 @@ class Async:
             Updates the playlist in the music bot commands
         """
         @functools.wraps(func)
-        async def wrapper(self, ctx: commands.Context, *args, **kwargs):
+        async def wrapper(self, ctx: BridgeExtContext | BridgeApplicationContext, *args, **kwargs):
             server = ctx.guild.id
             if not server in self.tools.playlist:
                 self.tools.playlist[server] = [[], []]
@@ -128,7 +129,7 @@ class Sync: # synchronous versions for synchronous functions
             Updates the playlist in the music bot commands
         """
         @functools.wraps(func)
-        def wrapper(self, ctx: commands.Context, *args, **kwargs):
+        def wrapper(self, ctx: BridgeExtContext | BridgeApplicationContext, *args, **kwargs):
             server = ctx.guild.id
             if not server in self.tools.playlist:
                 self.tools.playlist[server] = [[], []]
