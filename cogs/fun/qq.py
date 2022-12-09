@@ -22,7 +22,7 @@ class qq(commands.Cog, command_cog):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Uploads an image to the CCP and responds with it animefied with AI'
         self.url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
-        self. image_to_base64 = lambda image: base64.b64encode(image).decode('utf-8')
+        self.image_to_base64 = lambda image: base64.b64encode(image).decode('utf-8')
     
     async def get_image_bytes(self, images: list[str]):
         if images == []:
@@ -33,7 +33,7 @@ class qq(commands.Cog, command_cog):
             return await self.get_image_bytes(images[1:])
         return image
     
-    async def get_animefied_images(self, ctx: commands.Context, /, *, image_url: str) -> list[str] | None:
+    async def get_animefied_images(self, ctx: commands.Context, /, *, image_url: str) -> list[str]:
         image = await file_management.get_bytes(file=image_url)
         image = self.image_to_base64(image)
         payload = {
@@ -44,8 +44,8 @@ class qq(commands.Cog, command_cog):
         }
         async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(url=self.url, data=json.dumps(payload), headers={'Content-Type': 'application/json'})
-        resp.raise_for_status()
-        resp_json = resp.json()
+            resp.raise_for_status()
+            resp_json = resp.json()
         if resp_json['code'] != 0 and 'extra' not in resp_json:
             ctx.command.reset_cooldown(ctx)
             raise AnimefierError(msg=resp_json['msg'])

@@ -4,8 +4,8 @@ from utility.discord import voice_chat
 from utility.tools.music_tools import music_tools
 from utility.tools import lyrics_tools
 from utility.common import decorators, config
-from utility.views.music import list_view
-from utility.views.lyrics import lyrics_view
+from utility.ui.views.music import list_view
+from utility.ui.views.lyrics import lyrics_view
 from utility.cog.command import command_cog
 from utility.scraping import Genius
 import discord
@@ -185,7 +185,6 @@ class music(commands.Cog, command_cog):
 
     @bridge.bridge_command(help='replies with the lyrics from query')
     @commands.cooldown(1, 60, commands.BucketType.user)
-    @decorators.Async.defer
     @decorators.Async.typing
     @decorators.Async.defer
     async def lyrics(self, ctx: bridge.BridgeContext, *, query: str):

@@ -3,7 +3,6 @@ import time
 from discord.ext import commands, bridge, pages
 import discord
 import bs4
-from utility.common.command import respond
 from utility.common import decorators
 from utility.cog.command import command_cog
 from utility.common import config
@@ -103,7 +102,7 @@ class eduko(commands.Cog, command_cog):
         resp = await self.client.get(self.foodlist_url)
         resp.raise_for_status()
 
-        self.soup = bs4.BeautifulSoup(resp.content, features='html.parser')
+        self.soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)
 
         self.week_nums = self.get_week_nums()
         self.sections = self.section_filter()

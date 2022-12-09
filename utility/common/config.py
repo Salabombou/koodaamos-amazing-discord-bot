@@ -9,3 +9,9 @@ class string:
 
 class emoji:
     index_pointing_up = '\u261D'
+    
+class bs4:
+    parser = 'html.parser'
+
+class gogo:
+    base_url = 'https://gogoanime.ar/'

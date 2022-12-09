@@ -1,13 +1,11 @@
 import bs4
 from discord.ext import commands, bridge, pages
 from requests_toolbelt import MultipartEncoder
-
+from utility.common import config
 from utility.cog.command import command_cog
 from utility.common import decorators
 from utility.common.errors import SauceNotFound
 from utility.discord import target as discordutil
-from utility.views.sauce import sauce_view
-from utility.common.command import respond
 from utility.tools import sauce_tools
 
 class sauce(commands.Cog, command_cog):
@@ -35,7 +33,7 @@ class sauce(commands.Cog, command_cog):
             data = MultipartEncoder(fields=fields)
             resp = await self.client.post(url='https://saucenao.com/search.php', data=data.to_string(), headers={'Content-Type': data.content_type})
             resp.raise_for_status()
-            soup = bs4.BeautifulSoup(resp.content, features='html.parser')
+            soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)
             hidden = soup.select('div #result-hidden-notification') != []
             results = soup.select('div.result') + soup.select('div.result.hidden')
             results = [result for result in results if 'onclick' not in result.attrs]

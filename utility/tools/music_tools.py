@@ -12,7 +12,7 @@ import validators
 import numpy as np
 from utility.common import decorators
 from utility.common import config
-from utility.views.music import song_view
+from utility.ui.views.music import song_view
 
 
 ffmpeg_options = {
