@@ -1,5 +1,5 @@
 import discord
-from discord.ext import pages, bridge
+from discord.ext import pages
 from utility.common import config
 from utility.scraping import GogoAnime
 from itertools import zip_longest
