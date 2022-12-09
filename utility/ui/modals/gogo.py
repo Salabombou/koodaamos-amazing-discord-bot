@@ -61,7 +61,7 @@ class search_modal(discord.ui.Modal):
             if not selected_index < length:
                 raise ValueError()
         except ValueError:
-            resp = await interaction.followup.send('Number invalid. Try again.', ephemeral=True)
+            resp = await interaction.followup.send('Number invalid. Try again.', ephemeral=True, delete_after=5)
             self.responses.append(resp.delete())
             return await self._get_selected_index(interaction, length)
         return selected_index
@@ -72,7 +72,7 @@ class search_modal(discord.ui.Modal):
         self.animes = await GogoAnime.search(query)
         embeds = [self._create_search_result_embed(anime) for anime in self.animes]
         if embeds == []:
-            return await interaction.response.send_message(f'No animes found with the query "{query}"', ephemeral=True)
+            return await interaction.response.send_message(f'No animes found with the query "{query}"', ephemeral=True, delete_after=10)
         
         paginator = pages.Paginator(
             pages=embeds,
@@ -83,8 +83,7 @@ class search_modal(discord.ui.Modal):
         resp = await paginator.respond(interaction, ephemeral=True)
         self.responses.append(resp.delete())
         
-        resp = await interaction.followup.send('Please enter the number of the anime', ephemeral=True)
-        self.responses.append(resp.delete())
+        await interaction.followup.send('Please enter the number of the anime', ephemeral=True, delete_after=10)
         
         anime_index = await self._get_selected_index(interaction, len(self.animes))
 
@@ -103,8 +102,7 @@ class search_modal(discord.ui.Modal):
         resp = await paginator.respond(interaction, ephemeral=True)
         self.responses.append(resp.delete())
         
-        resp = await interaction.followup.send('Please enter the number of the episode', ephemeral=True)
-        self.responses.append(resp.delete())
+        resp = await interaction.followup.send('Please enter the number of the episode', ephemeral=True, delete_after=10)
         
         episode_index = await self._get_selected_index(interaction, len(episodes))
         
