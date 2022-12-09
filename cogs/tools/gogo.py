@@ -21,8 +21,7 @@ class gogo(commands.Cog):
     @decorators.Async.defer
     async def gogo(self, ctx: bridge.BridgeContext, url=None):
         if url == None:
-            await ctx.respond(view=anime_search_view())
-            return
+            return await ctx.respond(view=anime_search_view())
         if validators.url(url):
             try:
                 m3u8_url = await GogoAnime.video_from_url(url)
