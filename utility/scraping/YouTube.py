@@ -18,30 +18,17 @@ from dataclasses import dataclass
 
 zws = string.zero_width_space
 
-@dataclass(frozen=True)
-class VideoDummie:
-    """
-        A dummie version used as a placeholder
-    """
-    title = zws
-    description = zws
-    channel = zws
-    id = zws
-    thumbnail = f'https://i.ytimg.com/vi/{id}/mqdefault.jpg'
-    channelId = zws
-    other = zws
-
 @dataclass
 class Video:
     """
         A dataclass for the YouTube video info
     """
-    title: str
-    description: str
-    channelId: str
-    channelTitle: str
-    id: str
-    thumbnail: str
+    title: str = None
+    description: str = None
+    channelId: str = None
+    channelTitle: str = None
+    id: str = None
+    thumbnail: str = None
 
 
 def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:

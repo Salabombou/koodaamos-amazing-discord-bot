@@ -71,14 +71,14 @@ class music_tools:
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[ctx.guild.id][0]) / 50)
         songs = self.serialize_songs(ctx.guild.id)
-        currently_playing = YouTube.VideoDummie()
+        currently_playing = YouTube.Video()
         if self.playlist[ctx.guild.id][0] != []:
             currently_playing = self.playlist[ctx.guild.id][0][0]
         for song in songs[index:50 + index][::-1]:
             embed.description += song + '\n'
         embed.add_field(
             name='CURRENTLY PLAYING:',
-            value=f'```{currently_playing.title}```'
+            value=f'```{currently_playing.title or config.string.zero_width_space}```'
         )
         embed.set_footer(
             text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(self.playlist[ctx.guild.id][0])} song(s) in the queue'
