@@ -30,7 +30,7 @@ class music_tools:
         self.voice_client = {}
 
     # appends songs to the playlist
-    def append_songs(self, ctx: bridge.BridgeContext, /, playnext=False, songs=[]):
+    def append_songs(self, ctx: bridge.BridgeExtContext, /, playnext=False, songs=[]):
         if playnext and songs != []:
             for song in songs[::-1]:
                 self.playlist[ctx.guild.id][0].insert(1, song)
@@ -61,7 +61,7 @@ class music_tools:
         songs.pop(0)
         return songs
     
-    def create_embed(self, ctx: bridge.BridgeContext, page_num: int):  # todo add timestamp
+    def create_embed(self, ctx: bridge.BridgeExtContext, page_num: int):  # todo add timestamp
         embed = discord.Embed(
             title='PLAYLIST',
             description='',
@@ -209,7 +209,7 @@ class music_tools:
         )
         
 
-    def next_song(self, ctx: bridge.BridgeContext, message: discord.Message):
+    def next_song(self, ctx: bridge.BridgeExtContext, message: discord.Message):
         """
             Function to be called after song id done playing from play_song
         """
