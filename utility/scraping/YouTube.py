@@ -14,9 +14,11 @@ import re
 import concurrent.futures
 from utility.common.config import string
 from utility.common import decorators
+from dataclasses import dataclass
 
 zws = string.zero_width_space
 
+@dataclass(frozen=True)
 class VideoDummie:
     """
         A dummie version used as a placeholder
@@ -29,27 +31,17 @@ class VideoDummie:
     channelId = zws
     other = zws
 
+@dataclass
 class Video:
     """
-        A class object for the YouTube video info
+        A dataclass for the YouTube video info
     """
-    def __init__(
-        self, /,
-        title: str,
-        description: str,
-        channelId: str,
-        channelTitle: str,
-        videoId: str,
-        thumbnail: str,
-        **kwargs
-    ) -> None:
-        self.title = title
-        self.description = description
-        self.channel = channelTitle
-        self.id = videoId
-        self.thumbnail = thumbnail
-        self.channelId = channelId
-        self.other = kwargs
+    title: str
+    description: str
+    channelId: str
+    channelTitle: str
+    id: str
+    thumbnail: str
 
 
 def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:
@@ -80,7 +72,7 @@ def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:
         'description': snippet['description'],
         'channelId': channelId,
         'channelTitle': channelTitle,
-        'videoId': videoId,
+        'id': videoId,
         'thumbnail': thumbnail
     }
 

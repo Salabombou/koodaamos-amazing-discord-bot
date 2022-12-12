@@ -104,7 +104,7 @@ class music_tools:
             )
         return options
     
-    async def create_info_embed(self, ctx: bridge.BridgeContext, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
+    async def create_info_embed(self, ctx: bridge.BridgeExtContext, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
         if song == None:
             num = abs(number)
             if len(self.playlist[ctx.guild.id][0]) - 1 < num:
@@ -123,7 +123,7 @@ class music_tools:
             icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
         except:
             icon = song.thumbnail
-        embed.set_footer(text=song.channel, icon_url=icon)
+        embed.set_footer(text=song.channelTitle, icon_url=icon)
         view = song_view(song)
         return embed, view
     
@@ -165,7 +165,7 @@ class music_tools:
     
     # making sure this wont ever raise an exception and thus stop the music from playing
     @decorators.Async.logging.log
-    async def play_song(self, ctx: bridge.BridgeContext, songs=[], playnext=False, next_song=False):
+    async def play_song(self, ctx: bridge.BridgeExtContext, songs=[], playnext=False, next_song=False):
         """
             Song player handler
         """
@@ -196,7 +196,7 @@ class music_tools:
         
         try:
             embed, view = await self.create_info_embed(ctx)
-            message = await ctx.respond('Now playing:', embed=embed, view=view)
+            message = await ctx.channel.send('Now playing:', embed=embed, view=view)
         except:
             message = None
         
