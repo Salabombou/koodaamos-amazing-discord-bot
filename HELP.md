@@ -9,6 +9,7 @@ https://discord.com/api/oauth2/authorize?client_id=955557550735106098&permission
 # Command Prefix
 Bot's command prefix is `.`
 You can call commands with `.<command>` ex. `.dalle`
+
 and pass arguements after the command like `.dalle ocean view`
 
 # Help Command
