@@ -1,24 +1,13 @@
-import asyncio
-import requests
-import concurrent.futures
-from utility.common.errors import UrlRedirectError
 from utility.common import decorators
-
-loop = asyncio.get_event_loop()
+import httpx
 
 @decorators.Async.logging.log
 async def get_redirect_url(url: str) -> str:
     """
         Gets the redirect url from url
     """
-    with concurrent.futures.ThreadPoolExecutor() as pool:
-        for _ in range(10):
-            resp = await loop.run_in_executor(
-                pool,
-                requests.head, url
-            )
-            redirected = url != resp.url
-            url = resp.url
-            if not redirected:
-                return url
-    raise UrlRedirectError('Url redirected too many times')
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        resp = await client.head(url)
+        resp.raise_for_status()
+    redirect_url = str(resp.url)
+    return redirect_url
