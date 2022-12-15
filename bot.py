@@ -29,7 +29,7 @@ with open('tokens.json') as file:
     tokens = json.loads(file.read())
 
 # cogs for the bot to use
-cogs = (
+cogs = [
     dalle, gpt3,
     music, green,
     ruin, download,
@@ -41,17 +41,17 @@ cogs = (
     qq, ping,
     gogo
     #removebg
-)
+]
 for cog in cogs:
     bot.add_cog(cog(bot, tokens))
 
 # listeners for the bot to use
 listener = Listeners(bot)
-listeners = (
+listeners = [
     listener.on_application_command_error,
     listener.on_command_error,
     listener.on_ready
-)
+]
 for func in listeners:
     bot.add_listener(func=func)
 

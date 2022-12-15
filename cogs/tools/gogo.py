@@ -4,12 +4,11 @@ import urllib.request
 import urllib.parse
 from utility.scraping import GogoAnime
 from utility.common.errors import UrlInvalid
-from utility.common import decorators
+from utility.common import decorators, command
 import discord
 from utility.tools.gogo_tools import create_search_result_embed, create_episode_results_embed
 from itertools import zip_longest
 import asyncio
-
 
 class gogo(commands.Cog):
     """
@@ -34,19 +33,17 @@ class gogo(commands.Cog):
             return await self._get_selected_index(ctx, length)
         return selected_index
     
-    async def get_anime(self, ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext) -> str:
-        message = await ctx.send('Enter the search query')
-
+    async def get_anime(self, ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext, message: discord.Message) -> str | None:
         search_query = await self._get_response_content(ctx)
         
         animes = await GogoAnime.search(search_query)
         if not animes:
-            return await ctx.respond('No animes found with the query %s' % search_query, mention_author=False)
+            await ctx.respond('No animes found with the query %s' % search_query, mention_author=False)
+            return None
         embeds = [create_search_result_embed(anime) for anime in animes]
         paginator = pages.Paginator(
             pages=embeds,
-            timeout=60.0,
-            disable_on_timeout=True,
+            timeout=None,
             author_check=False # this is needed beucase its buggy atm pycord fix it
         )
         await paginator.edit(message)
@@ -61,8 +58,7 @@ class gogo(commands.Cog):
         embeds = [create_episode_results_embed(selected_anime, chunk[::-1]) for chunk in episodes_chunks]
         paginator = pages.Paginator(
             pages=embeds,
-            timeout=60.0,
-            disable_on_timeout=True,
+            timeout=None,
             author_check=False
         )
         await paginator.edit(message)
@@ -70,11 +66,7 @@ class gogo(commands.Cog):
         
         episode_index = await self._get_selected_index(ctx, len(episodes))
         selected_episode = episodes[episode_index]
-        
-        asyncio.run_coroutine_threadsafe(
-            message.delete(), self.bot.loop
-        )
-        
+
         return selected_episode.url
         
         
@@ -82,9 +74,17 @@ class gogo(commands.Cog):
     @commands.cooldown(1, 60, commands.BucketType.user)
     @decorators.Async.typing
     @decorators.Async.defer
-    async def gogo(self, ctx: bridge.BridgeContext, url: str = None):
+    async def gogo(self, ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext, url: str = None):
         if not url:
-            url = await self.get_anime(ctx)
+            message = await ctx.send('Enter the search query')
+            try:
+                url = await self.get_anime(ctx, message)
+            except:
+                url = None
+            finally:
+                await message.delete()
+        if not url:
+            return
         if not validators.url(url):
             raise UrlInvalid()
         
@@ -94,10 +94,4 @@ class gogo(commands.Cog):
             raise UrlInvalid()
         
         content = 'https://www.hlsplayer.org/play?url=' + urllib.parse.quote(m3u8_url)
-        kwargs = {
-            'content': content
-        }
-        if isinstance(ctx, bridge.BridgeExtContext):
-            kwargs['mention_author'] = False
-        await ctx.respond(**kwargs)
-            
+        await command.respond(ctx, content=content)

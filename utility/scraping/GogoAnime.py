@@ -19,45 +19,30 @@ class AesCbc:
     """
         Encryption and decryption using AES CBC
     """
-    def __init__(self, key=None):
+    def __init__(self, key: bytes, iv: bytes):
         self.key = key
+        self.iv = iv
         self.mode = AES.MODE_CBC
         self.size = AES.block_size
         self.pad = lambda s: s + (self.size - len(s) % self.size) * chr(self.size - len(s) % self.size)
 
-    def encrypt(self, content, iv):
+    def encrypt(self, content: str) -> bytes:
         """
             Encrypts the content
         """
-        cryptor = AES.new(self.key, self.mode, iv)
+        cryptor = AES.new(self.key, self.mode, self.iv)
         encrypted = cryptor.encrypt(str.encode(self.pad(content)))
         return base64.b64encode(encrypted)
 
-    def decrypt(self, content, iv):
+    def decrypt(self, content: str) -> str:
         """
             Decrypts the content with no padding
         """
-        cryptor = AES.new(self.key, self.mode, iv)
+        cryptor = AES.new(self.key, self.mode, self.iv)
         content += (len(content) % 4) * '='
         content = base64.b64decode(content)
         decrypted = cryptor.decrypt(content)
         return re.compile('[\\x00-\\x08\\x0b-\\x0c\\x0e-\\x1f\n\r\t]').sub('', decrypted.decode())
-
-
-def crypto_handler(data_value, iv, secret_key, encrypt=True):
-    """
-        Handles the cryptic stuff
-    """
-    secret_key = str.encode(secret_key)
-    iv = str.encode(iv)
-    thingy = AesCbc(key=secret_key)
-    if not encrypt:
-        decrypted = thingy.decrypt(data_value, iv)
-        return decrypted
-    else:
-        encrypted = thingy.encrypt(data_value, iv)
-        return encrypted
-
 
 def substring_after(string: str, sub: str):
     """
@@ -68,32 +53,32 @@ def substring_after(string: str, sub: str):
     return string
 
 
-async def get_values(url):
+async def _get_values(url):
     """
         Gets the different values needed for getting the stream url
     """
     resp = await client.get(url)  # gets the episode document
     resp.raise_for_status()
-    soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)  # soup
-    # gets the div
-    div = soup.find('div', {'class': 'anime_video_body_watch_items load'})
-    div = div.find('div')  # gets the div inside the div
-    iframe = div.find('iframe')  # gets the element "iframe" inside the div
-    src = iframe['src']  # gets the source from the iframe element
+    soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)
+    div = soup.select_one('div.anime_video_body_watch_items.load')
+    div = div.select_one('div') # gets the div inside the div
+    iframe = div.select_one('iframe')  # gets the element "iframe" inside the div
+    src = iframe.attrs['src']  # gets the source from the iframe element
     player = 'https:' + src
 
     resp = await client.get(player)
     resp.raise_for_status()
     soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)
 
-    iv = soup.select('div.wrapper')[0]['class'][1].split('container-')[1]
-    secret_key = soup.select('body[class]')[
-        0]['class'][0].split('container-')[1]
-    decryption_key = soup.select('div.videocontent')[
-        0]['class'][1].split('videocontent-')[1]
-
-    data_value = soup.select('script[data-value]')[0]['data-value']
-    encrypt_ajax_params = crypto_handler(data_value, iv, secret_key, False)
+    iv = soup.select_one('div.wrapper').attrs['class'][1].split('container-')[1].encode()
+    secret_key = soup.select_one('body[class]').attrs['class'][0].split('container-')[1].encode()
+    decryption_key = soup.select_one('div.videocontent').attrs['class'][1].split('videocontent-')[1].encode()
+    
+    data_value = soup.select_one('script[data-value]').attrs['data-value']
+    
+    crypto_handler = AesCbc(secret_key, iv)
+    encrypt_ajax_params = crypto_handler.decrypt(data_value)
+    
     encrypt_ajax_params = substring_after(encrypt_ajax_params, '&')
 
     return player, iv, secret_key, decryption_key, encrypt_ajax_params
@@ -103,20 +88,26 @@ async def video_from_url(url):
     """
         Gets the stream url to an anime from the GogoAnime website
     """
-    player, iv, secret_key, decryption_key, encrypt_ajax_params = await get_values(url)
+    player, iv, secret_key, decryption_key, encrypt_ajax_params = await _get_values(url)
 
     http_url = urllib.parse.urlparse(player)
     host = 'https://' + http_url.hostname + '/'
     ID = urllib.parse.parse_qs(http_url.query)['id'][0]
-
-    encrypted_id = crypto_handler(ID, iv, secret_key).decode('utf-8')
+    
+    crypto_handler = AesCbc(secret_key, iv)
+    encrypted_id = crypto_handler.encrypt(ID).decode()
 
     final_url = f'{host}encrypt-ajax.php?id={encrypted_id}&{encrypt_ajax_params}&alias={ID}'
-    resp = await httpx.AsyncClient(headers={'X-Requested-With': 'XMLHttpRequest'}).get(final_url)
-    resp.raise_for_status()
-
+    
+    async with httpx.AsyncClient(headers={'X-Requested-With': 'XMLHttpRequest'}) as client:
+        resp = await client.get(final_url)
+        resp.raise_for_status()
+    
+    crypto_handler = AesCbc(decryption_key, iv)
+    
     data = resp.json()['data']
-    decrypted_data = crypto_handler(data, iv, decryption_key, False)
+    decrypted_data = crypto_handler.decrypt(data)
+    
     data = json.loads(decrypted_data)
 
     source = data['source'][0]
