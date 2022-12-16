@@ -9,5 +9,8 @@ async def get_redirect_url(url: str) -> str:
     async with httpx.AsyncClient(follow_redirects=True, max_redirects=10) as client:
         resp = await client.head(url)
         resp.raise_for_status()
+    redirect_urls = [str(resp.url) for resp in resp.history]
+    if url in redirect_urls:
+        return url
     redirect_url = str(resp.url)
     return redirect_url
