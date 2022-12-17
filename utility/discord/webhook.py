@@ -25,9 +25,10 @@ async def _fetch_webhook(ctx: commands.Context) -> Webhook:
     """
     webhooks = await ctx.message.channel.webhooks()
     for webhook in webhooks:
-        if webhook.user.id == ctx.me.id:
-            return webhook
-    return await ctx.message.channel.create_webhook(name='サラボンボのすばらしいウエブフーック', avatar=await __fetch_avatar(ctx))
+        if webhook.user.id != ctx.me.id:
+            continue
+        return webhook
+    return await ctx.message.channel.create_webhook(name=f'{ctx.me.name}\'s Amazing Webhook', avatar=await __fetch_avatar(ctx))
 
 @decorators.Async.logging.log
 async def send_message(ctx, /, *, embeds: list[Embed], files: list[File] = None):

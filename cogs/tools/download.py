@@ -3,7 +3,7 @@ from discord.ext import commands, bridge
 
 from utility.cog.command import command_cog
 from utility.common import decorators, file_management
-from utility.common.command import respond
+from utility.common import command
 from utility.common.errors import UrlInvalid
 from utility.common.requests import get_redirect_url
 from utility.scraping import download as downl
@@ -38,4 +38,4 @@ class download(commands.Cog, command_cog):
         resp = await self.client.get(url)
         resp.raise_for_status()
         pomf_url, file = await file_management.prepare_file(ctx, file=resp.content, ext=ext)
-        await ctx.respond(pomf_url, file=file)
+        await command.respond(ctx, content=pomf_url, file=file)

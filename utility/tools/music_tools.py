@@ -30,7 +30,7 @@ class music_tools:
         self.voice_client = {}
 
     # appends songs to the playlist
-    def append_songs(self, ctx: bridge.BridgeContext, /, playnext=False, songs=[]):
+    def append_songs(self, ctx: bridge.BridgeExtContext, /, playnext=False, songs=[]):
         if playnext and songs != []:
             for song in songs[::-1]:
                 self.playlist[ctx.guild.id][0].insert(1, song)
@@ -61,7 +61,7 @@ class music_tools:
         songs.pop(0)
         return songs
     
-    def create_embed(self, ctx: bridge.BridgeContext, page_num: int):  # todo add timestamp
+    def create_embed(self, ctx: bridge.BridgeExtContext, page_num: int):  # todo add timestamp
         embed = discord.Embed(
             title='PLAYLIST',
             description='',
@@ -71,14 +71,14 @@ class music_tools:
         index = page_num * 50
         playlist_length = math.ceil(len(self.playlist[ctx.guild.id][0]) / 50)
         songs = self.serialize_songs(ctx.guild.id)
-        currently_playing = YouTube.VideoDummie()
+        currently_playing = YouTube.Video()
         if self.playlist[ctx.guild.id][0] != []:
             currently_playing = self.playlist[ctx.guild.id][0][0]
         for song in songs[index:50 + index][::-1]:
             embed.description += song + '\n'
         embed.add_field(
             name='CURRENTLY PLAYING:',
-            value=f'```{currently_playing.title}```'
+            value=f'```{currently_playing.title or config.string.zero_width_space}```'
         )
         embed.set_footer(
             text=f'Showing song(s) in the playlist queue from page {page_num+1}/{playlist_length} out of {len(self.playlist[ctx.guild.id][0])} song(s) in the queue'
@@ -104,7 +104,7 @@ class music_tools:
             )
         return options
     
-    async def create_info_embed(self, ctx: bridge.BridgeContext, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
+    async def create_info_embed(self, ctx: bridge.BridgeExtContext, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
         if song == None:
             num = abs(number)
             if len(self.playlist[ctx.guild.id][0]) - 1 < num:
@@ -123,7 +123,7 @@ class music_tools:
             icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
         except:
             icon = song.thumbnail
-        embed.set_footer(text=song.channel, icon_url=icon)
+        embed.set_footer(text=song.channelTitle, icon_url=icon)
         view = song_view(song)
         return embed, view
     
@@ -165,7 +165,7 @@ class music_tools:
     
     # making sure this wont ever raise an exception and thus stop the music from playing
     @decorators.Async.logging.log
-    async def play_song(self, ctx: bridge.BridgeContext, songs=[], playnext=False, next_song=False):
+    async def play_song(self, ctx: bridge.BridgeExtContext, songs=[], playnext=False, next_song=False):
         """
             Song player handler
         """
@@ -196,7 +196,7 @@ class music_tools:
         
         try:
             embed, view = await self.create_info_embed(ctx)
-            message = await ctx.respond('Now playing:', embed=embed, view=view)
+            message = await ctx.channel.send('Now playing:', embed=embed, view=view)
         except:
             message = None
         
@@ -209,7 +209,7 @@ class music_tools:
         )
         
 
-    def next_song(self, ctx: bridge.BridgeContext, message: discord.Message):
+    def next_song(self, ctx: bridge.BridgeExtContext, message: discord.Message):
         """
             Function to be called after song id done playing from play_song
         """

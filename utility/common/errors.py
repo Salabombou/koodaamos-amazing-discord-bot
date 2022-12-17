@@ -153,3 +153,7 @@ class AnimefierError(Exception):
     
     def __str__(self) -> str:
         return self.message
+    
+class McSrvStatusError(Exception):
+    def __str__(self) -> str:
+        return 'Server unavailable'
