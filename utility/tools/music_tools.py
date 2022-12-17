@@ -127,6 +127,11 @@ class music_tools:
         view = song_view(song)
         return embed, view
     
+    async def append_songs_from_playlist(self, ctx: bridge.BridgeContext, playlist):
+        await asyncio.sleep(3) # just incase
+        async for batch in playlist:
+            self.append_songs(ctx, songs=batch)
+    
     @decorators.Async.logging.log
     async def fetch_songs(self, ctx: bridge.BridgeContext, url, no_playlists=False):
         if not validators.url(url):  # if url is invalid (implying for a search)
@@ -139,11 +144,13 @@ class music_tools:
         if 'v' in query:
             return [await self.yt_extractor.fetch_from_video(videoId=query['v'][0])]
         elif 'list' in query and not no_playlists:
-            # fething from playlist takes time
-            message = await ctx.respond('Fetching from playlist...')
-            songs = await self.yt_extractor.fetch_from_playlist(playlistId=query['list'][0])
-            await message.delete()
-            return songs
+            playlist = self.yt_extractor.fetch_from_playlist(playlistId=query['list'][0])
+            return_value = await anext(playlist)
+            asyncio.run_coroutine_threadsafe(
+                self.append_songs_from_playlist(ctx, playlist),
+                self.loop
+            )
+            return return_value
         raise UrlInvalid()
 
     def shuffle_playlist(self, ID: int):

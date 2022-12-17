@@ -98,6 +98,5 @@ class mcsrvstat(commands.Cog, command_cog):
         resp.raise_for_status()
         server = self.__parse_data(resp.json())
         embed = self.__create_embed(server)
-        buf = io.BytesIO(server.icon)
-        file = discord.File(fp=buf, filename='icon.png')
-        await command.respond(ctx, file=file, embed = embed)
+        file = discord.File(fp=io.BytesIO(server.icon), filename='icon.png')
+        await command.respond(ctx, file=file, embed=embed)

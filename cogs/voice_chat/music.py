@@ -34,7 +34,7 @@ class music(commands.Cog, command_cog):
             Starts the music bot and adds the songs to the playlist
         """
         voice_client = await voice_chat.join(ctx)
-        if voice_client != None:
+        if voice_client:
             self.tools.voice_client.update({ctx.guild.id: voice_client})
         songs = await self.tools.fetch_songs(ctx, arg)
         await self.tools.play_song(ctx, songs)
