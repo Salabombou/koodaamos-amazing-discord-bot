@@ -1,19 +1,18 @@
 from discord.ext import commands, bridge
-from utility.cog.command import command_cog
 from utility.common import decorators, config, command
 from utility.common.errors import McSrvStatusError
 from urllib.parse import quote
 import discord
+import httpx
 from dataclasses import dataclass
 import base64
 import io
 
-class mcsrvstat(commands.Cog, command_cog):
+class mcsrvstat(commands.Cog):
     """ 
         Gets the info about a minecraft server
     """
-    def __init__(self, bot: commands.Bot, tokens):
-        super().__init__(bot=bot, tokens=tokens)
+    def __init__(self, bot: bridge.Bot, tokens):
         self.url = lambda address: 'https://api.mcsrvstat.us/2/' + quote(address)
     
     @dataclass(frozen=True)
@@ -91,13 +90,13 @@ class mcsrvstat(commands.Cog, command_cog):
     @decorators.Async.defer
     async def mc(self, ctx: bridge.BridgeContext, address: str = '147.135.191.71:25582'):
         """
-        
+            Fetches the current info about a minecraft server
         """
         url = self.url(address)
-        resp = await self.client.get(url)
-        resp.raise_for_status()
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
         server = self.__parse_data(resp.json())
         embed = self.__create_embed(server)
-        buf = io.BytesIO(server.icon)
-        file = discord.File(fp=buf, filename='icon.png')
-        await command.respond(ctx, file=file, embed = embed)
+        file = discord.File(fp=io.BytesIO(server.icon), filename='icon.png')
+        await command.respond(ctx, file=file, embed=embed)

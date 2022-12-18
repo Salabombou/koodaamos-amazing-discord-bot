@@ -201,7 +201,7 @@ class YT_Extractor:
             raise VideoUnavailable()
 
 
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def fetch_from_playlist(self, playlistId: str) -> list[Video]:
         """
             Fetches the data from a playlist
@@ -211,26 +211,24 @@ class YT_Extractor:
             playlistId=playlistId,
             maxResults=1000
         )
-        items = []
         try:
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 while request != None:
                     r = await self.loop.run_in_executor(
                         pool, request.execute
                     )
-                    items += r['items']
+                    items = r['items']
+                    songs = [
+                        _parse_data(
+                            data=song,
+                            videoId=song['snippet']['resourceId']['videoId'],
+                            from_playlist=True
+                        ) for song in items
+                    ]
+                    yield songs
                     request = self.youtube.playlistItems().list_next(request, r)
         except:
             raise YoutubeApiError()
-        songs = [
-            _parse_data(
-                data=song,
-                videoId=song['snippet']['resourceId']['videoId'],
-                from_playlist=True
-            ) for song in items
-        ]
-        return songs
-    
     
     @decorators.Async.logging.log
     async def fetch_channel_icon(self, channelId: str) -> str:

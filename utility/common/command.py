@@ -15,32 +15,25 @@ async def respond(
     """
         Safely respond to commands
     """
-            
+    if isinstance(ctx, BridgeExtContext):
+        kwargs['mention_author'] = mention_author
+        kwargs['file'] = file
+        kwargs['files'] = files
+    elif isinstance(ctx, BridgeApplicationContext):
+        if files:
+            kwargs['files'] = files
+        elif file:
+            kwargs['file'] = file 
     try:
-        return await ctx.respond(
-            mention_author=mention_author,
-            file=file,
-            files=files,
-            **kwargs
-        )
+        return await ctx.respond(**kwargs)
     except HTTPException as e:
-        status = e.status
-        if not isinstance(ctx, BridgeExtContext):
+        if isinstance(ctx, BridgeApplicationContext):
             return
-        if status != 400 and status != 404:
-            return
-
     if file != None:
         file.fp.seek(0)
     if files != None:
         for i, _ in enumerate(files):
             files[i].fp.seek(0)
-            
-    return await ctx.channel.send(
-        mention_author=mention_author,
-        file=file,
-        files=files,
-        **kwargs
-    )
+    return await ctx.channel.send(**kwargs)
     
     
