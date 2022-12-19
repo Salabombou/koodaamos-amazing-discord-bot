@@ -1,14 +1,15 @@
 from discord.ext import commands, bridge, pages
-import validators
+import discord
 import urllib.request
 import urllib.parse
+import validators
+
+from utility.tools.gogo_tools import create_search_result_embed, create_episode_results_embed
 from utility.scraping import GogoAnime
 from utility.common.errors import UrlInvalid
 from utility.common import decorators, command
-import discord
-from utility.tools.gogo_tools import create_search_result_embed, create_episode_results_embed
 from itertools import zip_longest
-import asyncio
+
 
 class gogo(commands.Cog):
     """
@@ -77,7 +78,7 @@ class gogo(commands.Cog):
     async def gogo(
         self,
         ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext,
-        url: discord.Option(
+        url: bridge.core.BridgeOption(
             str,
             'The direct url to the anime episode ex. https://gogoanime.bid/steinsgate-episode-1'
         ) = None

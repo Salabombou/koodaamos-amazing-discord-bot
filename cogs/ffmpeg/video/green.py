@@ -1,5 +1,4 @@
 from discord.ext import commands, bridge
-import discord
 
 from utility.discord.converter import Color
 from utility.discord import target as discordutil
@@ -60,11 +59,11 @@ class green(commands.Cog, ffmpeg_cog):
     async def green(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        url: discord.Option(
+        url: bridge.core.BridgeOption(
             str,
             'A link to a YouTube video'
         ) = 'https://youtu.be/iUsecpG2bWI',
-        color: discord.Option(
+        color: bridge.core.BridgeOption(
             Color,
             'The color hex to filter the video with'
         ) = '00ff00'

@@ -1,10 +1,8 @@
 import validators
 from discord.ext import commands, bridge
-import discord
 
 from utility.cog.command import command_cog
-from utility.common import decorators, file_management
-from utility.common import command
+from utility.common import decorators, file_management, command
 from utility.common.errors import UrlInvalid
 from utility.common.requests import get_redirect_url
 from utility.scraping import download as downl
@@ -33,7 +31,7 @@ class download(commands.Cog, command_cog):
     async def dl(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        url: discord.Option(
+        url: bridge.core.BridgeOption(
             str,
             'A link to the downloadable content (YouTube, Reddit, Tiktok, Spotify)'
         )

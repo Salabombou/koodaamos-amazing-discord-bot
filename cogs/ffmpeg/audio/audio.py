@@ -1,8 +1,6 @@
 from discord.ext import commands, bridge
-import discord
 
 from utility.discord import target as discordutil
-from utility.common.command import respond
 from utility.common import decorators, file_management
 from utility.ffmpeg import *
 from utility.cog.command import ffmpeg_cog
@@ -45,7 +43,7 @@ class audio(commands.Cog, ffmpeg_cog):
     async def audio(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        url: discord.Option(
+        url: bridge.core.BridgeOption(
             str,
             'A link to a YouTube video'
         ) = 'https://youtu.be/NOaSdO5H91M'

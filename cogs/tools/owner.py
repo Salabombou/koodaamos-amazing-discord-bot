@@ -1,10 +1,11 @@
-import asyncio
 from discord.ext import commands
-import discord
-import discord.utils
 from discord import CategoryChannel
+import discord.utils
+import discord
+import asyncio
 import functools
 import json
+
 from utility.cog.command import command_cog
 
 

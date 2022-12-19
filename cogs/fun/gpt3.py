@@ -1,11 +1,11 @@
-from asyncio import AbstractEventLoop
 from discord.ext import commands, bridge
+from asyncio import AbstractEventLoop
+import concurrent.futures
+import functools
 import discord
 import openai
-import functools
-from utility.common import decorators
-from utility.common import config
-import concurrent.futures
+
+from utility.common import decorators, config
 from utility.cog.command import command_cog
 
 
@@ -43,7 +43,7 @@ class gpt3(commands.Cog, command_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
         *,
-        prompt: discord.Option(
+        prompt: bridge.core.BridgeOption(
             str,
             'The message to be sent to the ai'
         ) = 'make up a 4chan greentext post'

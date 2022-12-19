@@ -32,7 +32,7 @@ class music(commands.Cog, command_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
         *,
-        song: discord.Option(
+        song: bridge.core.BridgeOption(
             str,
             'YouTube url to a song or playlist'
         ) = 'https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'
@@ -58,7 +58,7 @@ class music(commands.Cog, command_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
         *,
-        song: discord.Option(
+        song: bridge.core.BridgeOption(
             str,
             'YouTube url to a song or playlist'
         )
@@ -86,8 +86,14 @@ class music(commands.Cog, command_cog):
             Lists the songs in the playlist with controls to control it
         """
         embed = self.tools.create_embed(ctx, page_num=0)
-        message = await ctx.respond(embed=embed)
-        await message.edit(view=list_view(music_self=self, ctx=await self.bot.get_context(message)))
+        message = await ctx.channel.send(embed=embed)
+        await message.edit(
+            view=list_view(
+                music_self=self,
+                ctx=await self.bot.get_context(message)
+            )
+        )
+        await ctx.respond()
 
     @bridge.bridge_command(aliases=['leave'])
     @bridge.guild_only()
@@ -136,7 +142,7 @@ class music(commands.Cog, command_cog):
     async def skip(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        amount: discord.Option(
+        amount: bridge.core.BridgeOption(
             int,
             'The amount of songs to skip from the playlist'
         ) = 1
@@ -198,7 +204,7 @@ class music(commands.Cog, command_cog):
     async def song(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        number: discord.Option(
+        number: bridge.core.BridgeOption(
             int,
             'The song number in the playlist'
         ) = 0
@@ -238,7 +244,7 @@ class music(commands.Cog, command_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
         *,
-        query: discord.Option(
+        query: bridge.core.BridgeOption(
             str,
             'The search query for the song to get the lyrics from'
         )

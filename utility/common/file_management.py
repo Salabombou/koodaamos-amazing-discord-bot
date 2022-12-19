@@ -1,5 +1,3 @@
-import asyncio
-import os
 import validators
 import httpx
 import io
