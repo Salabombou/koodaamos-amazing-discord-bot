@@ -11,7 +11,6 @@ class nightcore(commands.Cog, ffmpeg_cog):
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'makes the audio nightcore'
         self.nightcore_args = [
             '-i', '-',
             '-filter_complex', '"[0:a]asetrate=1.25*44.1k,aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr=44.1k[a];[0:v]setpts=0.75*PTS[v]"',
@@ -20,7 +19,10 @@ class nightcore(commands.Cog, ffmpeg_cog):
             '-shortest',
         ]
 
-    async def create_output_video(self, ctx: bridge.BridgeContext):
+    async def create_output_video(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
         target = await discordutil.get_target(ctx, no_img=True)
 
         videofied = await self.videofier.videofy(target, borderless=True)
@@ -36,6 +38,12 @@ class nightcore(commands.Cog, ffmpeg_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def nc(self, ctx: bridge.BridgeContext):
+    async def nc(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
+        """
+            Makes the audio nightcore
+        """
         file, pomf_url = await self.create_output_video(ctx)
         await ctx.respond(pomf_url, file=file)

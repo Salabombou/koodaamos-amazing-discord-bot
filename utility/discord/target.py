@@ -143,7 +143,7 @@ class target_fetcher:
                 return embed
 
 @decorators.Async.logging.log
-async def get_target(ctx: bridge.BridgeContext, no_aud=False, no_vid=False, no_img=False) -> Target:
+async def get_target(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, no_aud=False, no_vid=False, no_img=False) -> Target:
     """
         Gets the target from the discord chat
     """

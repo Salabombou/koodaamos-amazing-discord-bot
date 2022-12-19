@@ -74,7 +74,17 @@ class gogo(commands.Cog):
     @commands.cooldown(1, 60, commands.BucketType.user)
     @decorators.Async.typing
     @decorators.Async.defer
-    async def gogo(self, ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext, url: str = None):
+    async def gogo(
+        self,
+        ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext,
+        url: discord.Option(
+            str,
+            'The direct url to the anime episode ex. https://gogoanime.bid/steinsgate-episode-1'
+        ) = None
+    ) -> None:
+        """
+            Get a link to watch an episode of an anime without ads
+        """
         if not url:
             message = await ctx.send('Enter the search query')
             try:

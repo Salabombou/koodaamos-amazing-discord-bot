@@ -75,11 +75,14 @@ class removebg(commands.Cog, command_cog):
 
 
 
-    @commands.command(help='url: a link to the downloadable content (YouTube, Reddit, Tiktok, Spotify)')
+    @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.guild_only()
     @decorators.Async.typing
-    async def removebg(self, ctx: commands.Context):
+    async def removebg(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
         target = await discordutil.get_target(ctx, no_aud=True, no_vid=True)
         csrf_token = await self.get_csrf_token()
         trust_token = await self.get_trust_token(csrf_token)

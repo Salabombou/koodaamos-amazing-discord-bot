@@ -1,4 +1,6 @@
 from discord.ext import commands, bridge
+import discord
+
 from utility.discord import target as discordutil
 from utility.common import decorators, file_management
 from utility.common.command import respond
@@ -8,11 +10,10 @@ from utility.cog.command import ffmpeg_cog
 
 class bait(commands.Cog, ffmpeg_cog):
     """
-        Makes an prank video from YouTube to play after the image or the first frame of the video
+        Creates a prank video that plays a YouTube video after the first frame of the video
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Overlays a greenscreen video on top of an image or a video'
         self.ffprober = ffprobe.Ffprober(bot.loop)
         self.green_args = [
             '-to', '00:00:00.001',
@@ -23,7 +24,7 @@ class bait(commands.Cog, ffmpeg_cog):
             '-map', '[outa]'
         ]
 
-    async def create_output_video(self, ctx: commands.Context, url):
+    async def create_output_video(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, url):
         # gets the target file
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
 
@@ -44,11 +45,21 @@ class bait(commands.Cog, ffmpeg_cog):
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
 
-    @bridge.bridge_command(help='url: a link to a YouTube video')
+    @bridge.bridge_command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def bait(self, ctx: bridge.BridgeContext, url='https://youtu.be/QCXmUplRd_M'):
+    async def bait(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        url: discord.Option(
+            str,
+            'A link to a YouTube video'
+        ) = 'https://youtu.be/QCXmUplRd_M'
+    ) -> None:
+        """
+            Create a prank video that plays a YouTube video after the first frame of the video
+        """
         file, pomf_url = await self.create_output_video(ctx, url)
         await ctx.respond(pomf_url, file=file)

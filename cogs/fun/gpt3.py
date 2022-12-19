@@ -34,12 +34,20 @@ class gpt3(commands.Cog, command_cog):
         text = text.replace('\n\n', '\n')
         return text
 
-    @bridge.bridge_command(aliases=['text', 'ai'], help='prompt: the message to be sent to the ai')
+    @bridge.bridge_command(aliases=['ai'])
     @bridge.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
     @decorators.Async.typing
     @decorators.Async.defer
-    async def gpt3(self, ctx: commands.Context, *, prompt='make up a 4chan greentext post'):
+    async def gpt3(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        *,
+        prompt: discord.Option(
+            str,
+            'The message to be sent to the ai'
+        ) = 'make up a 4chan greentext post'
+    ) -> None:
         embed = discord.Embed(color=config.embed.color, fields=[], title=prompt)
         bot = ctx.bot
         loop: AbstractEventLoop = bot.loop

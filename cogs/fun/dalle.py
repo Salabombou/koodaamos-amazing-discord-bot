@@ -17,7 +17,6 @@ class dalle(commands.Cog, command_cog):
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Creates an image collage from images produced by an AI with a prompt'
 
     @decorators.Async.logging.log
     async def DallE_Collage(self, loop: AbstractEventLoop, arg):
@@ -58,12 +57,23 @@ class dalle(commands.Cog, command_cog):
         buf.seek(0)
         return buf
 
-    @bridge.bridge_command(help='prompt: the message to be sent to the ai')
+    @bridge.bridge_command()
     @bridge.is_nsfw()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.Async.typing
     @decorators.Async.defer
-    async def dalle(self, ctx: bridge.BridgeContext, *, prompt="a cute kitten"):
+    async def dalle(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        *,
+        prompt: discord.Option(
+            str,
+            'The message to be sent to the ai'
+        ) = 'a cute kitten'
+    ) -> None:
+        """
+            Create an image collage from images produced by an AI from a prompt
+        """
         embed = discord.Embed(color=config.embed.color, fields=[], title=prompt)
         embed.set_image(url="attachment://unknown.png")
         image = await self.DallE_Collage(self.bot.loop, prompt)

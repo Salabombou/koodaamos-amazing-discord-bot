@@ -10,10 +10,8 @@ import asyncio
 from asyncio import AbstractEventLoop
 import validators
 import numpy as np
-from utility.common import decorators
-from utility.common import config
+from utility.common import decorators, config
 from utility.ui.views.music import song_view
-
 
 ffmpeg_options = {
     'options': '-vn',
@@ -85,7 +83,7 @@ class music_tools:
         )  # bigggggg
         return embed
 
-    def create_options(self, ctx: bridge.BridgeContext | discord.Message):  # create the options for the dropdown select menu
+    def create_options(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext | discord.Message):  # create the options for the dropdown select menu
         page_amount = math.ceil(len(self.playlist[ctx.guild.id][0]) / 50)
         options = [
             discord.SelectOption(
@@ -127,17 +125,17 @@ class music_tools:
         view = song_view(song)
         return embed, view
     
-    async def append_songs_from_playlist(self, ctx: bridge.BridgeContext, playlist):
+    async def append_songs_from_playlist(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, playlist):
         await asyncio.sleep(3) # just incase
         async for batch in playlist:
             self.append_songs(ctx, songs=batch)
     
     @decorators.Async.logging.log
-    async def fetch_songs(self, ctx: bridge.BridgeContext, url, no_playlists=False):
+    async def fetch_songs(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, url, no_playlists=False):
         if not validators.url(url):  # if url is invalid (implying for a search)
             # searches for the video and returns the url to it
             song = await self.yt_extractor.fetch_from_search(query=url)
-            await ctx.respond(f"found a video with the query '{url}' with the title '{song.title}'.", delete_after=10, mention_author=False)
+            await ctx.channel.send(f"found a video with the query '{url}' with the title '{song.title}'.", delete_after=10)
             return [song]
         url = await get_redirect_url(url)
         query = parse_qs(urlparse(url).query, keep_blank_values=True)
@@ -161,9 +159,9 @@ class music_tools:
         self.playlist[ID][0].insert(0, temp)
 
     
-    async def send_song_unavailable(self, ctx: bridge.BridgeContext, next_song: bool):
+    async def send_song_unavailable(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, next_song: bool):
         try:
-            message = await ctx.respond('Song unavailable, moving to next one')
+            message = await ctx.channel.send('Song unavailable, moving to next one')
             self.playlist[ctx.guild.id][0].pop(0)
             await self.play_song(ctx, next_song=next_song)
             return await message.delete(delay=1)
@@ -242,5 +240,5 @@ class music_tools:
         )
     
     @decorators.Async.logging.log
-    async def looping_response(self, ctx: bridge.BridgeContext) -> discord.Message:
-        return await ctx.respond('LOOPING' if self.looping[ctx.guild.id] else 'NOT LOOPING', delete_after=10)
+    async def looping_response(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> discord.Message:
+        return await ctx.channel.send('LOOPING' if self.looping[ctx.guild.id] else 'NOT LOOPING', delete_after=10)

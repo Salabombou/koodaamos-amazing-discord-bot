@@ -1,5 +1,5 @@
 import json
-from discord.ext import commands
+from discord.ext import commands, bridge
 
 
 class command_checker:
@@ -14,7 +14,7 @@ class command_checker:
         with open('naughty_list.json', 'r') as file:
             return list(json.loads(file.read()))
 
-    async def check(self, ctx: commands.Context) -> bool:
+    async def check(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> bool:
         """
             The command checker for all commands. Returns True if passes and False if not
         """

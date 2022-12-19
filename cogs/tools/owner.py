@@ -25,7 +25,6 @@ class owner(commands.Cog, command_cog):
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Bot owner only commands to manage the bot'
         self.spamming = False
 
     async def spammy(self, mention):
@@ -105,11 +104,15 @@ class owner(commands.Cog, command_cog):
         with open('./naughty_list.json', 'w') as file:
             file.write(dumps)
 
-    @commands.command(help='run this command incase you are a victim of being spammed')
+    @commands.command()
     @delete_before
-    async def spam(self, ctx: commands.Context):
+    async def spam(
+        self,
+        ctx: commands.Context
+    ) -> None:
         """
             Spams the targeted victim endlessly once per second
+            TIP: Run this command to stop it from spamming incase you are a victim of being spammed
         """
         if await self.bot.is_owner(ctx.author):
             for mention in ctx.message.mentions:

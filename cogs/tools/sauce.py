@@ -1,5 +1,7 @@
-import bs4
 from discord.ext import commands, bridge, pages
+import discord
+import bs4
+
 from requests_toolbelt import MultipartEncoder
 from utility.common import config
 from utility.cog.command import command_cog
@@ -14,7 +16,6 @@ class sauce(commands.Cog, command_cog):
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Finds the sauce from an image'
         self.fields = [
             ['url', '']
         ]
@@ -43,11 +44,21 @@ class sauce(commands.Cog, command_cog):
         except:
             raise SauceNotFound()
 
-    @bridge.bridge_command(help='url: optionally specify the url to the image')
+    @bridge.bridge_command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.Async.typing
     @decorators.Async.defer
-    async def sauce(self, ctx: bridge.BridgeContext, url=None):
+    async def sauce(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        url: discord.Option(
+            str,
+            'The url to the image'
+        ) = None
+    ) -> None:
+        """
+            Find the sauce from an image
+        """
         if url == None:
             url = await discordutil.get_target(ctx, no_aud=True, no_vid=True)
             url = url.proxy_url

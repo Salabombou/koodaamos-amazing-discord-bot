@@ -1,10 +1,11 @@
 from discord.ext import commands, bridge
+import discord
+
 from utility.discord import target as discordutil
 from utility.common.command import respond
 from utility.common import decorators, file_management
 from utility.ffmpeg import *
 from utility.cog.command import ffmpeg_cog
-
 
 class audio(commands.Cog, ffmpeg_cog):
     """
@@ -12,7 +13,6 @@ class audio(commands.Cog, ffmpeg_cog):
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Adds audio to a image or a video'
         self.audio_args = [
             '-i', '-',
             '-i', '"%s"',
@@ -21,7 +21,7 @@ class audio(commands.Cog, ffmpeg_cog):
             '-map', '[a]',
         ]
 
-    async def create_output(self, ctx: bridge.BridgeContext, url):
+    async def create_output(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, url):
         target = await discordutil.get_target(ctx)
 
         audio = await self.yt_extractor.get_info(url, video=False, max_duration=300)
@@ -37,11 +37,21 @@ class audio(commands.Cog, ffmpeg_cog):
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
 
-    @bridge.bridge_command(help='url: a link to a YouTube video')
+    @bridge.bridge_command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def audio(self, ctx: bridge.BridgeContext, url="https://youtu.be/NOaSdO5H91M"):
+    async def audio(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        url: discord.Option(
+            str,
+            'A link to a YouTube video'
+        ) = 'https://youtu.be/NOaSdO5H91M'
+    ) -> None:
+        """
+            Add audio from YouTube video on top of an image or video
+        """
         file, pomf_url = await self.create_output(ctx, url)
         await ctx.respond(pomf_url, file=file)
