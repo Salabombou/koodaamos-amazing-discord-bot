@@ -63,7 +63,7 @@ class dalle(commands.Cog, command_cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @decorators.Async.typing
     @decorators.Async.defer
-    async def dalle(self, ctx: bridge.BridgeContext, *, prompt="a cute kitten"):
+    async def dalle(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, *, prompt="a cute kitten"):
         embed = discord.Embed(color=config.embed.color, fields=[], title=prompt)
         embed.set_image(url="attachment://unknown.png")
         image = await self.DallE_Collage(self.bot.loop, prompt)

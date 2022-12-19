@@ -18,7 +18,10 @@ class mute(commands.Cog, ffmpeg_cog):
             '-af', 'volume=0'
         ]
 
-    async def create_output_video(self, ctx: bridge.BridgeContext):
+    async def create_output_video(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
         target = await discordutil.get_target(ctx, no_img=True, no_aud=True)
 
         videofied = await self.videofier.videofy(target, borderless=True)
@@ -34,6 +37,9 @@ class mute(commands.Cog, ffmpeg_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def mute(self, ctx: bridge.BridgeContext):
+    async def mute(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
         file, pomf_url = await self.create_output_video(ctx)
         await ctx.respond(pomf_url, file=file)

@@ -21,7 +21,7 @@ class audio(commands.Cog, ffmpeg_cog):
             '-map', '[a]',
         ]
 
-    async def create_output(self, ctx: bridge.BridgeContext, url):
+    async def create_output(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, url):
         target = await discordutil.get_target(ctx)
 
         audio = await self.yt_extractor.get_info(url, video=False, max_duration=300)
@@ -42,6 +42,6 @@ class audio(commands.Cog, ffmpeg_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def audio(self, ctx: bridge.BridgeContext, url="https://youtu.be/NOaSdO5H91M"):
+    async def audio(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, url="https://youtu.be/NOaSdO5H91M"):
         file, pomf_url = await self.create_output(ctx, url)
         await ctx.respond(pomf_url, file=file)

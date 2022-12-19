@@ -20,7 +20,10 @@ class nightcore(commands.Cog, ffmpeg_cog):
             '-shortest',
         ]
 
-    async def create_output_video(self, ctx: bridge.BridgeContext):
+    async def create_output_video(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
         target = await discordutil.get_target(ctx, no_img=True)
 
         videofied = await self.videofier.videofy(target, borderless=True)
@@ -36,6 +39,9 @@ class nightcore(commands.Cog, ffmpeg_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def nc(self, ctx: bridge.BridgeContext):
+    async def nc(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
         file, pomf_url = await self.create_output_video(ctx)
         await ctx.respond(pomf_url, file=file)

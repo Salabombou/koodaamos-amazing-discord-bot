@@ -27,7 +27,10 @@ class ruin(commands.Cog, ffmpeg_cog):
             '-f', 'mp4',
         ]
 
-    async def create_output_video(self, ctx: bridge.BridgeContext):
+    async def create_output_video(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
         target = await discordutil.get_target(ctx)
 
         videofied = await self.videofier.videofy(target, borderless=True)
@@ -43,6 +46,9 @@ class ruin(commands.Cog, ffmpeg_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def ruin(self, ctx: bridge.BridgeContext):
+    async def ruin(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
         file, pomf_url = await self.create_output_video(ctx)
         await ctx.respond(pomf_url, file=file)

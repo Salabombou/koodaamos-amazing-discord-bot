@@ -1,5 +1,6 @@
 import validators
 from discord.ext import commands, bridge
+import discord
 
 from utility.cog.command import command_cog
 from utility.common import decorators, file_management
@@ -25,12 +26,19 @@ class download(commands.Cog, command_cog):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Downloads an video, image or audio from multiple sources'
 
-    @bridge.bridge_command(help='url: a link to the downloadable content (YouTube, Reddit, Tiktok, Spotify)')
+    @bridge.bridge_command(help='url: ')
     @commands.cooldown(1, 30, commands.BucketType.user)
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def dl(self, ctx: bridge.BridgeContext, url):
+    async def dl(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        url: discord.Option(
+            str,
+            'A link to the downloadable content (YouTube, Reddit, Tiktok, Spotify)'
+        )
+    ) -> None:
         if not validators.url(url):
             raise UrlInvalid()
         url = await get_redirect_url(url)

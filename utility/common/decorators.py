@@ -29,7 +29,7 @@ class Async:
     def defer(func):
         
         @functools.wraps(func)
-        async def wrapper(self, ctx: bridge.BridgeContext, *args, **kwargs):
+        async def wrapper(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, *args, **kwargs):
             await ctx.defer()
             return await func(self, ctx, *args, **kwargs)
         return wrapper

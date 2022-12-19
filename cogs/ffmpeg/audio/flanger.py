@@ -18,7 +18,7 @@ class flanger(commands.Cog, ffmpeg_cog):
             '-af', '"flanger=speed=%s:width=100"'
         ]
 
-    async def create_output_video(self, ctx: bridge.BridgeContext, speed):
+    async def create_output_video(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, speed):
         target = await discordutil.get_target(ctx, no_img=True)
 
         videofied = await self.videofier.videofy(target, borderless=True)
@@ -34,6 +34,6 @@ class flanger(commands.Cog, ffmpeg_cog):
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def flan(self, ctx: bridge.BridgeContext, speed=10.0):
+    async def flan(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, speed=10.0):
         file, pomf_url = await self.create_output_video(ctx, speed)
         await ctx.respond(pomf_url, file=file)

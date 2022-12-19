@@ -88,7 +88,14 @@ class mcsrvstat(commands.Cog):
     @bridge.bridge_command()
     @commands.cooldown(1, 10, commands.BucketType.user)
     @decorators.Async.defer
-    async def mc(self, ctx: bridge.BridgeContext, address: str = '147.135.191.71:25582'):
+    async def mc(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        address: discord.Option(
+            str,
+            'The address of the server to look into',
+        ) = '147.135.191.71:25582'
+    ) -> None:
         """
             Fetches the current info about a minecraft server
         """
