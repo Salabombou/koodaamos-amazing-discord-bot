@@ -24,9 +24,8 @@ class download(commands.Cog, command_cog):
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Downloads an video, image or audio from multiple sources'
 
-    @bridge.bridge_command(help='url: ')
+    @bridge.bridge_command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @bridge.guild_only()
     @decorators.Async.typing
@@ -39,6 +38,9 @@ class download(commands.Cog, command_cog):
             'A link to the downloadable content (YouTube, Reddit, Tiktok, Spotify)'
         )
     ) -> None:
+        """
+            Download either a video, image or audio from available sources
+        """
         if not validators.url(url):
             raise UrlInvalid()
         url = await get_redirect_url(url)

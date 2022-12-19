@@ -126,7 +126,7 @@ class music(commands.Cog, command_cog):
             return await self.tools.play_song(ctx)
         voice_chat.pause(ctx)
 
-    @bridge.bridge_command(help='skips the currently playing song')
+    @bridge.bridge_command()
     @bridge.guild_only()
     @commands.check(voice_chat.command_check)
     @decorators.Async.defer
@@ -137,12 +137,12 @@ class music(commands.Cog, command_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
         amount: discord.Option(
-            str,
+            int,
             'The amount of songs to skip from the playlist'
         ) = 1
     ) -> None:
         """
-            Skips n amount of songs in the playlist. default is 1
+            Skips n amount of songs from the playlist. Default is 1
         """
         amount = abs(amount)
         if self.tools.looping[ctx.guild.id]:
@@ -199,7 +199,7 @@ class music(commands.Cog, command_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
         number: discord.Option(
-            str,
+            int,
             'The song number in the playlist'
         ) = 0
     ) -> None:

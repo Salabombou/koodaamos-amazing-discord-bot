@@ -2,7 +2,6 @@ from discord.ext import commands, bridge
 from utility.discord import target as discordutil
 from utility.ffmpeg import *
 from utility.common import decorators, file_management
-from utility.common.command import respond
 from utility.cog.command import ffmpeg_cog
 
 
@@ -12,7 +11,6 @@ class ruin(commands.Cog, ffmpeg_cog):
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Ruins the quality of an image, video or audio'
         self.ruin_args = [
             '-i', '-',
             '-loglevel', 'error',
@@ -50,5 +48,8 @@ class ruin(commands.Cog, ffmpeg_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
     ) -> None:
+        """
+            Ruin the quality of an image, video or audio
+        """
         file, pomf_url = await self.create_output_video(ctx)
         await ctx.respond(pomf_url, file=file)

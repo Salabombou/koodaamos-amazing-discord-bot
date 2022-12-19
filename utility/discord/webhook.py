@@ -7,7 +7,7 @@ from utility.common import decorators
 client = httpx.AsyncClient()
 
 
-async def __fetch_avatar(ctx: commands.Context) -> bytes:
+async def __fetch_avatar(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> bytes:
     """
         Gets the bot's avatar from url
     """
@@ -19,7 +19,7 @@ async def __fetch_avatar(ctx: commands.Context) -> bytes:
     return resp.content
 
 
-async def _fetch_webhook(ctx: commands.Context) -> Webhook:
+async def _fetch_webhook(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> Webhook:
     """
         Gets the webhook from channel that is created by the bot. If it doesn't exists, creates one
     """

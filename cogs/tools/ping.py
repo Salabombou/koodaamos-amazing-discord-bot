@@ -4,7 +4,7 @@ import time
 from utility.common import decorators
 class ping(commands.Cog, command_cog):
     """ 
-        Test the response speed of the bot
+        Test the response time of the bot
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
@@ -17,6 +17,9 @@ class ping(commands.Cog, command_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
     ) -> None:
+        """
+            Test the response time of the bot
+        """
         start = time.perf_counter()
         message = await ctx.respond(f'Pong!')
         end = time.perf_counter()

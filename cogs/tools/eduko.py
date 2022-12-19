@@ -14,7 +14,6 @@ class eduko(commands.Cog, command_cog):
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Gets the Eduko diner menu for the week(s)'
         self.embeds = []
         self.paginator = None
         self.last_sync = 0
@@ -124,6 +123,9 @@ class eduko(commands.Cog, command_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
     ) -> None:
+        """
+            Get the current menu(s) for the Eduko's lunch cafeteria
+        """
         current_time = time.time()
         if current_time - self.last_sync > 1000:  # if it has been more than 1000 seconds since last sync
             await self.update_food_embeds()

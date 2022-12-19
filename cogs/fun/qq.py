@@ -16,11 +16,10 @@ import io
 
 class qq(commands.Cog, command_cog):
     """
-        Morph images to look like anime
+        Uploads a facial image to the CCP and responds with it animefied with AI
     """
     def __init__(self, bot: commands.Bot, tokens: dict[str]):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Uploads an image to the CCP and responds with it animefied with AI'
         self.url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
         self.image_to_base64 = lambda image: base64.b64encode(image).decode('utf-8')
     
@@ -33,7 +32,7 @@ class qq(commands.Cog, command_cog):
             return await self.get_image_bytes(images[1:])
         return image
     
-    async def get_animefied_images(self, ctx: commands.Context, /, *, image_url: str) -> list[str]:
+    async def get_animefied_images(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, /, *, image_url: str) -> list[str]:
         image = await file_management.get_bytes(file=image_url)
         image = self.image_to_base64(image)
         payload = {
@@ -53,11 +52,17 @@ class qq(commands.Cog, command_cog):
             extra =  json.loads(resp_json['extra'])
             return extra['img_urls']
     
-    @bridge.bridge_command(help='Use it at your own risk!')
+    @bridge.bridge_command()
     @commands.cooldown(1, 60, commands.BucketType.default)
     @decorators.Async.typing
     @decorators.Async.defer
-    async def animefy(self, ctx: commands.Context):
+    async def animefy(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
+        """
+            Use it at your own risk!
+        """
         image = await target.get_target(ctx, no_aud=True, no_vid=True)
         
         animefied_images = await self.get_animefied_images(ctx, image_url=image.proxy_url)

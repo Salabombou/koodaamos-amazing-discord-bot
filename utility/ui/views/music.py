@@ -2,7 +2,7 @@ import discord
 from discord import NotFound, Interaction
 from utility.discord import voice_chat
 from utility.tools import music_tools
-from discord.ext import commands
+from discord.ext import bridge
 import math
 import asyncio
 from utility.scraping import YouTube
@@ -12,10 +12,10 @@ class list_view(discord.ui.View):
     """
         View for the music bot playlist
     """
-    def __init__(self, music_self, ctx: commands.Context):
+    def __init__(self, music_self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext):
         super().__init__(timeout=None)
         self.tools: music_tools.music_tools = music_self.tools
-        self.bot: commands.Bot = music_self.bot
+        self.bot: bridge.Bot = music_self.bot
         self.embed = None
         self.index = 0
         self.server = ctx.guild.id

@@ -82,6 +82,9 @@ class gogo(commands.Cog):
             'The direct url to the anime episode ex. https://gogoanime.bid/steinsgate-episode-1'
         ) = None
     ) -> None:
+        """
+            Get a link to watch an episode of an anime without ads
+        """
         if not url:
             message = await ctx.send('Enter the search query')
             try:

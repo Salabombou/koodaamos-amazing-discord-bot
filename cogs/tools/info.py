@@ -15,5 +15,8 @@ class info(commands.Cog, command_cog):
     
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def info(self, ctx: commands.Context):
+    async def info(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
+    ) -> None:
         return await ctx.send(embed=self.info_embed)

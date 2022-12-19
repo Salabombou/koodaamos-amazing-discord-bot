@@ -1,8 +1,9 @@
 from discord.ext import commands, bridge
+import discord
+
+from utility.discord.converter import Color
 from utility.discord import target as discordutil
-from utility.scraping import YouTube
 from utility.common import decorators, file_management
-from utility.common.command import respond
 from utility.ffmpeg import *
 from utility.cog.command import ffmpeg_cog
 
@@ -13,7 +14,6 @@ class green(commands.Cog, ffmpeg_cog):
     """
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
-        self.description = 'Overlays a greenscreen video on top of an image or a video'
         self.filter = '[1:v:0]scale=%s:%s,fps=30,colorkey=0x%s:0.4:0[ckout];[0:v:0]fps=30[ckout1];[ckout1][ckout]overlay=x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2[out]'
         self.green_args = [
             '-i', '-',
@@ -23,24 +23,18 @@ class green(commands.Cog, ffmpeg_cog):
             '-map', '[a]'
         ]
 
-    def set_color(self, color: str):  # sets the color for ffmpeg to filter
-        color = color.lower()
-        color = color[:6].zfill(6)  # fills with zeros if missing values
-        try:
-            int(color, 16)
-        except:
-            color = '000ff00'  # green if it fails to be converted to hexadecimal
-        return color
-
-    async def create_output_video(self, ctx: commands.Context, url, color):
+    async def create_output_video(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        url: str,
+        color: str
+    ) -> tuple[str, str]:
         # gets the target file
         target = await discordutil.get_target(ctx=ctx, no_aud=True)
 
         # gets the info from the youtube video specified
         video = await self.yt_extractor.get_info(url=url, video=True, max_duration=300)
 
-        # creates the duration in format hh:mm:ss
-        color = self.set_color(color)  # creates the color
         width, height = create_size(target)
 
         videofied = await self.videofier.videofy(target, duration=video['duration'], borderless=True)
@@ -58,11 +52,25 @@ class green(commands.Cog, ffmpeg_cog):
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')
         return file, pomf_url
 
-    @bridge.bridge_command(help='url: a link to a YouTube video')
+    @bridge.bridge_command()
     @commands.cooldown(1, 30, commands.BucketType.user)
     @bridge.guild_only()
     @decorators.Async.typing
     @decorators.Async.defer
-    async def green(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, url='https://youtu.be/iUsecpG2bWI', color='00ff00'):
+    async def green(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        url: discord.Option(
+            str,
+            'A link to a YouTube video'
+        ) = 'https://youtu.be/iUsecpG2bWI',
+        color: discord.Option(
+            Color,
+            'The color hex to filter the video with'
+        ) = '00ff00'
+    ) -> None:
+        """
+            Overlay a greenscreen video on top of an image or a video
+        """
         file, pomf_url = await self.create_output_video(ctx, url, color)
         await ctx.respond(pomf_url, file=file)

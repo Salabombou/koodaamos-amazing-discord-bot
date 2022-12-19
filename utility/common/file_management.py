@@ -5,7 +5,7 @@ import httpx
 import io
 import discord
 from utility.scraping import compress, pomf
-from discord.ext import commands
+from discord.ext import bridge
 from utility.common import decorators
 
 client = httpx.AsyncClient()
@@ -26,7 +26,7 @@ async def get_bytes(file) -> bytes:  # returns the bytes of the file to be conve
     return file
 
 
-async def prepare_file(ctx: commands.Context, file: bytes | str, ext) -> str | discord.File:
+async def prepare_file(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, file: bytes | str, ext) -> str | discord.File:
     """
         Prepares the to be sended file
     """

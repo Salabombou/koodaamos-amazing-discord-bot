@@ -41,5 +41,8 @@ class earrape(commands.Cog, ffmpeg_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
     ) -> None:
+        """
+            Ruin the audio of a video by making it extremely loud
+        """
         file, pomf_url = await self.create_output_video(ctx)
         await ctx.respond(content=pomf_url, file=file)

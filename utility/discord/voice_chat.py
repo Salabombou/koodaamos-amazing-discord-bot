@@ -1,8 +1,8 @@
-from discord.ext import commands
+from discord.ext import bridge
 from utility.common import decorators
 import discord
 
-def command_check(ctx: commands.Context):
+def command_check(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext):
     """
         Default checks for voice chat commands
     """
@@ -15,7 +15,7 @@ def command_check(ctx: commands.Context):
     return False
 
 @decorators.Async.logging.log
-async def join(ctx: commands.Context) -> None | discord.VoiceClient:
+async def join(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None | discord.VoiceClient:
     """
         Joins the same voice chat the user is in
     """
@@ -27,7 +27,7 @@ async def join(ctx: commands.Context) -> None | discord.VoiceClient:
         return vc
     
 @decorators.Async.logging.log
-async def leave(ctx: commands.Context) -> None:
+async def leave(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None:
     """
         Leaves the voice chat
     """
@@ -39,7 +39,7 @@ async def leave(ctx: commands.Context) -> None:
         await ctx.voice_client.disconnect()
 
 @decorators.Sync.logging.log
-def stop(ctx: commands.Context) -> None:
+def stop(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None:
     """
         Stops the bot from playing audio
     """
@@ -51,7 +51,7 @@ def stop(ctx: commands.Context) -> None:
         ctx.voice_client.stop()
 
 @decorators.Sync.logging.log
-def resume(ctx: commands.Context) -> None:
+def resume(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None:
     """
         Resumes the playing of audio
     """
@@ -63,7 +63,7 @@ def resume(ctx: commands.Context) -> None:
         ctx.voice_client.resume()
 
 @decorators.Sync.logging.log
-def pause(ctx: commands.Context) -> None:
+def pause(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None:
     """
         Pauses the playing of audio
     """
