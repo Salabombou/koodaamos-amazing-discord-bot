@@ -7,6 +7,7 @@ from cogs.ffmpeg.video.green import green
 from cogs.ffmpeg.video.ruin import ruin
 from cogs.ffmpeg.video.bait import bait
 from cogs.ffmpeg.video.reverse import reverse
+from cogs.ffmpeg.video.text import text
 from cogs.tools.eduko import eduko
 from cogs.fun.dalle import dalle
 from cogs.tools.sauce import sauce
@@ -38,6 +39,7 @@ __all__ = [
     'removebg',
     'bait',
     'reverse',
+    'text',
     'qq',
     'ping',
     'gogo',

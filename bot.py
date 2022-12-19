@@ -39,7 +39,8 @@ cogs = [
     earrape, owner,
     bait, reverse,
     qq, ping,
-    gogo, mcsrvstat
+    gogo, mcsrvstat,
+    text
     #removebg
 ]
 for cog in cogs:
