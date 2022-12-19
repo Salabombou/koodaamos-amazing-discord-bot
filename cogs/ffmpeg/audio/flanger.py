@@ -1,5 +1,4 @@
 from discord.ext import commands, bridge
-import discord
 
 from utility.discord import target as discordutil
 from utility.ffmpeg import *

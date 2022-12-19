@@ -1,6 +1,6 @@
 from discord.ext import commands
-from utility.ffmpeg import CommandRunner, Videofier
 import httpx
+from utility.ffmpeg import CommandRunner, Videofier
 from utility.scraping.YouTube import YT_Extractor
 
 class command_cog:

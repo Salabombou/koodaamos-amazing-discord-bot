@@ -1,22 +1,26 @@
+
+from discord.ext import commands, bridge
+import discord
+from urllib.parse import parse_qs, urlparse
+from asyncio import AbstractEventLoop
+import numpy as np
+import validators
+import asyncio
+import math
+
+from utility.common import decorators, config
+from utility.ui.views.music import song_view
 from utility.scraping import YouTube
 from utility.common.errors import UrlInvalid, SongNotFound
 from utility.scraping.YouTube import YT_Extractor
 from utility.common.requests import get_redirect_url
-from discord.ext import commands, bridge
-from urllib.parse import parse_qs, urlparse
-import discord
-import math
-import asyncio
-from asyncio import AbstractEventLoop
-import validators
-import numpy as np
-from utility.common import decorators, config
-from utility.ui.views.music import song_view
+
 
 ffmpeg_options = {
     'options': '-vn',
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
 }
+
 
 class music_tools:
     def __init__(self, bot: commands.Bot, loop: AbstractEventLoop, yt_api_key: str) -> None:

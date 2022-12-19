@@ -1,17 +1,14 @@
 from discord.ext import commands, bridge
-from utility.common import decorators
-from utility.cog.command import command_cog
-import json
-import base64
-from utility.discord import target
-import httpx
-from utility.common.errors import AnimefierError
 import discord
-from utility.common import config
-from utility.common.command import respond
-from utility.common import file_management
+import base64
+import httpx
+import json
 import io
 
+from utility.common import config, file_management, decorators, command
+from utility.common.errors import AnimefierError
+from utility.cog.command import command_cog
+from utility.discord import target
 
 
 class qq(commands.Cog, command_cog):
@@ -73,4 +70,4 @@ class qq(commands.Cog, command_cog):
         image = await self.get_image_bytes(images=animefied_images)
         file = discord.File(fp=io.BytesIO(image), filename='unknown.jpg')
         
-        await respond(ctx, embed=embed, file=file)
+        await command.respond(ctx, embed=embed, file=file)

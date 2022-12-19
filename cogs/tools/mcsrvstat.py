@@ -1,12 +1,14 @@
 from discord.ext import commands, bridge
+import discord
+from dataclasses import dataclass
+from urllib.parse import quote
+import base64
+import httpx
+import io
+
 from utility.common import decorators, config, command
 from utility.common.errors import McSrvStatusError
-from urllib.parse import quote
-import discord
-import httpx
-from dataclasses import dataclass
-import base64
-import io
+
 
 class mcsrvstat(commands.Cog):
     """ 

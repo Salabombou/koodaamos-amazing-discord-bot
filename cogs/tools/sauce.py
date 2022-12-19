@@ -1,7 +1,7 @@
 from discord.ext import commands, bridge, pages
-import discord
-import bs4
 from requests_toolbelt import MultipartEncoder
+import bs4
+
 from utility.common import config
 from utility.cog.command import command_cog
 from utility.common import decorators

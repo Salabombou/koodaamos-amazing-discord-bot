@@ -86,8 +86,14 @@ class music(commands.Cog, command_cog):
             Lists the songs in the playlist with controls to control it
         """
         embed = self.tools.create_embed(ctx, page_num=0)
-        message = await ctx.respond(embed=embed)
-        await message.edit(view=list_view(music_self=self, ctx=await self.bot.get_context(message)))
+        message = await ctx.channel.send(embed=embed)
+        await message.edit(
+            view=list_view(
+                music_self=self,
+                ctx=await self.bot.get_context(message)
+            )
+        )
+        await ctx.respond()
 
     @bridge.bridge_command(aliases=['leave'])
     @bridge.guild_only()

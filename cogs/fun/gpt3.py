@@ -1,11 +1,11 @@
-from asyncio import AbstractEventLoop
 from discord.ext import commands, bridge
+from asyncio import AbstractEventLoop
+import concurrent.futures
+import functools
 import discord
 import openai
-import functools
-from utility.common import decorators
-from utility.common import config
-import concurrent.futures
+
+from utility.common import decorators, config
 from utility.cog.command import command_cog
 
 

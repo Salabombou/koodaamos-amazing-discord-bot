@@ -1,9 +1,7 @@
 from discord.ext import commands, bridge
-import discord
 
 from utility.discord import target as discordutil
 from utility.common import decorators, file_management
-from utility.common.command import respond
 from utility.ffmpeg import *
 from utility.cog.command import ffmpeg_cog
 
