@@ -91,7 +91,7 @@ class mcsrvstat(commands.Cog):
     async def mc(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        address: discord.Option(
+        address: bridge.core.BridgeOption(
             str,
             'The address of the server to look into',
         ) = '147.135.191.71:25582'

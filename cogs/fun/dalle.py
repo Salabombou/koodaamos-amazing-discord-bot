@@ -66,7 +66,7 @@ class dalle(commands.Cog, command_cog):
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
         *,
-        prompt: discord.Option(
+        prompt: bridge.core.BridgeOption(
             str,
             'The message to be sent to the ai'
         ) = 'a cute kitten'

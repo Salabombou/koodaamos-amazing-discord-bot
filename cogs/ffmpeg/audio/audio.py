@@ -45,7 +45,7 @@ class audio(commands.Cog, ffmpeg_cog):
     async def audio(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        url: discord.Option(
+        url: bridge.core.BridgeOption(
             str,
             'A link to a YouTube video'
         ) = 'https://youtu.be/NOaSdO5H91M'

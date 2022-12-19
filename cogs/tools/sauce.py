@@ -1,7 +1,6 @@
 from discord.ext import commands, bridge, pages
 import discord
 import bs4
-
 from requests_toolbelt import MultipartEncoder
 from utility.common import config
 from utility.cog.command import command_cog
@@ -51,7 +50,7 @@ class sauce(commands.Cog, command_cog):
     async def sauce(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        url: discord.Option(
+        url: bridge.core.BridgeOption(
             str,
             'The url to the image'
         ) = None

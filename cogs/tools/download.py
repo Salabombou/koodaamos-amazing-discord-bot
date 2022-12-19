@@ -33,7 +33,7 @@ class download(commands.Cog, command_cog):
     async def dl(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        url: discord.Option(
+        url: bridge.core.BridgeOption(
             str,
             'A link to the downloadable content (YouTube, Reddit, Tiktok, Spotify)'
         )

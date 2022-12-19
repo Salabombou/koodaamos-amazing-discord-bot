@@ -36,7 +36,7 @@ class flanger(commands.Cog, ffmpeg_cog):
     async def flan(
         self,
         ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
-        speed: discord.Option(
+        speed: bridge.core.BridgeOption(
             float,
             'The speed of the oscilation in hertz (Hz)'
         ) = 10.0

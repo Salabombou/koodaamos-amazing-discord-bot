@@ -77,7 +77,7 @@ class gogo(commands.Cog):
     async def gogo(
         self,
         ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext,
-        url: discord.Option(
+        url: bridge.core.BridgeOption(
             str,
             'The direct url to the anime episode ex. https://gogoanime.bid/steinsgate-episode-1'
         ) = None
