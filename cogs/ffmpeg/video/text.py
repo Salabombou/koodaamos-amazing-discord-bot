@@ -1,7 +1,7 @@
 from discord.ext import commands, bridge
 
 from utility.discord import target as discordutil
-from utility.common import decorators, file_management
+from utility.common import decorators, file_management, command
 from utility.ffmpeg import *
 from utility.cog.command import ffmpeg_cog
 
@@ -54,4 +54,4 @@ class text(commands.Cog, ffmpeg_cog):
             Add top text to an image or video
         """
         file, pomf_url = await self.create_output_video(ctx, text)
-        await ctx.respond(pomf_url, file=file)
+        await command.respond(ctx, pomf_url, file=file)

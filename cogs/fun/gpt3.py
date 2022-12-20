@@ -5,7 +5,8 @@ import functools
 import discord
 import openai
 
-from utility.common import decorators, config
+from utility.common import decorators, config, command
+
 from utility.cog.command import command_cog
 
 
@@ -54,4 +55,4 @@ class gpt3(commands.Cog, command_cog):
         with concurrent.futures.ThreadPoolExecutor() as pool:
             text = await loop.run_in_executor(pool, functools.partial(self.create_text, prompt=prompt))
         embed.description = f'```{text[:4090]}```'
-        await ctx.reply(embed=embed)
+        await command.respond(ctx, embed=embed)

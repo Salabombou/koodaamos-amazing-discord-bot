@@ -1,7 +1,7 @@
 from discord.ext import commands, bridge
 from utility.discord import target as discordutil
 from utility.ffmpeg import *
-from utility.common import decorators, file_management
+from utility.common import decorators, file_management, command
 from utility.cog.command import ffmpeg_cog
 
 
@@ -44,4 +44,4 @@ class earrape(commands.Cog, ffmpeg_cog):
             Ruin the audio of a video by making it extremely loud
         """
         file, pomf_url = await self.create_output_video(ctx)
-        await ctx.respond(content=pomf_url, file=file)
+        await command.respond(ctx, pomf_url, file=file)

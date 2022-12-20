@@ -2,9 +2,8 @@ from discord.ext import commands, bridge, pages
 from requests_toolbelt import MultipartEncoder
 import bs4
 
-from utility.common import config
+from utility.common import config, decorators
 from utility.cog.command import command_cog
-from utility.common import decorators
 from utility.common.errors import SauceNotFound
 from utility.discord import target as discordutil
 from utility.tools import sauce_tools

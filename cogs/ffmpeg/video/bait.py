@@ -1,7 +1,7 @@
 from discord.ext import commands, bridge
 
 from utility.discord import target as discordutil
-from utility.common import decorators, file_management
+from utility.common import decorators, file_management, command
 from utility.ffmpeg import *
 from utility.cog.command import ffmpeg_cog
 
@@ -60,4 +60,4 @@ class bait(commands.Cog, ffmpeg_cog):
             Create a prank video that plays a YouTube video after the first frame of the video
         """
         file, pomf_url = await self.create_output_video(ctx, url)
-        await ctx.respond(pomf_url, file=file)
+        await command.respond(ctx, pomf_url, file=file)

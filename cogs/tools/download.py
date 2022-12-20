@@ -46,4 +46,4 @@ class download(commands.Cog, command_cog):
         resp = await self.client.get(url)
         resp.raise_for_status()
         pomf_url, file = await file_management.prepare_file(ctx, file=resp.content, ext=ext)
-        await command.respond(ctx, content=pomf_url, file=file)
+        await command.respond(ctx, pomf_url, file=file)

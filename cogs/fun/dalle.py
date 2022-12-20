@@ -9,7 +9,7 @@ import json
 import io
 
 from utility.cog.command import command_cog
-from utility.common import decorators, config
+from utility.common import decorators, config, command
 
 
 class dalle(commands.Cog, command_cog):
@@ -79,4 +79,4 @@ class dalle(commands.Cog, command_cog):
         embed.set_image(url="attachment://unknown.png")
         image = await self.DallE_Collage(self.bot.loop, prompt)
         file = discord.File(fp=image, filename="unknown.png")
-        await ctx.respond(embed=embed, file=file)
+        await command.respond(ctx, embed=embed, file=file)

@@ -2,7 +2,7 @@ from discord.ext import commands, bridge
 
 from utility.discord import target as discordutil
 from utility.ffmpeg import *
-from utility.common import decorators, file_management
+from utility.common import decorators, file_management, command
 from utility.cog.command import ffmpeg_cog
 
 class flanger(commands.Cog, ffmpeg_cog):
@@ -44,4 +44,4 @@ class flanger(commands.Cog, ffmpeg_cog):
             Add a vibrato effect to audio
         """
         file, pomf_url = await self.create_output_video(ctx, speed)
-        await ctx.respond(pomf_url, file=file)
+        await command.respond(ctx, pomf_url, file=file)

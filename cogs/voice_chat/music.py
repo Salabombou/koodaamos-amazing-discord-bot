@@ -3,7 +3,7 @@ import asyncio
 from utility.discord import voice_chat
 from utility.tools.music_tools import music_tools
 from utility.tools import lyrics_tools
-from utility.common import decorators, config
+from utility.common import decorators, config, command
 from utility.ui.views.music import list_view
 from utility.ui.views.lyrics import lyrics_view
 from utility.cog.command import command_cog
@@ -215,7 +215,7 @@ class music(commands.Cog, command_cog):
         if self.tools.playlist[ctx.guild.id][0] == []:
             return
         embed, view = await self.tools.create_info_embed(ctx, number=number)
-        await ctx.respond(embed=embed, view=view, mention_author=False)
+        await command.respond(ctx, embed=embed, view=view, mention_author=False)
 
     @bridge.bridge_command()
     @bridge.guild_only()

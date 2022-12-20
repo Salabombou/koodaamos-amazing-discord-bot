@@ -30,7 +30,7 @@ class gogo(commands.Cog):
             if not selected_index < length:
                 raise ValueError()
         except ValueError:
-            await ctx.respond('Number invalid. Try again.', ephemeral=True, delete_after=5)
+            await command.respond(ctx, 'Number invalid. Try again.', ephemeral=True, delete_after=5)
             return await self._get_selected_index(ctx, length)
         return selected_index
     
@@ -39,7 +39,7 @@ class gogo(commands.Cog):
         
         animes = await GogoAnime.search(search_query)
         if not animes:
-            await ctx.respond('No animes found with the query %s' % search_query, mention_author=False)
+            await command.respond(ctx, 'No animes found with the query %s' % search_query, mention_author=False)
             return None
         embeds = [create_search_result_embed(anime) for anime in animes]
         paginator = pages.Paginator(
@@ -105,4 +105,4 @@ class gogo(commands.Cog):
             raise UrlInvalid()
         
         content = 'https://www.hlsplayer.org/play?url=' + urllib.parse.quote(m3u8_url)
-        await command.respond(ctx, content=content)
+        await command.respond(ctx, content)

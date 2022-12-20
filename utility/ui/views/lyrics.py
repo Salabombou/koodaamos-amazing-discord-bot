@@ -27,4 +27,4 @@ class lyrics_view(discord.ui.View):
         if len(lyrics) + 6 > config.message.max_length:
             raise LyricsTooLong()
         await self.message.edit(view=None)
-        await interaction.response.send_message(content=f'```{lyrics}```')
+        await interaction.response.send_message(f'```{lyrics}```')
