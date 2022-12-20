@@ -28,7 +28,9 @@ class text(commands.Cog, ffmpeg_cog):
 
         videofied = await self.videofier.videofy(target, borderless=True)
 
-        cmd = create_command(self.text_args, text, fontsize=videofied.width / len(text))
+        fontsize = videofied.width / len(text)
+        fontsize = fontsize if fontsize + 10 < videofied.height / 5 else videofied.height / 5 - 5
+        cmd = create_command(self.text_args, text, fontsize=fontsize)
         out = await self.command_runner.run(cmd, input=videofied.out)
 
         pomf_url, file = await file_management.prepare_file(ctx, file=out, ext='mp4')

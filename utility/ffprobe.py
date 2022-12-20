@@ -6,33 +6,22 @@ from utility.common.errors import FfprobeError
 import concurrent.futures
 import httpx
 from utility.common import decorators
+from dataclasses import dataclass
 
+@dataclass(kw_only=True)
 class FfprobeFormat:
-    def __init__(
-        self, /,
-        filename: str,
-        nb_streams: str,
-        nb_programs: str,
-        format_name: str,
-        format_long_name: str,
-        start_time: str,
-        duration: str,
-        size: str,
-        bit_rate: str,
-        probe_score: str,
-        **kwargs
-    ) -> None:
-        self.filename = filename
-        self.nb_streams = int(nb_streams)
-        self.nb_programs = int(nb_programs)
-        self.format_name = format_name.split(',')
-        self.format_long_name: str = format_long_name
-        self.start_time = start_time
-        self.duration = duration
-        self.size = size
-        self.bit_rate = bit_rate
-        self.probe_score = int(probe_score)
-        self.other = kwargs
+    filename: str = None
+    width: int = None
+    height: int = None
+    nb_streams: int = None
+    nb_programs: int = None
+    format_name: list[str] = None
+    format_long_name: str = None
+    start_time: str = None
+    duration: str = None
+    size: str = None
+    bit_rate: str = None
+    probe_score: int = None
 
 class Ffprober:
     def __init__(self, loop: AbstractEventLoop) -> None:
@@ -58,8 +47,8 @@ class Ffprober:
 
     @decorators.Async.logging.log
     @decorators.Async.ffmpeg.create_dir
-    async def get_format(self, file : str | bytes, _dir: str = None) -> dict:
-        command = 'ffprobe -show_format -pretty -loglevel error "%s"'
+    async def Probe(self, file : str | bytes, _dir: str = None) -> FfprobeFormat:
+        command = 'ffprobe -show_entries stream=width,height -show_format -pretty -loglevel error "%s"'
 
         if isinstance(file, str):
             async with httpx.AsyncClient() as client:
@@ -96,5 +85,15 @@ class Ffprober:
         
         parsed = self.output_parser(out)
         parsed['size'] = self.create_size(len(file))
-        
-        return parsed
+        parsed['width'] = int(parsed['width'])
+        parsed['height'] = int(parsed['height'])
+        parsed['nb_streams'] = int(parsed['nb_streams'])
+        parsed['nb_programs'] = int(parsed['nb_programs'])
+        parsed['format_name'] = str(parsed['format_name']).split(',')
+        parsed['probe_score'] = int(parsed['probe_score'])
+        for key in list(parsed.keys()):
+            if key not in FfprobeFormat().__dict__.keys():
+                parsed.pop(key)
+        for key, value in parsed.items():
+            parsed[key] = None if value == 'N/A' else value
+        return FfprobeFormat(**parsed)
