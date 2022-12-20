@@ -4,9 +4,8 @@ import math
 import time
 import bs4
 
-from utility.common import decorators
+from utility.common import decorators, config
 from utility.cog.command import command_cog
-from utility.common import config
 
 
 class eduko(commands.Cog, command_cog):

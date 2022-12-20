@@ -55,7 +55,7 @@ class Listeners:
         if isinstance(error, NaughtyError):
             return
         embed = create_error_embed(error)
-        await ctx.respond(embed=embed)
+        await command.respond(ctx, embed=embed)
 
     async def on_application_command_error(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, error):
         """
@@ -70,7 +70,7 @@ class Listeners:
         if isinstance(error, NaughtyError):
             return
         embed = create_error_embed(error)
-        await ctx.respond(embed=embed)
+        await command.respond(ctx, embed=embed)
 
     async def on_ready(self):
         """

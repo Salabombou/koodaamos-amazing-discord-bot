@@ -2,7 +2,7 @@ from discord.ext import commands, bridge
 import time
 
 from utility.cog.command import command_cog
-from utility.common import decorators
+from utility.common import decorators, command
 
 
 class ping(commands.Cog, command_cog):
@@ -24,6 +24,6 @@ class ping(commands.Cog, command_cog):
             Test the response time of the bot
         """
         start = time.perf_counter()
-        message = await ctx.respond(f'Pong!')
+        message = await command.respond(ctx, 'Pong!')
         end = time.perf_counter()
         await message.edit(self.ping_results(end-start))

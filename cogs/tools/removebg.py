@@ -87,5 +87,5 @@ class removebg(commands.Cog, command_cog):
         csrf_token = await self.get_csrf_token()
         trust_token = await self.get_trust_token(csrf_token)
         result = await self.get_result(csrf_token, trust_token, target.proxy_url)
-        await respond(ctx, content=result)
+        await respond(ctx, result)
 

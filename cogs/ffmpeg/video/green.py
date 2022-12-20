@@ -2,7 +2,7 @@ from discord.ext import commands, bridge
 
 from utility.discord.converter import Color
 from utility.discord import target as discordutil
-from utility.common import decorators, file_management
+from utility.common import decorators, file_management, command
 from utility.ffmpeg import *
 from utility.cog.command import ffmpeg_cog
 
@@ -72,4 +72,4 @@ class green(commands.Cog, ffmpeg_cog):
             Overlay a greenscreen video on top of an image or a video
         """
         file, pomf_url = await self.create_output_video(ctx, url, color)
-        await ctx.respond(pomf_url, file=file)
+        await command.respond(ctx, pomf_url, file=file)

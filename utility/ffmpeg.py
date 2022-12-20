@@ -212,5 +212,6 @@ class Videofier:
                 temp.name  # path to the temp file
             )
             out = await self.command_runner.run(cmd, t=duration)
-            
-        return Videofied(out, width, height)
+        
+        probed = await self.prober.Probe(out)
+        return Videofied(out, probed.width, probed.height)

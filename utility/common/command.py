@@ -6,7 +6,10 @@ import discord
 
 @decorators.Async.logging.log
 async def respond(
-    ctx: BridgeExtContext| BridgeApplicationContext, /, *,
+    ctx: BridgeExtContext| BridgeApplicationContext,
+    /,
+    content: str,
+    *,
     file: discord.File = None,
     files: list[discord.File] = None,
     mention_author=False,
@@ -15,6 +18,7 @@ async def respond(
     """
         Safely respond to commands
     """
+    kwargs['content'] = content
     if isinstance(ctx, BridgeExtContext):
         kwargs['mention_author'] = mention_author
         kwargs['file'] = file

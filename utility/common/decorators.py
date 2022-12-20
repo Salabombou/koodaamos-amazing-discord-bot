@@ -44,7 +44,7 @@ class Async:
             if isinstance(ctx, BridgeExtContext):
                 await ctx.message.add_reaction('👌')
             else:
-                await ctx.respond('👌')
+                await command.respond(ctx, '👌')
             return await func(self, ctx, *args, **kwargs)
         return wrapper
 

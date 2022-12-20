@@ -100,10 +100,8 @@ class Target(FfprobeFormat):
         """
             Probes the target using ffprobes
         """
-        result = await self.ffprober.get_format(self.proxy_url)
-        for key, value in result.items():
-            result[key] = None if value == 'N/A' else value
-        super().__init__(**result)
+        result = await self.ffprober.Probe(self.proxy_url)
+        super().__init__(**result.__dict__)
         self.has_audio = self.nb_streams > 1 or self.type == 'audio'
         self.duration_s = convert.timedelta.to_seconds(
             self.duration
