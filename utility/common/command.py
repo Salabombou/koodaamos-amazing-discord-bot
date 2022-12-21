@@ -8,7 +8,7 @@ import discord
 async def respond(
     ctx: BridgeExtContext| BridgeApplicationContext,
     /,
-    content: str,
+    content: str = '',
     *,
     file: discord.File = None,
     files: list[discord.File] = None,
