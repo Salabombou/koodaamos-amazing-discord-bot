@@ -93,6 +93,8 @@ class music(commands.Cog, command_cog):
                 ctx=await self.bot.get_context(message)
             )
         )
+        if not isinstance(ctx, bridge.BridgeApplicationContext):
+            return
         await ctx.respond()
 
     @bridge.bridge_command(aliases=['leave'])

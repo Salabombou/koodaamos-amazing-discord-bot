@@ -1,14 +1,17 @@
 import logging
 
-file_handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-terminal_handler = logging.StreamHandler()
+__file_handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+__terminal_handler = logging.StreamHandler()
 
-formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s')
+__formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s')
 
-file_handler.setFormatter(formatter)
-terminal_handler.setFormatter(formatter)
+__file_handler.setFormatter(__formatter)
+__terminal_handler.setFormatter(__formatter)
+
+__file_handler.setLevel(logging.INFO)
+__terminal_handler.setLevel(logging.ERROR)
 
 handlers = [
-   file_handler,
-   terminal_handler
+   __file_handler,
+   __terminal_handler
 ]

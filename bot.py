@@ -12,10 +12,7 @@ from cogs import *
 from utility.logging import handlers
 import logging
 
-logging.basicConfig(
-    handlers=handlers,
-    level=logging.INFO
-)
+logging.basicConfig(handlers=handlers)
 
 # Setup the bot
 bot = bridge.Bot(

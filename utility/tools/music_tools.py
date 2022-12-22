@@ -129,11 +129,6 @@ class music_tools:
         view = song_view(song)
         return embed, view
     
-    async def append_songs_from_playlist(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, playlist):
-        await asyncio.sleep(3) # just incase
-        async for batch in playlist:
-            self.append_songs(ctx, songs=batch)
-    
     #@decorators.Async.logging.log
     async def fetch_songs(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, url, no_playlists=False):
         if not validators.url(url):  # if url is invalid (implying for a search)
@@ -148,8 +143,14 @@ class music_tools:
         elif 'list' in query and not no_playlists:
             playlist = self.yt_extractor.fetch_from_playlist(playlistId=query['list'][0])
             return_value = await anext(playlist)
+            
+            async def append_songs_from_playlist():
+                await asyncio.sleep(3) # just incase
+                async for batch in playlist:
+                    self.append_songs(ctx, songs=batch)
+                    
             asyncio.run_coroutine_threadsafe(
-                self.append_songs_from_playlist(ctx, playlist),
+                append_songs_from_playlist(),
                 self.loop
             )
             return return_value
