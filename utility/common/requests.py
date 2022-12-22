@@ -1,7 +1,7 @@
 from utility.common import decorators
 import httpx
 from urllib.parse import unquote
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def get_redirect_url(url: str) -> str:
     """
         Gets the redirect url from url

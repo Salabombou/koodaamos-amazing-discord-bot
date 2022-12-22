@@ -24,7 +24,7 @@ async def __fetch_url(url: str, get_raw_url, ext):
     except DownloadFailure:
         raise DownloadFailure()
 
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def from_url(url):
     """
         Gets the raw url to the file to be downloaded

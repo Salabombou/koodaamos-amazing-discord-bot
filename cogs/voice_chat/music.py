@@ -35,7 +35,7 @@ class music(commands.Cog, command_cog):
         song: bridge.core.BridgeOption(
             str,
             'YouTube url to a song or playlist'
-        ) = 'https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'
+        ) = 'https://www.youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'
     ) -> None:
         """
             Starts the music bot and adds the songs to the playlist

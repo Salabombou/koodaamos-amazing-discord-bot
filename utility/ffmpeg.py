@@ -57,7 +57,7 @@ class CommandRunner:
     def __init__(self, loop: AbstractEventLoop) -> None:
         self.loop = loop
 
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def run(self, command: list, t: float = 60.0, output: str = 'pipe:1', arbitrary_command=False, input: bytes = None, max_duration: int | float = 180.0) -> None:
         output = output if output == 'pipe:1' else f'"{output}"'
         t = t if t < max_duration else max_duration
@@ -162,7 +162,7 @@ class Videofier:
         scale = '%s:%s' % args
         return scale
 
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     @decorators.Async.ffmpeg.create_dir
     async def videofy(self, target: target.Target, duration: int | float = None, borderless: bool = False, _dir: str = None) -> Videofied:
         if duration == None:

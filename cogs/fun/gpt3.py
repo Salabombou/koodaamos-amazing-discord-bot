@@ -20,7 +20,7 @@ class gpt3(commands.Cog, command_cog):
         openai.api_key = self.tokens['openai']
         
     
-    @decorators.Sync.logging.log
+    #@decorators.Sync.logging.log
     def create_text(self, prompt):
         response = openai.Completion.create(
             engine='text-davinci-002',

@@ -86,7 +86,7 @@ class YT_Extractor:
         info = await self.get_info(url=url, video=video, max_duration=max_duration)
         return info['url']
     
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def get_info(self, url: str = None, id: str = None, video: bool = False, max_duration: int = None) -> dict:
         """
             Gets the info from the YouTube video
@@ -153,7 +153,7 @@ class YT_Extractor:
         return ytInitialData
 
     # youtube api searches are expensive so webscraping it is
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def fetch_from_search(self, query: str) -> Video:
         """
             Scrapes the Youtube search results page for videos
@@ -174,7 +174,7 @@ class YT_Extractor:
         except VideoSearchNotFound:
             raise VideoSearchNotFound(query)
 
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def fetch_from_video(self, videoId: str) -> list[Video]:
         """
             Fetches the data from a video
@@ -201,7 +201,7 @@ class YT_Extractor:
             raise VideoUnavailable()
 
 
-    #@decorators.Async.logging.log
+    ##@decorators.Async.logging.log
     async def fetch_from_playlist(self, playlistId: str) -> list[Video]:
         """
             Fetches the data from a playlist
@@ -230,7 +230,7 @@ class YT_Extractor:
         except:
             raise YoutubeApiError()
     
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def fetch_channel_icon(self, channelId: str) -> str:
         """
             Fetches the channel icon 

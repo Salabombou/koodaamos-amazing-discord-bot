@@ -96,7 +96,7 @@ class eduko(commands.Cog, command_cog):
                 week_nums.append(text[7:])
         return week_nums
     
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def update_food_embeds(self):
         resp = await self.client.get(self.foodlist_url)
         resp.raise_for_status()

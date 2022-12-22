@@ -4,7 +4,7 @@ from discord.errors import HTTPException
 from utility.common import decorators
 import discord
 
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def respond(
     ctx: BridgeExtContext| BridgeApplicationContext,
     /,

@@ -9,10 +9,14 @@ from utility.discord.listeners import Listeners
 
 # imports all the used cogs
 from cogs import *
+from utility.logging import handlers
+import logging
 
-from utility.logging import StderrLogger, logger
-import sys
-    
+logging.basicConfig(
+    handlers=handlers,
+    level=logging.INFO
+)
+
 # Setup the bot
 bot = bridge.Bot(
     command_prefix='.',
@@ -59,5 +63,4 @@ for func in listeners:
 bot.add_check(func=check.command_checker(bot).check)
 
 if __name__ == '__main__':
-    #sys.stderr = StderrLogger(logger) # program now writes errors to a log file instead of writing to the terminal
     bot.run(tokens['discord'])

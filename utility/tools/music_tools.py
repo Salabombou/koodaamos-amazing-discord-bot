@@ -134,7 +134,7 @@ class music_tools:
         async for batch in playlist:
             self.append_songs(ctx, songs=batch)
     
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def fetch_songs(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, url, no_playlists=False):
         if not validators.url(url):  # if url is invalid (implying for a search)
             # searches for the video and returns the url to it
@@ -173,7 +173,7 @@ class music_tools:
             return
     
     # making sure this wont ever raise an exception and thus stop the music from playing
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def play_song(self, ctx: bridge.BridgeExtContext, songs=[], playnext=False, next_song=False):
         """
             Song player handler
@@ -243,6 +243,6 @@ class music_tools:
             self.loop
         )
     
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def looping_response(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> discord.Message:
         return await ctx.channel.send('LOOPING' if self.looping[ctx.guild.id] else 'NOT LOOPING', delete_after=10)

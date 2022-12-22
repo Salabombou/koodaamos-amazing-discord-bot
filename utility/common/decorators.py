@@ -2,13 +2,9 @@ import asyncio
 import discord
 import functools
 from discord.ext import commands, bridge
-from discord.ext.bridge import BridgeApplicationContext, BridgeExtContext, BridgeContext
-from discord.commands.context import ApplicationContext
+from discord.ext.bridge import BridgeApplicationContext, BridgeExtContext
 import tempfile
-from utility.logging import level, handler
-import time
-import logging
-import inspect
+from utility.common import command
 
 class Async:
 
@@ -64,14 +60,14 @@ class Async:
             finally:
                 return value
         return wrapper
-    
+    """
     class logging:
         
         @staticmethod
         def log(func):
-            """
+            \"""
                 Logs the function start and end
-            """
+            \"""
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
                 caller = inspect.stack()[1].function
@@ -90,7 +86,7 @@ class Async:
                 logger.info(f'ended with a time of {end-start:.2f} seconds')
                 return value
             return wrapper
-
+    """
     class ffmpeg:
     
         @staticmethod
@@ -138,14 +134,14 @@ class Sync: # synchronous versions for synchronous functions
             return func(self, ctx, *args, **kwargs)
         return wrapper
     
-    
+    """
     class logging:
         
         @staticmethod
         def log(func):
-            """
+            \"""
                 Logs the function start and end
-            """
+            \"""
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 caller = inspect.stack()[1].function
@@ -165,3 +161,4 @@ class Sync: # synchronous versions for synchronous functions
                 logger.info(f'ended with a time of {end-start:.2f} seconds')
                 return value
             return wrapper
+    """

@@ -83,7 +83,7 @@ async def _get_values(url):
 
     return player, iv, secret_key, decryption_key, encrypt_ajax_params
 
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def video_from_url(url):
     """
         Gets the stream url to an anime from the GogoAnime website
