@@ -44,15 +44,6 @@ class AesCbc:
         decrypted = cryptor.decrypt(content)
         return re.compile('[\\x00-\\x08\\x0b-\\x0c\\x0e-\\x1f\n\r\t]').sub('', decrypted.decode())
 
-def substring_after(string: str, sub: str):
-    """
-        Gets the substring after string
-    """
-    string = string.split(sub)[1:]
-    string = sub.join(string)
-    return string
-
-
 async def _get_values(url):
     """
         Gets the different values needed for getting the stream url
@@ -78,8 +69,7 @@ async def _get_values(url):
     
     crypto_handler = AesCbc(secret_key, iv)
     encrypt_ajax_params = crypto_handler.decrypt(data_value)
-    
-    encrypt_ajax_params = substring_after(encrypt_ajax_params, '&')
+    encrypt_ajax_params = '&'.join(encrypt_ajax_params.split('&')[1:])
 
     return player, iv, secret_key, decryption_key, encrypt_ajax_params
 

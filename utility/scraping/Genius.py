@@ -33,7 +33,7 @@ class GeniusSearchResults:
             title: str,
             url: str,
             header_image_thumbnail_url: str = '',
-            primary_artist: dict[str],
+            primary_artist: dict[str, str],
             **other
         ) -> None:
             self.api_path = api_path

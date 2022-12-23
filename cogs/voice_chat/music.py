@@ -15,7 +15,7 @@ class music(commands.Cog, command_cog):
     """
         Music bot that joins the voice channel and plays music from playlist
     """
-    def __init__(self, bot: commands.Bot, tokens: dict[str]):
+    def __init__(self, bot: commands.Bot, tokens: dict[str, str]):
         super().__init__(bot=bot, tokens=tokens)
         self.tools = music_tools(bot, bot.loop, tokens['youtube_v3'])
         self.genius = Genius.Genius(access_token=tokens['genius'])

@@ -14,7 +14,7 @@ class gpt3(commands.Cog, command_cog):
     """
         An ai chatbot that can respond to different questions and tasks
     """
-    def __init__(self, bot: commands.Bot, tokens: dict[str]):
+    def __init__(self, bot: commands.Bot, tokens: dict[str, str]):
         super().__init__(bot=bot, tokens=tokens)
         self.description = 'Outputs a response from a chat bot ai from the specified prompt'
         openai.api_key = self.tokens['openai']

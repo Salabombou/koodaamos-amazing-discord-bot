@@ -27,7 +27,13 @@ class music_tools:
         self.bot = bot
         self.loop = loop
         self.yt_extractor = YT_Extractor(loop, yt_api_key)
-        self.playlist: dict[list[list, list]] = {}
+        self.playlist: dict[
+            int,
+            list[
+                list[YouTube.Video],
+                list[YouTube.Video]
+            ]
+        ] = {}
         self.looping = {}
         self.voice_client = {}
 
@@ -195,7 +201,7 @@ class music_tools:
         if self.playlist[ctx.guild.id][0] == []:
             return
             
-        song: YouTube.Video = self.playlist[ctx.guild.id][0][0]
+        song = self.playlist[ctx.guild.id][0][0]
 
         try:
             info = await self.yt_extractor.get_info(id=song.id)

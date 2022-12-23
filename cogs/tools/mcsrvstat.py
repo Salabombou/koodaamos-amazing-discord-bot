@@ -23,7 +23,7 @@ class mcsrvstat(commands.Cog):
         port: int
         title: str
         description: str
-        players: list[dict[str]]
+        players: list[str, dict[str]]
         players_online: int
         max_players: int
         version: str

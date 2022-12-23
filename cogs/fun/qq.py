@@ -15,7 +15,7 @@ class qq(commands.Cog, command_cog):
     """
         Uploads a facial image to the CCP and responds with it animefied with AI
     """
-    def __init__(self, bot: commands.Bot, tokens: dict[str]):
+    def __init__(self, bot: commands.Bot, tokens: dict[str, str]):
         super().__init__(bot=bot, tokens=tokens)
         self.url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
         self.image_to_base64 = lambda image: base64.b64encode(image).decode('utf-8')
