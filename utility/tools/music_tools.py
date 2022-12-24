@@ -34,8 +34,8 @@ class music_tools:
                 list[YouTube.Video]
             ]
         ] = {}
-        self.looping = {}
-        self.voice_client = {}
+        self.looping: dict[int, bool] = {}
+        self.voice_client: dict[int, discord.VoiceClient] = {}
 
     # appends songs to the playlist
     def append_songs(self, ctx: bridge.BridgeExtContext, /, playnext=False, songs=[]):
@@ -131,7 +131,7 @@ class music_tools:
             icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
         except:
             icon = song.thumbnail
-        embed.set_footer(text=song.channelTitle, icon_url=icon)
+        embed.set_footer(text=song.channel, icon_url=icon)
         view = song_view(song)
         return embed, view
     
@@ -151,7 +151,10 @@ class music_tools:
             return_value = await anext(playlist)
             
             async def append_songs_from_playlist():
-                await asyncio.sleep(3) # just incase
+                await asyncio.sleep(1)
+                vc = self.voice_client[ctx.guild.id]
+                if not vc.is_playing() and not vc.is_paused():
+                    return await append_songs_from_playlist()
                 async for batch in playlist:
                     self.append_songs(ctx, songs=batch)
                     
@@ -185,17 +188,18 @@ class music_tools:
         """
             Song player handler
         """
-        if ctx.voice_client == None:
+        vc = self.voice_client[ctx.guild.id]
+        if not vc.is_connected():
             return
         
         self.append_songs(ctx, songs=songs, playnext=playnext)
         
         await asyncio.sleep(0.2)
        
-        if ctx.voice_client.is_playing() and not next_song:
+        if vc.is_playing() and not next_song:
             return
         
-        if next_song and ctx.voice_client.is_playing():
+        if next_song and vc.is_playing():
             return await self.play_song(ctx, next_song=True)
         
         if self.playlist[ctx.guild.id][0] == []:
@@ -216,10 +220,10 @@ class music_tools:
         except:
             message = None
         
-        ctx.voice_client.play(
+        vc.play(
             discord.PCMVolumeTransformer(
                 source,
-                volume=0.5
+                volume=0.75
             ),
             after=lambda _: self.next_song(ctx, message)
         )

@@ -168,14 +168,15 @@ class list_view(discord.ui.View):
         """
             Pause / resume playing
         """
-        if self.ctx.voice_client == None:
+        vc = self.tools.voice_client[self.server]
+        if not vc.is_connected():
             return
         
         await interaction.response.edit_message(view=self)
         
-        if self.ctx.voice_client.is_paused():
+        if vc.is_paused():
             return voice_chat.resume(self.ctx)
-        elif self.tools.playlist[0] != [] and not self.ctx.voice_client.is_playing():
+        elif self.tools.playlist[self.server] != [] and not vc.is_playing():
             return await self.tools.play_song(self.ctx)
         voice_chat.pause(self.ctx)
 

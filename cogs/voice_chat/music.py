@@ -110,8 +110,9 @@ class music(commands.Cog, command_cog):
         """
             Leaves the voice channel and empties the playlist
         """
-        self.tools.playlist[ctx.guild.id] = [[], []]
         await voice_chat.leave(ctx)
+        self.tools.playlist[ctx.guild.id] = [[], []]
+        self.tools.looping[ctx.guild.id] = False
         
 
     @bridge.bridge_command(aliases=['resume', 'stop'])
@@ -127,9 +128,10 @@ class music(commands.Cog, command_cog):
         """
             Pauses / resumes the currently playing song
         """
-        if ctx.voice_client.is_paused():
+        vc = self.tools.voice_client[ctx.guild.id]
+        if vc.is_paused():
             return voice_chat.resume(ctx)
-        is_playing = ctx.voice_client.is_playing() and not ctx.guild.me.voice.afk
+        is_playing = vc.is_playing() and not ctx.guild.me.voice.afk
         if self.tools.playlist[ctx.guild.id][0] != [] and not is_playing:
             return await self.tools.play_song(ctx)
         voice_chat.pause(ctx)

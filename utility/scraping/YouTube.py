@@ -14,21 +14,21 @@ import re
 import concurrent.futures
 from utility.common.config import string
 from utility.common import decorators
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 zws = string.zero_width_space
 
-@dataclass
+@dataclass(frozen=True)
 class Video:
     """
         A dataclass for the YouTube video info
     """
-    title: str = None
-    description: str = None
-    channelId: str = None
-    channelTitle: str = None
-    id: str = None
-    thumbnail: str = None
+    id: str = field(default=None, repr=False, compare=True)
+    title: str = field(default=None, repr=True, compare=False)
+    channel: str = field(default=None, repr=True, compare=False)
+    description: str = field(default=None, repr=False, compare=False)
+    channelId: str = field(default=None, repr=False, compare=False)
+    thumbnail: str = field(default=None, repr=False, compare=False)
 
 
 def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:
@@ -58,7 +58,7 @@ def _parse_data(data: dict, videoId, from_playlist: bool) -> Video:
         'title': snippet['title'],
         'description': snippet['description'],
         'channelId': channelId,
-        'channelTitle': channelTitle,
+        'channel': channelTitle,
         'id': videoId,
         'thumbnail': thumbnail
     }
