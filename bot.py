@@ -9,10 +9,18 @@ from utility.discord.listeners import Listeners
 
 # imports all the used cogs
 from cogs import *
-from utility.logging import handlers
+from utility.logging import file_handler, terminal_handler
 import logging
 
-logging.basicConfig(handlers=handlers)
+logging.basicConfig(
+    handlers=[
+        file_handler,
+        terminal_handler
+        ],
+    level=logging.INFO,
+    format='%(asctime)s:%(levelname)s:%(name)s: %(message)s',
+    datefmt=r'%Y-%m-%d %H:%M:%S'
+)
 
 # Setup the bot
 bot = bridge.Bot(
