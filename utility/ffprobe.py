@@ -45,7 +45,7 @@ class Ffprober:
             return f'{size / (1000_1000)} Mibyte'
         raise FfprobeError('File size could not be determined')
 
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     @decorators.Async.ffmpeg.create_dir
     async def Probe(self, file : str | bytes, _dir: str = None) -> FfprobeFormat:
         command = 'ffprobe -show_entries stream=width,height -show_format -pretty -loglevel error "%s"'

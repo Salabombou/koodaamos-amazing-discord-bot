@@ -2,7 +2,7 @@ from discord.ext.commands import CommandNotFound, CommandInvokeError, CheckFailu
 from discord import HTTPException, Forbidden, NotFound, ApplicationCommandInvokeError
 import discord
 from discord.ext import commands, bridge
-from utility.common.command import respond
+from utility.common import command
 from utility.common.errors import NaughtyError
 import os
 import logging

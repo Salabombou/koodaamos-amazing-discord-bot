@@ -45,7 +45,7 @@ async def wait_for_completion(host, token):
 
 upload_limit_levels = ['8', '8', '50', '100']
 
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def video(file: bytes | str, server_level, ext) -> bytes | str:
     """
         Compressing videos using the 8mb.video website so the video can be sent to discord channel

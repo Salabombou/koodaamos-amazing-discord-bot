@@ -33,7 +33,7 @@ class GeniusSearchResults:
             title: str,
             url: str,
             header_image_thumbnail_url: str = '',
-            primary_artist: dict[str],
+            primary_artist: dict[str, str],
             **other
         ) -> None:
             self.api_path = api_path
@@ -68,7 +68,7 @@ class GeniusSearchResults:
                     
             return results
         
-        @decorators.Async.logging.log
+        #@decorators.Async.logging.log
         async def GetLyrics(self) -> str:
             """
                 Gets the lyrics from the song
@@ -96,7 +96,7 @@ class Genius:
         self.access_token = access_token
         self.search_url = f'https://api.genius.com/search?access_token={access_token}&q='
     
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def Search(self, query: str) -> GeniusSearchResults:
         """
             Searches for lyrics from genius api

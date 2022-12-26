@@ -6,7 +6,7 @@ from utility.common import config
 
 client = httpx.AsyncClient(timeout=10)
 
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def get_raw_url(url: str) -> str:
     """
         Gets the raw url of the file from Reddit

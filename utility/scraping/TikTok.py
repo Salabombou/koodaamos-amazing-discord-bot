@@ -5,7 +5,7 @@ from utility.common import decorators
 client = httpx.AsyncClient()
 get_url = 'https://line.1010diy.com/web/free-mp3-finder/detail?url=%s&phonydata=false'
 
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def get_raw_url(url):
     """
         Gets the raw url of the video from TikTok

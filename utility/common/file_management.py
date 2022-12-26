@@ -8,7 +8,7 @@ from utility.common import decorators
 
 client = httpx.AsyncClient()
 
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def get_bytes(file) -> bytes:  # returns the bytes of the file to be converted
     """
         Gets the bytes from a file or a url

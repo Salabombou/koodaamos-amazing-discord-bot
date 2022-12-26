@@ -14,7 +14,7 @@ class text(commands.Cog, ffmpeg_cog):
         super().__init__(bot=bot, tokens=tokens)
         self.text_args = [
             '-i', '-',
-            '-filter_complex', '"[0]pad=width=iw:height=(ih+(ih/5)):x=0:y=(ih/5):color=white[padded];[padded]drawtext=fontfile=\'C\:/Windows/Fonts/arial.ttf\':fontsize={fontsize}:text=\'%s\':x=(w-text_w)/2:y=(h-text_h)/15[out]"',
+            '-filter_complex', '"[0]pad=width=iw:height=(ih+(ih/5)):x=0:y=(ih/5):color=white[padded];[padded]drawtext=fontfile=\'C\:/Windows/Fonts/arial.ttf\':fontsize={fontsize}:text=\'%s\':x=(w-text_w)/2:y=(h-text_h)/20[out]"',
             '-map', '[out]',
             '-map', '0:a'
         ]

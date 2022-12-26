@@ -1,21 +1,8 @@
 import logging
 
-logger = logging.getLogger('discord')
+file_handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 
-level = logging.INFO
-logger.setLevel(level)
+terminal_handler = logging.StreamHandler()
 
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-
-logger.addHandler(handler)
-
-class StderrLogger(object):
-    def __init__(self, logger: logging.Logger):
-       self.logger = logger
-
-    def write(self, buf: str):
-       self.logger.debug(buf)
-
-    def flush(self):
-        pass
+file_handler.setLevel(logging.INFO)
+terminal_handler.setLevel(logging.WARNING)

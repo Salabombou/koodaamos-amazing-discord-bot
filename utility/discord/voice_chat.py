@@ -14,7 +14,7 @@ def command_check(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext
         return True  # if the bot and the user are in the same voice channel
     return False
 
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def join(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None | discord.VoiceClient:
     """
         Joins the same voice chat the user is in
@@ -26,7 +26,7 @@ async def join(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -
         vc = await channel.connect()
         return vc
     
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def leave(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None:
     """
         Leaves the voice chat
@@ -38,7 +38,7 @@ async def leave(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) 
     if ctx.voice_client != None:
         await ctx.voice_client.disconnect()
 
-@decorators.Sync.logging.log
+#@decorators.Sync.logging.log
 def stop(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None:
     """
         Stops the bot from playing audio
@@ -50,7 +50,7 @@ def stop(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None
     if ctx.author.voice.channel == ctx.me.voice.channel:
         ctx.voice_client.stop()
 
-@decorators.Sync.logging.log
+#@decorators.Sync.logging.log
 def resume(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None:
     """
         Resumes the playing of audio
@@ -62,7 +62,7 @@ def resume(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> No
     if ctx.author.voice.channel == ctx.me.voice.channel:
         ctx.voice_client.resume()
 
-@decorators.Sync.logging.log
+#@decorators.Sync.logging.log
 def pause(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext) -> None:
     """
         Pauses the playing of audio

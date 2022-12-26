@@ -19,7 +19,7 @@ class dalle(commands.Cog, command_cog):
     def __init__(self, bot: commands.Bot, tokens):
         super().__init__(bot=bot, tokens=tokens)
 
-    @decorators.Async.logging.log
+    #@decorators.Async.logging.log
     async def DallE_Collage(self, loop: AbstractEventLoop, arg):
         images = await self.CreateImages(prompt=arg)
         images = self.ConvertImages(images)

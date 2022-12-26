@@ -15,7 +15,7 @@ class music(commands.Cog, command_cog):
     """
         Music bot that joins the voice channel and plays music from playlist
     """
-    def __init__(self, bot: commands.Bot, tokens: dict[str]):
+    def __init__(self, bot: commands.Bot, tokens: dict[str, str]):
         super().__init__(bot=bot, tokens=tokens)
         self.tools = music_tools(bot, bot.loop, tokens['youtube_v3'])
         self.genius = Genius.Genius(access_token=tokens['genius'])
@@ -35,7 +35,7 @@ class music(commands.Cog, command_cog):
         song: bridge.core.BridgeOption(
             str,
             'YouTube url to a song or playlist'
-        ) = 'https://youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'
+        ) = 'https://www.youtube.com/playlist?list=PLxqk0Y1WNUGpZVR40HTLncFl22lJzNcau'
     ) -> None:
         """
             Starts the music bot and adds the songs to the playlist
@@ -93,6 +93,8 @@ class music(commands.Cog, command_cog):
                 ctx=await self.bot.get_context(message)
             )
         )
+        if not isinstance(ctx, bridge.BridgeApplicationContext):
+            return
         await ctx.respond()
 
     @bridge.bridge_command(aliases=['leave'])
@@ -108,8 +110,9 @@ class music(commands.Cog, command_cog):
         """
             Leaves the voice channel and empties the playlist
         """
-        self.tools.playlist[ctx.guild.id] = [[], []]
         await voice_chat.leave(ctx)
+        self.tools.playlist[ctx.guild.id] = [[], []]
+        self.tools.looping[ctx.guild.id] = False
         
 
     @bridge.bridge_command(aliases=['resume', 'stop'])
@@ -125,9 +128,10 @@ class music(commands.Cog, command_cog):
         """
             Pauses / resumes the currently playing song
         """
-        if ctx.voice_client.is_paused():
+        vc = self.tools.voice_client[ctx.guild.id]
+        if vc.is_paused():
             return voice_chat.resume(ctx)
-        is_playing = ctx.voice_client.is_playing() and not ctx.guild.me.voice.afk
+        is_playing = vc.is_playing() and not ctx.guild.me.voice.afk
         if self.tools.playlist[ctx.guild.id][0] != [] and not is_playing:
             return await self.tools.play_song(ctx)
         voice_chat.pause(ctx)

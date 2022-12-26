@@ -23,7 +23,7 @@ class mcsrvstat(commands.Cog):
         port: int
         title: str
         description: str
-        players: list[dict[str]]
+        players: list[str, dict[str]]
         players_online: int
         max_players: int
         version: str
@@ -102,7 +102,7 @@ class mcsrvstat(commands.Cog):
             Fetches the current info about a minecraft server
         """
         url = self.url(address)
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(url)
             resp.raise_for_status()
         server = self.__parse_data(resp.json())

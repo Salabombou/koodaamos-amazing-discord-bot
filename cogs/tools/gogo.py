@@ -4,6 +4,7 @@ import urllib.request
 import urllib.parse
 import validators
 
+from utility.discord.converter import GogoAnimeStreamUrl
 from utility.tools.gogo_tools import create_search_result_embed, create_episode_results_embed
 from utility.scraping import GogoAnime
 from utility.common.errors import UrlInvalid
@@ -19,7 +20,11 @@ class gogo(commands.Cog):
         self.bot = bot
     
     async def _get_response_content(self, ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext):
-        response: discord.Message = await self.bot.wait_for('message', check=lambda message: message.author == ctx.author, timeout=60.0)
+        response: discord.Message = await self.bot.wait_for(
+            'message',
+            check=lambda message: message.author == ctx.author and message.channel == ctx.channel,
+            timeout=60.0
+        )
         await response.delete()
         return response.content
     
@@ -30,7 +35,7 @@ class gogo(commands.Cog):
             if not selected_index < length:
                 raise ValueError()
         except ValueError:
-            await command.respond(ctx, 'Number invalid. Try again.', ephemeral=True, delete_after=5)
+            await ctx.channel.send('Number invalid. Try again.', delete_after=2)
             return await self._get_selected_index(ctx, length)
         return selected_index
     
@@ -79,26 +84,37 @@ class gogo(commands.Cog):
         self,
         ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext,
         url: bridge.core.BridgeOption(
-            str,
+            GogoAnimeStreamUrl,
             'The direct url to the anime episode ex. https://gogoanime.bid/steinsgate-episode-1'
         ) = None
     ) -> None:
         """
             Get a link to watch an episode of an anime without ads
         """
-        if not url:
-            message = await ctx.send('Enter the search query')
-            try:
-                url = await self.get_anime(ctx, message)
-            except:
-                url = None
-            finally:
-                await message.delete()
+        
+        if url:
+            content = 'https://www.hlsplayer.org/play?url=' + urllib.parse.quote(url)
+            return await command.respond(ctx, content)
+           
+        message = await ctx.send('Enter the search query')
+        
+        exception = None
+        try:
+            url = await self.get_anime(ctx, message)
+        except Exception as e:
+            url = None
+            exception = e
+
+        await message.delete()
+        
+        if exception:
+            raise exception
+            
         if not url:
             return
         if not validators.url(url):
             raise UrlInvalid()
-        
+
         try:
             m3u8_url = await GogoAnime.video_from_url(url)
         except:

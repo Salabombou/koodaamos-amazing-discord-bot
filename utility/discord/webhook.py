@@ -30,7 +30,7 @@ async def _fetch_webhook(ctx: bridge.BridgeExtContext | bridge.BridgeApplication
         return webhook
     return await ctx.message.channel.create_webhook(name=f'{ctx.me.name}\'s Amazing Webhook', avatar=await __fetch_avatar(ctx))
 
-@decorators.Async.logging.log
+#@decorators.Async.logging.log
 async def send_message(ctx, /, *, embeds: list[Embed], files: list[File] = None):
     """
         Sends a message using webhooks
