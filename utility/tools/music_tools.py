@@ -119,8 +119,6 @@ class music_tools:
                 raise SongNotFound()
             song = self.playlist[ctx.guild.id][0][num]
         
-        song = await self.yt_extractor.fetch_from_video(video_id=song.id) # get the localized title and description
-        
         embed = discord.Embed(
             title=song.title,
             description=song.description,
@@ -210,11 +208,11 @@ class music_tools:
         song = self.playlist[ctx.guild.id][0][0]
 
         try:
-            info = await self.yt_extractor.get_info(id=song.id)
+            url = await self.yt_extractor.get_raw_url(id=song.id)
         except:
             return await self.send_song_unavailable(ctx, next_song)
 
-        source = discord.FFmpegPCMAudio(info['url'], **ffmpeg_options)
+        source = discord.FFmpegPCMAudio(url, **ffmpeg_options)
         
         try:
             embed, view = await self.create_info_embed(ctx)
