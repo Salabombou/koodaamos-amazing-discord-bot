@@ -78,11 +78,11 @@ class YT_Extractor:
         self.channel_icons = {}
         self.client = httpx.AsyncClient()
 
-    async def get_raw_url(self, url: str, video: bool = False, max_duration: int = None):
+    async def get_raw_url(self, url: str = None, id: str = None, video: bool = False, max_duration: int = None):
         """
             Gets the raw url of the video / audio from YouTube
         """
-        info = await self.get_info(url=url, video=video, max_duration=max_duration)
+        info = await self.get_info(url=url, id=id, video=video, max_duration=max_duration)
         return info['url']
     
     #@decorators.Async.logging.log
