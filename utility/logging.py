@@ -1,10 +1,6 @@
 import logging
 
-file_handler = logging.FileHandler(
-   filename='discord.log',
-   encoding='utf-8',
-   mode='w'
-)
+file_handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 
 terminal_handler = logging.StreamHandler()
 

@@ -193,7 +193,7 @@ class song_view(discord.ui.View):
         channel_link = discord.ui.Button( # link to the video creator's channel
             label='Channel',
             style=discord.ButtonStyle.link,
-            url=f'https://www.youtube.com/channel/{song.channelId}'
+            url=f'https://www.youtube.com/channel/{song.channel_id}'
         )
         
         self.add_item(song_link)

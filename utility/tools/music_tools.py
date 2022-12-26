@@ -113,12 +113,14 @@ class music_tools:
         return options
     
     async def create_info_embed(self, ctx: bridge.BridgeExtContext, number=0, song: YouTube.Video = None) -> tuple[discord.Embed, discord.ui.View]:
-        if song == None:
+        if not song:
             num = abs(number)
             if len(self.playlist[ctx.guild.id][0]) - 1 < num:
                 raise SongNotFound()
             song = self.playlist[ctx.guild.id][0][num]
-
+        
+        song = await self.yt_extractor.fetch_from_video(video_id=song.id) # get the localized title and description
+        
         embed = discord.Embed(
             title=song.title,
             description=song.description,
@@ -128,7 +130,7 @@ class music_tools:
 
         embed.set_image(url=song.thumbnail)
         try:
-            icon = await self.yt_extractor.fetch_channel_icon(channelId=song.channelId)
+            icon = await self.yt_extractor.fetch_channel_icon(channel_id=song.channel_id)
         except:
             icon = song.thumbnail
         embed.set_footer(text=song.channel, icon_url=icon)
@@ -145,9 +147,9 @@ class music_tools:
         url = await get_redirect_url(url)
         query = parse_qs(urlparse(url).query, keep_blank_values=True)
         if 'v' in query:
-            return [await self.yt_extractor.fetch_from_video(videoId=query['v'][0])]
+            return [await self.yt_extractor.fetch_from_video(video_id=query['v'][0])]
         elif 'list' in query and not no_playlists:
-            playlist = self.yt_extractor.fetch_from_playlist(playlistId=query['list'][0])
+            playlist = self.yt_extractor.fetch_from_playlist(playlist_id=query['list'][0])
             return_value = await anext(playlist)
             
             async def append_songs_from_playlist():
