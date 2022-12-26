@@ -35,7 +35,7 @@ bot = bridge.Bot(
 
 # gets the tokens
 with open('tokens.json') as file:
-    tokens = json.loads(file.read())
+    tokens: dict[str, str] = json.loads(file.read())
 
 # cogs for the bot to use
 cogs = [
