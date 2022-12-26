@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 import functools
 import pyyoutube as YouTubePy # ugly name
 from typing import Any
-
+import logging
 
 zws = string.zero_width_space
 
@@ -71,14 +71,43 @@ class YT_Extractor:
     """
         Extractor for extracting data from YouTube
     """
-    ydl_opts = {
+    
+    class __YDL_Logger:
+        """
+            Logger used to log events in yt-dlp
+        """
+        logger = logging.getLogger(f'{__name__}.yt_dlp')
+        
+        def debug(self, msg: str):
+            # both debug and info go thru here
+            level = logging.DEBUG if msg.startswith('[debug] ') else logging.INFO
+            self.logger.log(
+                level=level,
+                msg=msg
+            )
+
+        def warning(self, msg: str):
+            self.logger.log(
+                level=logging.WARNING,
+                msg=msg
+            )
+
+        def error(self, msg: str):
+            msg = ' '.join(msg.split()[1:])
+            self.logger.log(
+                level=logging.ERROR,
+                msg=msg
+            )
+    
+    ydl_opts = { # default options for yt-dlp extractor
         'noplaylist': True,
         'nocheckcertificate': True,
         'ignoreerrors': False,
         'logtostderr': False,
         'quiet': True,
         'no_warnings': True,
-        'default_search': 'auto'
+        'default_search': 'auto',
+        'logger': __YDL_Logger()
     }
     
     def __init__(self, loop: AbstractEventLoop, yt_api_key: str=None) -> None:
