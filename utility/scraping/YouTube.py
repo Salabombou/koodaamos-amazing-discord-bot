@@ -93,7 +93,7 @@ class YT_Extractor:
             )
 
         def error(self, msg: str):
-            msg = ' '.join(msg.split()[1:])
+            msg = ' '.join(msg.split()[1:]) # removes the eyesore '[ERROR]' from the error message
             self.logger.log(
                 level=logging.ERROR,
                 msg=msg
