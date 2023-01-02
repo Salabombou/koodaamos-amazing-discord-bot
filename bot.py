@@ -16,7 +16,7 @@ logging.basicConfig(
     handlers=[
         file_handler,
         terminal_handler
-        ],
+    ],
     level=logging.INFO,
     format='%(asctime)s:%(levelname)s:%(name)s: %(message)s',
     datefmt=r'%Y-%m-%d %H:%M:%S'
