@@ -11,6 +11,8 @@ from utility.common import decorators
 from utility.common import config
 from utility.common.requests import get_redirect_url
 from urllib.parse import quote
+from dataclasses import dataclass, field
+
 
 client = httpx.AsyncClient()
 
@@ -105,18 +107,29 @@ async def video_from_url(url):
 
     return file_url
 
+@dataclass(frozen=True, kw_only=True)
 class AnimeItem:
-    def __init__(self, anime: bs4.BeautifulSoup, base_url: str) -> None:
-        self.title = anime.select_one('p.name a').attrs['title']
-        self.release = anime.select_one('p.released').text
-        self.path = anime.select_one('p.name a').attrs['href']
-        self.url = base_url.rstrip('/') + self.path
-        self.thumbnail = anime.select_one('div.img a img').attrs['src']
+    title: str = field(repr=True, compare=False)
+    release: str = field(repr=False, compare=False)
+    path: str = field(repr=False, compare=True)
+    url: str = field(repr=False, compare=False)
+    thumbnail: str = field(repr=False, compare=False)
 
+
+def __parse_anime_data(anime: bs4.element.Tag, base_url: str) -> AnimeItem:
+    kwargs = {
+        'title': anime.select_one('p.name a').attrs['title'],
+        'release': anime.select_one('p.released').text.strip(),
+        'path': anime.select_one('p.name a').attrs['href'],
+        'thumbnail': anime.select_one('div.img a img').attrs['src']
+    }
+    kwargs['url'] =  base_url.rstrip('/') + kwargs['path']
+    return AnimeItem(**kwargs)
+    
 def _parse_search_doc(doc: bytes, base_url: str) -> list[AnimeItem]:
     soup = bs4.BeautifulSoup(doc, features=config.bs4.parser)
     animes = soup.select('ul.items li')
-    results = [AnimeItem(anime, base_url) for anime in animes]
+    results = [__parse_anime_data(anime, base_url) for anime in animes]
     return results
 
 async def search(query: str) -> list[AnimeItem]:
@@ -130,11 +143,21 @@ async def search(query: str) -> list[AnimeItem]:
         
     return search_results
 
+@dataclass(frozen=True, kw_only=True)
 class EpisodeItem:
-    def __init__(self, element: bs4.BeautifulSoup, base_url: str) -> None:
-        self.path = element.select_one('a').attrs['href'].lstrip()
-        self.url = base_url.rstrip('/') + self.path
-        self.number = element.select_one('div.name').contents[1].lstrip()
+    path: str = field(repr=True, compare=True)
+    url: str = field(repr=False, compare=False)
+    number: int = field(repr=False, compare=False)
+
+
+def __parse_episode_data(element: bs4.element.Tag, base_url: str) -> EpisodeItem:
+    kwargs = {
+        'path': element.select_one('a').attrs['href'].lstrip(),
+        'number': int(element.select_one('div.name').contents[1].lstrip())
+    }
+    kwargs['url'] = base_url.rstrip('/') + kwargs['path']
+    return EpisodeItem(**kwargs)
+
 
 async def _get_episodes_ajax(total_episodes: str, ID: str, base_url: str) -> list[EpisodeItem]:
     resp = await client.get(f'https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=0&ep_end={total_episodes}&id={ID}')
@@ -142,7 +165,7 @@ async def _get_episodes_ajax(total_episodes: str, ID: str, base_url: str) -> lis
     
     soup = bs4.BeautifulSoup(resp.content, features=config.bs4.parser)
     episodes = soup.select('ul#episode_related li')
-    return [EpisodeItem(episode, base_url) for episode in episodes]
+    return [__parse_episode_data(episode, base_url) for episode in episodes]
 
 async def _parse_episode_list(doc: bytes, base_url: str):
     soup = bs4.BeautifulSoup(doc, features=config.bs4.parser)

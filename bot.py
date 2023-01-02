@@ -16,7 +16,7 @@ logging.basicConfig(
     handlers=[
         file_handler,
         terminal_handler
-        ],
+    ],
     level=logging.INFO,
     format='%(asctime)s:%(levelname)s:%(name)s: %(message)s',
     datefmt=r'%Y-%m-%d %H:%M:%S'
@@ -35,7 +35,7 @@ bot = bridge.Bot(
 
 # gets the tokens
 with open('tokens.json') as file:
-    tokens = json.loads(file.read())
+    tokens: dict[str, str] = json.loads(file.read())
 
 # cogs for the bot to use
 cogs = [

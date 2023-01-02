@@ -26,8 +26,11 @@ class Async:
         
         @functools.wraps(func)
         async def wrapper(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, *args, **kwargs):
-            await ctx.defer()
-            return await func(self, ctx, *args, **kwargs)
+            if isinstance(ctx, bridge.BridgeApplicationContext):
+                await ctx.defer()
+                return await func(self, ctx, *args, **kwargs)
+            async with ctx.typing():
+                return await func(self,ctx, *args, **kwargs)
         return wrapper
 
     @staticmethod

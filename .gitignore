@@ -132,3 +132,5 @@ files/eduko/chromedriver.exe
 *.mp4
 *.temp
 *.json
+
+utility/ui/gui/

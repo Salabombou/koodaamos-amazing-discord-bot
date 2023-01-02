@@ -5,6 +5,8 @@ import bs4
 from utility.common.errors import GeniusSongsNotFound, GeniusApiError
 from utility.common import decorators
 from utility.common import config
+from dataclasses import dataclass, field
+
 
 class GeniusSearchResults:
     """
@@ -12,60 +14,48 @@ class GeniusSearchResults:
     """
     def __init__(self, results: dict) -> None:
         self.json = results
-        self.song_results = [self.SongResult(**result['result']) for result in results['hits'] if result['type'] == 'song']
-        self.best_song_result = self.song_results[0]
-
+        self.song_results = [
+            self.SongResult(
+                **self.__parse_data(
+                    result['result']
+                )
+            ) for result in results['hits'] if result['type'] == 'song'
+        ]
+        self.best_song_result = self.song_results[0] if self.song_results else None
+    
+    def __parse_data(self, data: dict):
+        for key in list(data.keys()):
+            if key not in self.SongResult().__dict__.keys():
+                data.pop(key)
+        data['primary_artist'] = data['primary_artist']['image_url']
+        return data
+    @dataclass(kw_only=True)
     class SongResult:
         """
             A class object for invidual songs from the results
         """
-        def __init__(
-            self, *,
-            api_path: str,
-            artist_names: str,
-            full_title: str,
-            id: int,
-            language: str,
-            lyrics_owner_id: int,
-            lyrics_state: str,
-            path: str,
-            release_date_components: dict,
-            title: str,
-            url: str,
-            header_image_thumbnail_url: str = '',
-            primary_artist: dict[str, str],
-            **other
-        ) -> None:
-            self.api_path = api_path
-            self.artist_names = artist_names
-            self.title = title
-            self.full_title = full_title
-            self.id = id
-            self.language = language
-            self.lyrics_owner_id = lyrics_owner_id
-            self.lyrics_state = lyrics_state
-            self.path = path
-            self.release_date = release_date_components
-            self.url = url
-            self.thumbnail = header_image_thumbnail_url
-            self.artist_icon = primary_artist['image_url']
-            self.other = other
-            self.lyrics = None
+        api_path: str = field(repr=False, compare=False, default=None)
+        artist_names: str = field(repr=True, compare=False, default=None)
+        full_title: str = field(repr=False, compare=False, default=None)
+        id: int = field(repr=False, compare=True, default=None)
+        language: str = field(repr=False, compare=False, default=None)
+        lyrics_owner_id: int = field(repr=False, compare=False, default=None)
+        lyrics_state: str = field(repr=False, compare=False, default=None)
+        release_date_components: dict = field(repr=False, compare=False, default=None)
+        title: str = field(repr=True, compare=False, default=None)
+        url: str = field(repr=False, compare=False, default=None)
+        header_image_thumbnail_url: str = field(repr=False, compare=False, default=None)
+        primary_artist: dict[str, str] = field(repr=False, compare=False, default=None)
+        path: str = field(repr=False, compare=False, default=None)
+        lyrics: str = field(repr=False, compare=False, default=None)
         
         def __parse_results(self, contents: bs4.element.Tag) -> list[str]:
             results = []
             for content in contents:
                 if isinstance(content, str):
                     results.append(content)
-                
-                if not isinstance(content, bs4.element.Tag):
-                    continue
-
-                if content.string != None:
-                    results.append(content.text)
-                else:
+                elif isinstance(content, bs4.element.Tag):
                     results += self.__parse_results(content.contents)
-                    
             return results
         
         #@decorators.Async.logging.log
@@ -108,8 +98,7 @@ class Genius:
             response = resp.json()['response']
         except:
             raise GeniusApiError()
-        if response['hits'] == []:
+        if not response['hits']:
             raise GeniusSongsNotFound(query)
-
         results = GeniusSearchResults(resp.json()['response'])
         return results
