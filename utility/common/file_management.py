@@ -2,7 +2,8 @@ import validators
 import httpx
 import io
 import discord
-from utility.scraping import compress, pomf
+from utility.scraping import pomf
+from utility.ffmpeg import compress
 from discord.ext import bridge
 from utility.common import decorators
 
@@ -24,19 +25,19 @@ async def get_bytes(file) -> bytes:  # returns the bytes of the file to be conve
     return file
 
 
-async def prepare_file(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, file: bytes | str, ext) -> str | discord.File:
+async def prepare_file(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, file: bytes | str, ext, _compressed: bool = False) -> str | discord.File:
     """
         Prepares the to be sended file
     """
     file = await get_bytes(file)
     filesize = len(file)
     filesize_limit = ctx.guild.filesize_limit
-    server_level = ctx.guild.premium_tier
     if filesize < 75 * 1000 * 1000 and not filesize < filesize_limit:
         pomf_url = await pomf.upload(file, ext)
         return pomf_url, None
-    elif not filesize < filesize_limit:
-        file = await compress.video(file, server_level, ext)
+    elif not filesize < filesize_limit and not _compressed:
+        file = await compress.video(file)
+        return await prepare_file(ctx, file, ext, True)
     file = io.BytesIO(file)
     file = discord.File(fp=file, filename='unknown.' + ext)
     return '', file

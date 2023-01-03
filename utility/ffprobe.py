@@ -7,6 +7,8 @@ import concurrent.futures
 import httpx
 from utility.common import decorators
 from dataclasses import dataclass
+import asyncio
+
 
 @dataclass(kw_only=True)
 class FfprobeFormat:
@@ -24,7 +26,9 @@ class FfprobeFormat:
     probe_score: int = None
 
 class Ffprober:
-    def __init__(self, loop: AbstractEventLoop) -> None:
+    def __init__(self, loop: AbstractEventLoop = None) -> None:
+        if not loop and not isinstance(loop, AbstractEventLoop):
+            loop = asyncio.get_running_loop()
         self.loop = loop
 
     def output_parser(self, output: str) -> dict:

@@ -11,6 +11,8 @@ import concurrent.futures
 from utility import ffprobe
 import tempfile
 from utility.common import decorators
+import asyncio
+
 
 ideal_aspect_ratio = 16 / 9
 
@@ -54,7 +56,10 @@ def create_command(command: list[str], *args, **kwargs):
 
 
 class CommandRunner:
+
     def __init__(self, loop: AbstractEventLoop) -> None:
+        if not loop and not isinstance(loop, AbstractEventLoop):
+            loop = asyncio.get_running_loop()
         self.loop = loop
 
     #@decorators.Async.logging.log
@@ -118,7 +123,9 @@ class Videofied:
 
 
 class Videofier:
-    def __init__(self, loop: AbstractEventLoop):
+    def __init__(self, loop: AbstractEventLoop = None):
+        if not loop and not isinstance(loop, AbstractEventLoop):
+            loop = asyncio.get_running_loop()
         self.command_runner = CommandRunner(loop)
         self.prober = ffprobe.Ffprober(loop)
         self.to_video = [
@@ -215,3 +222,19 @@ class Videofier:
         
         probed = await self.prober.Probe(out)
         return Videofied(out, probed.width, probed.height)
+
+
+class compress:
+    video_args = [
+        '-i', '-',
+    ]
+    
+    @staticmethod
+    async def video(video: bytes) -> bytes:
+        loop = asyncio.get_running_loop()
+        compressed = await CommandRunner(loop).run(compress.video_args, input=video)
+        return compressed
+
+    #@staticmethod
+    async def image(image: bytes) -> bytes:
+        pass
