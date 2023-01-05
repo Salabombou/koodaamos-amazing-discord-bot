@@ -49,7 +49,7 @@ cogs = [
     bait, reverse,
     qq, ping,
     gogo, mcsrvstat,
-    text
+    text, #osr2mp4
     #removebg
 ]
 for cog in cogs:
@@ -60,6 +60,7 @@ listener = Listeners(bot)
 listeners = [
     listener.on_application_command_error,
     listener.on_command_error,
+    listener.on_error,
     listener.on_ready
 ]
 for func in listeners:

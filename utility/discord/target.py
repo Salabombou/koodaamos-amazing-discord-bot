@@ -6,6 +6,9 @@ from discord import StickerItem, Embed, Attachment
 from utility.ffprobe import FfprobeFormat, Ffprober
 from utility.common import convert, decorators
 
+import httpx
+
+
 """
 THE ORDER FOR THE FILES
     Sticker
@@ -33,6 +36,7 @@ class Target(FfprobeFormat):
         self.height = None
         self.width_safe = None
         self.height_safe = None
+        self.url = target.url
         self.proxy_url = None
         self.type = None
         self.has_audio = None
@@ -43,8 +47,13 @@ class Target(FfprobeFormat):
         if isinstance(target, Embed):
             self.type = target.type
             target = self.get_embed_proxy(target)
+
         if isinstance(target, Attachment):
-            self.type = target.content_type[:5]
+            if target.content_type:
+                self.type = target.content_type.split('/')[0]
+            else:
+                self.type = target.filename.split('.')[-1]
+            
         if isinstance(target, StickerItem):
             self.type = 'image'
             self.width = 320
@@ -100,6 +109,12 @@ class Target(FfprobeFormat):
         """
             Probes the target using ffprobes
         """
+        if self.type not in ['image', 'video', 'audio']:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(self.url)
+            resp.raise_for_status()
+            self.size_bytes = len(resp.content)
+            return
         result = await self.ffprober.Probe(self.proxy_url)
         super().__init__(**result.__dict__)
         self.has_audio = self.nb_streams > 1 or self.type == 'audio'
@@ -113,10 +128,11 @@ class target_fetcher:
     """
         Fetcher used to fetch target from discord
     """
-    def __init__(self, no_aud=False, no_vid=False, no_img=False) -> None:
+    def __init__(self, ext: str, no_aud=False, no_vid=False, no_img=False) -> None:
         self.aud = not no_aud
         self.vid = not no_vid
         self.img = not no_img
+        self.ext = ext
 
         self.allowed = lambda c: (
             c == 'audio' and self.aud) or (
@@ -128,10 +144,17 @@ class target_fetcher:
             Gets the targeted file
         """
         for sticker in stickers:
-            return sticker
-        for attachment in [a for a in attachments if a.content_type != None]:
-            if self.allowed(attachment.content_type[:5]):
+            return sticker if not self.ext else None
+        for attachment in [a for a in attachments if a.content_type != None or self.ext]:
+            file_ext = attachment.filename.split('.')[-1]
+            if file_ext[-len(self.ext):] == self.ext:
                 return attachment
+            if self.ext:
+                continue
+            if self.allowed(attachment.content_type.split('/')[0]):
+                return attachment
+        if self.ext:
+            return
         for embed in [e for e in embeds if isinstance(e, Embed)]:
             if isinstance(embed.video.proxy_url, str) and self.vid:
                 return embed
@@ -141,38 +164,36 @@ class target_fetcher:
                 return embed
 
 #@decorators.Async.logging.log
-async def get_target(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, no_aud=False, no_vid=False, no_img=False) -> Target:
+async def get_target(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, ext: str = None, no_aud=False, no_vid=False, no_img=False) -> Target:
     """
         Gets the target from the discord chat
     """
     history = await ctx.channel.history(limit=100).flatten()
-    fetcher = target_fetcher(no_aud, no_vid, no_img)
+    fetcher = target_fetcher(ext, no_aud, no_vid, no_img)
     reference = None
     file = None
-    
-    if ctx.message != None:
-        reference = ctx.message.reference
+
+    if ctx.message:
         stickers = ctx.message.stickers
         attachments = ctx.message.attachments
         # if there are embeds or attachments in the command itself
         file = fetcher.get_file([], attachments, stickers)
         
     for message in history[1:]:  # first item in the list is likely the command
-        if file != None:  # if the target has been aquired
+        if file:  # if the target has been aquired
             break
         stickers = message.stickers
         attachments = message.attachments
         embeds = message.embeds
         file = fetcher.get_file(embeds, attachments, stickers)
-        
-    if reference != None:  # if its a reply
-        reply = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+
+    if ctx.message.reference:  # if its a reply
+        reply = ctx.message.reference.resolved
         embeds = reply.embeds
         attachments = reply.attachments
         stickers = reply.stickers
         file = fetcher.get_file(embeds, attachments, stickers)
-
-    if file != None:
+    if file:
         target = Target(ctx.bot.loop, file)
         await target.probe()
         if target.size_bytes > 8_000_000: # change to whatever you are comfortable with or what your pc would be win
