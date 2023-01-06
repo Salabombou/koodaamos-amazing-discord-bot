@@ -200,9 +200,9 @@ class YT_Extractor:
         """
             Fetches the data from a playlist
         """
-        condition = True
-        page_token = None
-        while condition:
+        page_token = ''
+        
+        while page_token is not None:
             try:
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     playlist = await self.loop.run_in_executor(
@@ -223,7 +223,6 @@ class YT_Extractor:
                     ) for item in items
                 ]
                 page_token = playlist.nextPageToken
-                condition = page_token is not None
                 yield videos
             except:
                 raise YoutubeApiError()
