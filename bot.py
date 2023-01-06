@@ -49,7 +49,7 @@ cogs = [
     bait, reverse,
     qq, ping,
     gogo, mcsrvstat,
-    text, #osr2mp4
+    text, osr2mp4
     #removebg
 ]
 for cog in cogs:

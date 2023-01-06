@@ -11,13 +11,10 @@ class osr2mp4(commands.Cog, command_cog):
         super().__init__(bot=bot, tokens=tokens)
     
     @bridge.bridge_command()
-    @commands.cooldown(300, 10, commands.BucketType.user)
+    @commands.cooldown(1, 300, commands.BucketType.default)
     @decorators.Async.defer
     async def osr2mp4(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext):
         replay = await target.get_target(ctx, ext='osr')
 
-        resp = await self.client.get(replay.url)
-        resp.raise_for_status()
-
-        video_url = await osu_tools.get_replay(resp.content, ctx.author.name)
+        video_url = await osu_tools.get_replay(replay.url, ctx.author.name)
         await command.respond(ctx, video_url)
