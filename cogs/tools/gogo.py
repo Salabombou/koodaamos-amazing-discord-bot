@@ -49,7 +49,7 @@ class gogo(commands.Cog):
         embeds = [create_search_result_embed(anime) for anime in animes]
         paginator = pages.Paginator(
             pages=embeds,
-            timeout=None,
+            timeout=5,
             author_check=False # this is needed beucase its buggy atm pycord fix it
         )
         await paginator.edit(message)

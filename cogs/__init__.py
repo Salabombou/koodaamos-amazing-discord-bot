@@ -20,6 +20,7 @@ from cogs.fun.qq import qq
 from cogs.tools.ping import ping
 from cogs.tools.gogo import gogo
 from cogs.tools.mcsrvstat import mcsrvstat
+from cogs.tools.osr2mp4 import osr2mp4
 
 __all__ = [
     'audio',
@@ -43,5 +44,6 @@ __all__ = [
     'qq',
     'ping',
     'gogo',
-    'mcsrvstat'
+    'mcsrvstat',
+    'osr2mp4'
 ]

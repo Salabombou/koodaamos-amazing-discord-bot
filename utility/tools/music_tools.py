@@ -174,8 +174,9 @@ class music_tools:
 
     
     async def send_song_unavailable(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, next_song: bool):
+        channel: discord.VoiceChannel = self.voice_client[ctx.guild.id].channel
         try:
-            message = await ctx.channel.send('Song unavailable, moving to next one')
+            message = await channel.send('Song unavailable, moving to next one')
             self.playlist[ctx.guild.id][0].pop(0)
             await self.play_song(ctx, next_song=next_song)
             return await message.delete(delay=1)
@@ -189,6 +190,7 @@ class music_tools:
             Song player handler
         """
         vc = self.voice_client[ctx.guild.id]
+
         if not vc.is_connected():
             return
         
@@ -216,7 +218,8 @@ class music_tools:
         
         try:
             embed, view = await self.create_info_embed(ctx)
-            message = await ctx.channel.send('Now playing:', embed=embed, view=view)
+            channel: discord.VoiceChannel = vc.channel
+            message = await channel.send('Now playing:', embed=embed, view=view)
         except:
             message = None
         

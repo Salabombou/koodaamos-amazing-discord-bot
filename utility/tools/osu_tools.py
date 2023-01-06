@@ -1,0 +1,107 @@
+import httpx
+import asyncio
+from requests_toolbelt import MultipartEncoder
+from utility.common.errors import Osr2Mp4Error
+
+fields = {
+    'replayURL': '',
+    'username': '',
+    'resolution': '1280x720',
+    'globalVolume': '100',
+    'musicVolume': '50',
+    'hitsoundVolume': '100',
+    'useSkinHitsounds': 'false',
+    'playNightcoreSamples': 'true',
+    'showHitErrorMeter': 'false',
+    'showScore': 'false',
+    'showHPBar': 'false',
+    'showComboCounter': 'false',
+    'showPPCounter': 'false',
+    'showKeyOverlay': 'false',
+    'showScoreboard': 'false',
+    'showAvatarsOnScoreboard': 'false',
+    'showBorders': 'false',
+    'showMods': 'false',
+    'showResultScreen': 'true',
+    'showHitCounter': 'false',
+    'showAimErrorMeter': 'false',
+    'customSkin': 'false',
+    'skin': 'YUGEN',
+    'useSkinCursor': 'true',
+    'useSkinColors': 'false',
+    'useBeatmapColors': 'true',
+    'cursorScaleToCS': 'false',
+    'cursorRainbow': 'false',
+    'cursorTrailGlow': 'false',
+    'drawFollowPoints': 'true',
+    'scaleToTheBeat': 'false',
+    'sliderMerge': 'false',
+    'objectsRainbow': 'false',
+    'objectsFlashToTheBeat': 'false',
+    'useHitCircleColor': 'true',
+    'seizureWarning': 'false',
+    'loadStoryboard': 'true',
+    'loadVideo': 'true',
+    'introBGDim': '0',
+    'inGameBGDim': '75',
+    'breakBGDim': '30',
+    'BGParallax': 'false',
+    'showDanserLogo': 'false',
+    'skip': 'true',
+    'cursorRipples': 'false',
+    'sliderSnakingIn': 'true',
+    'sliderSnakingOut': 'true',
+    'cursorSize': '1',
+    'cursorTrail': 'true',
+    'showUnstableRate': 'false',
+    'drawComboNumbers': 'true',
+    'addPitch': 'false',
+    'noDelete': 'false',
+    'turboMode': 'false',
+    'aimErrorMeterXPos': '1222',
+    'aimErrorMeterYPos': '586',
+    'ppCounterXPos': '5',
+    'ppCounterYPos': '150',
+    'hitCounterXPos': '5',
+    'hitCounterYPos': '195',
+    #'verificationKey': 'devmode_success'
+}
+
+
+async def __wait_for_completion(ID: int):
+    client = httpx.AsyncClient()
+    url = 'https://apis.issou.best/ordr/renders?renderID=' + str(ID)
+    
+    condition = True
+    
+    while condition:
+        await asyncio.sleep(1)
+        resp = await client.get(url)
+        resp.raise_for_status()
+        
+        render = resp.json()['renders'][0]
+        
+        condition = render['progress'] != 'Done.'
+    
+    return render['videoUrl']
+
+
+async def get_replay(replay: str, username: str):
+    fields['username'] = username
+    fields['replayURL'] = replay
+    data = MultipartEncoder(fields=fields)
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            url='https://apis.issou.best/ordr/renders',
+            headers={'Content-Type': data.content_type},
+            data=data.to_string()
+        )
+    resp_json = resp.json() if resp.status_code != 429 else {'errorCode': 429, 'message': resp.content.decode()}
+    
+    if resp_json['errorCode'] != 0:
+        raise Osr2Mp4Error(resp_json['message'])
+    
+    video_url = await __wait_for_completion(ID=resp_json['renderID'])
+    
+    return video_url

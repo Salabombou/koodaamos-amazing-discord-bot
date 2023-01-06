@@ -37,8 +37,9 @@ class Listeners:
     """
         All the listeners to be added to the bot
     """
-    def __init__(self, bot) -> None:
+    def __init__(self, bot: bridge.Bot) -> None:
         self.bot = bot
+        self.logger = logging.getLogger('discord')
 
     async def on_command_error(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext, error):
         """
@@ -54,6 +55,13 @@ class Listeners:
             return
         if isinstance(error, NaughtyError):
             return
+
+        logger = logging.getLogger(f'discord.{type(error).__name__}')
+        logger.log(
+            msg=str(error),
+            level=logging.ERROR
+        )
+
         embed = create_error_embed(error)
         await command.respond(ctx, embed=embed)
 
@@ -71,6 +79,12 @@ class Listeners:
             return
         embed = create_error_embed(error)
         await command.respond(ctx, embed=embed)
+    
+    async def on_error(self, error, *args, **kwargs):
+        self.logger.log(
+            msg=str(error),
+            level=logging.ERROR
+        )
 
     async def on_ready(self):
         """
