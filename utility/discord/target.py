@@ -170,7 +170,7 @@ async def get_target(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationCont
     """
     history = await ctx.channel.history(limit=100).flatten()
     fetcher = target_fetcher(ext, no_aud, no_vid, no_img)
-    reference = None
+
     file = None
 
     if ctx.message:
@@ -186,17 +186,20 @@ async def get_target(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationCont
         attachments = message.attachments
         embeds = message.embeds
         file = fetcher.get_file(embeds, attachments, stickers)
-
-    if ctx.message.reference:  # if its a reply
+    
+    is_reply = ctx.message.reference if not ctx.is_app else False # if its a reply
+    
+    if is_reply:  
         reply = ctx.message.reference.resolved
         embeds = reply.embeds
         attachments = reply.attachments
         stickers = reply.stickers
         file = fetcher.get_file(embeds, attachments, stickers)
-    if file:
-        target = Target(ctx.bot.loop, file)
-        await target.probe()
-        if target.size_bytes > 8_000_000: # change to whatever you are comfortable with or what your pc would be win
-            raise TargetError('File size too large')
-        return target
-    raise TargetNotFound()
+    if not file:
+        raise TargetNotFound()
+    target = Target(ctx.bot.loop, file)
+    await target.probe()
+    if target.size_bytes > 8_000_000: # change to whatever you are comfortable with or what your pc would be win
+        raise TargetError('File size too large')
+    return target
+    

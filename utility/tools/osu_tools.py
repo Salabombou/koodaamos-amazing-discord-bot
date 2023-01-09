@@ -69,19 +69,20 @@ fields = {
 
 
 async def __wait_for_completion(ID: int):
-    client = httpx.AsyncClient()
+    client = httpx.AsyncClient(timeout=10)
     url = 'https://apis.issou.best/ordr/renders?renderID=' + str(ID)
     
-    condition = True
+    render = {'progress': None}
     
-    while condition:
+    while render['progress'] != 'Done.':
         await asyncio.sleep(1)
-        resp = await client.get(url)
+        try:
+            resp = await client.get(url)
+        except httpx.ReadTimeout:
+            continue
         resp.raise_for_status()
         
         render = resp.json()['renders'][0]
-        
-        condition = render['progress'] != 'Done.'
     
     return render['videoUrl']
 
