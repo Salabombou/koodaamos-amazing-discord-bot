@@ -128,11 +128,11 @@ class target_fetcher:
     """
         Fetcher used to fetch target from discord
     """
-    def __init__(self, ext: str, no_aud=False, no_vid=False, no_img=False) -> None:
+    def __init__(self, ext: str | None, no_aud=False, no_vid=False, no_img=False) -> None:
         self.aud = not no_aud
         self.vid = not no_vid
         self.img = not no_img
-        self.ext = ext
+        self.ext = ext if ext else ''
 
         self.allowed = lambda c: (
             c == 'audio' and self.aud) or (
@@ -155,12 +155,12 @@ class target_fetcher:
                 return attachment
         if self.ext:
             return
-        for embed in [e for e in embeds if isinstance(e, Embed)]:
-            if isinstance(embed.video.proxy_url, str) and self.vid:
+        for embed in [e for e in embeds if e]:
+            if embed.video.proxy_url and self.vid:
                 return embed
-            if isinstance(embed.image.proxy_url, str) and self.img:
+            if embed.image.proxy_url and self.img:
                 return embed
-            if isinstance(embed.thumbnail.proxy_url, str) and self.img:
+            if embed.thumbnail.proxy_url and self.img:
                 return embed
 
 #@decorators.Async.logging.log
