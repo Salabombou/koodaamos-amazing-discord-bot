@@ -128,11 +128,11 @@ class target_fetcher:
     """
         Fetcher used to fetch target from discord
     """
-    def __init__(self, ext: str, no_aud=False, no_vid=False, no_img=False) -> None:
+    def __init__(self, ext: str | None, no_aud=False, no_vid=False, no_img=False) -> None:
         self.aud = not no_aud
         self.vid = not no_vid
         self.img = not no_img
-        self.ext = ext
+        self.ext = ext if ext else ''
 
         self.allowed = lambda c: (
             c == 'audio' and self.aud) or (
@@ -147,7 +147,7 @@ class target_fetcher:
             return sticker if not self.ext else None
         for attachment in [a for a in attachments if a.content_type != None or self.ext]:
             file_ext = attachment.filename.split('.')[-1]
-            if file_ext[-len(self.ext):] == self.ext:
+            if file_ext[-len(self.ext):] == self.ext: # if file_ext[-len(self.ext):] == self.ext:
                 return attachment
             if self.ext:
                 continue
@@ -155,12 +155,12 @@ class target_fetcher:
                 return attachment
         if self.ext:
             return
-        for embed in [e for e in embeds if isinstance(e, Embed)]:
-            if isinstance(embed.video.proxy_url, str) and self.vid:
+        for embed in [embed for embed in embeds if embed]:
+            if embed.video.proxy_url and self.vid:
                 return embed
-            if isinstance(embed.image.proxy_url, str) and self.img:
+            if embed.image.proxy_url and self.img:
                 return embed
-            if isinstance(embed.thumbnail.proxy_url, str) and self.img:
+            if embed.thumbnail.proxy_url and self.img:
                 return embed
 
 #@decorators.Async.logging.log
@@ -170,7 +170,7 @@ async def get_target(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationCont
     """
     history = await ctx.channel.history(limit=100).flatten()
     fetcher = target_fetcher(ext, no_aud, no_vid, no_img)
-    reference = None
+
     file = None
 
     if ctx.message:
@@ -186,17 +186,20 @@ async def get_target(ctx: bridge.BridgeExtContext | bridge.BridgeApplicationCont
         attachments = message.attachments
         embeds = message.embeds
         file = fetcher.get_file(embeds, attachments, stickers)
-
-    if ctx.message.reference:  # if its a reply
+    
+    is_reply = ctx.message.reference if not ctx.is_app else False # if its a reply
+    
+    if is_reply:  
         reply = ctx.message.reference.resolved
         embeds = reply.embeds
         attachments = reply.attachments
         stickers = reply.stickers
         file = fetcher.get_file(embeds, attachments, stickers)
-    if file:
-        target = Target(ctx.bot.loop, file)
-        await target.probe()
-        if target.size_bytes > 8_000_000: # change to whatever you are comfortable with or what your pc would be win
-            raise TargetError('File size too large')
-        return target
-    raise TargetNotFound()
+    if not file:
+        raise TargetNotFound()
+    target = Target(ctx.bot.loop, file)
+    await target.probe()
+    if target.size_bytes > 8_000_000: # change to whatever you are comfortable with or what your pc would be win
+        raise TargetError('File size too large')
+    return target
+    

@@ -13,8 +13,18 @@ class osr2mp4(commands.Cog, command_cog):
     @bridge.bridge_command()
     @commands.cooldown(1, 300, commands.BucketType.default)
     @decorators.Async.defer
-    async def osr2mp4(self, ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext):
+    async def osr2mp4(
+        self,
+        ctx: bridge.BridgeExtContext | bridge.BridgeApplicationContext,
+        no_hud: bridge.core.BridgeOption(
+            bool,
+            'Should the replay not have hud elements like combo counter and scoreboard'
+        ) = False
+    ) -> None:
+        """
+            Convert an .osr to .mp4
+        """
         replay = await target.get_target(ctx, ext='osr')
 
-        video_url = await osu_tools.get_replay(replay.url, ctx.author.name)
+        video_url = await osu_tools.get_replay(replay.url, ctx.author.name, no_hud)
         await command.respond(ctx, video_url)

@@ -3,7 +3,7 @@ import asyncio
 from requests_toolbelt import MultipartEncoder
 from utility.common.errors import Osr2Mp4Error
 
-fields = {
+default_fields = {
     'replayURL': '',
     'username': '',
     'resolution': '1280x720',
@@ -12,13 +12,13 @@ fields = {
     'hitsoundVolume': '100',
     'useSkinHitsounds': 'false',
     'playNightcoreSamples': 'true',
-    'showHitErrorMeter': 'false',
-    'showScore': 'false',
-    'showHPBar': 'false',
-    'showComboCounter': 'false',
-    'showPPCounter': 'false',
-    'showKeyOverlay': 'false',
-    'showScoreboard': 'false',
+    'showHitErrorMeter': 'true',
+    'showScore': 'true',
+    'showHPBar': 'true',
+    'showComboCounter': 'true',
+    'showPPCounter': 'true',
+    'showKeyOverlay': 'true',
+    'showScoreboard': 'true',
     'showAvatarsOnScoreboard': 'false',
     'showBorders': 'false',
     'showMods': 'false',
@@ -67,28 +67,35 @@ fields = {
     #'verificationKey': 'devmode_success'
 }
 
-
 async def __wait_for_completion(ID: int):
-    client = httpx.AsyncClient()
+    client = httpx.AsyncClient(timeout=10)
     url = 'https://apis.issou.best/ordr/renders?renderID=' + str(ID)
     
-    condition = True
+    render = {'progress': None}
     
-    while condition:
+    while render['progress'] != 'Done.':
         await asyncio.sleep(1)
-        resp = await client.get(url)
+        try:
+            resp = await client.get(url)
+        except httpx.ReadTimeout:
+            continue
         resp.raise_for_status()
         
         render = resp.json()['renders'][0]
-        
-        condition = render['progress'] != 'Done.'
     
     return render['videoUrl']
 
 
-async def get_replay(replay: str, username: str):
+async def get_replay(replay: str, username: str, no_hud=False):
+    fields = default_fields.copy() # copy by value and not reference
     fields['username'] = username
     fields['replayURL'] = replay
+    
+    if no_hud:
+        keys = ['showScore', 'showHPBar', 'showComboCounter', 'showPPCounter', 'showKeyOverlay', 'showScoreboard', 'showHitErrorMeter']
+        for key in keys:
+            fields[key] = str(False).lower() # false
+    
     data = MultipartEncoder(fields=fields)
     
     async with httpx.AsyncClient() as client:
@@ -101,6 +108,8 @@ async def get_replay(replay: str, username: str):
     
     if resp_json['errorCode'] != 0:
         raise Osr2Mp4Error(resp_json['message'])
+    
+    resp.raise_for_status()
     
     video_url = await __wait_for_completion(ID=resp_json['renderID'])
     
