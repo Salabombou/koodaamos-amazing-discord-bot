@@ -147,7 +147,7 @@ class target_fetcher:
             return sticker if not self.ext else None
         for attachment in [a for a in attachments if a.content_type != None or self.ext]:
             file_ext = attachment.filename.split('.')[-1]
-            if file_ext[-len(self.ext):] == self.ext:
+            if file_ext[-len(self.ext):] == self.ext: # if file_ext[-len(self.ext):] == self.ext:
                 return attachment
             if self.ext:
                 continue
@@ -155,7 +155,7 @@ class target_fetcher:
                 return attachment
         if self.ext:
             return
-        for embed in [e for e in embeds if e]:
+        for embed in [embed for embed in embeds if embed]:
             if embed.video.proxy_url and self.vid:
                 return embed
             if embed.image.proxy_url and self.img:
